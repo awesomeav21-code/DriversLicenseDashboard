@@ -1,0 +1,26 @@
+.footer {
+    width: 100%;
+    background-color: #0c1424;
+    color: #f9fafb;
+    padding: 12px 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-top: 1px solid #2c3e66;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 5;
+    font-size: 14px;
+  }
+  
+  .footer-content {
+    max-width: 1200px;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .footer-text {
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+  

@@ -1,0 +1,58 @@
+/* Reset and base styles */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;                      /* Correct height to match viewport */
+  overflow-y: auto;                       /* Allow vertical scrolling */
+  overflow-x: hidden;                     /* Prevent horizontal scrolling */
+  background-color: #f4faf4;              /* Base background color */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Apply border-box to all elements */
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+/* Full-page layout wrapper */
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Content expands to fill space above footer */
+.main-content {
+  flex: 1;
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 200px;       /* Feed fills space, sidebar fixed */
+  box-sizing: border-box;
+  width: 100%;
+  overflow-y: visible;                    /* Let content flow naturally */
+  overflow-x: hidden;
+}
+
+/* Centered container - updated to allow full width */
+.content-box {
+  max-width: none;
+  margin: 0;
+  width: 100%;
+  position: relative;
+}
+
+/* Left feed column */
+.content-area {
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  padding-left: 0 !important;
+  padding-right: 20px;
+  margin-left: 0 !important;
+  box-sizing: border-box;
+  overflow: visible;
+}

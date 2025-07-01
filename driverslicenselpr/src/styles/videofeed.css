@@ -1,0 +1,147 @@
+@keyframes pulse-red {
+    0% { background-color: #dc2626; opacity: 1; }
+    50% { background-color: #dc2626; opacity: 0.2; }
+    100% { background-color: #dc2626; opacity: 1; }
+  }
+  
+  @keyframes pulse-green {
+    0% { background-color: #16a34a; opacity: 1; }
+    50% { background-color: #16a34a; opacity: 0.2; }
+    100% { background-color: #16a34a; opacity: 1; }
+  }
+  
+  .video-feed-wrapper {
+    position: relative;
+    width: calc(100% + 200px);
+    left: 20px;
+    min-height: 100vh;
+    height: auto;
+    box-sizing: border-box;
+    padding: 8px 24px 8px 0;
+    background-color: #f4faf4;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+    border-radius: 16px;
+    max-width: 100%;
+    flex-grow: 1;
+  }
+  
+  /* FULL SECTION CARD */
+  .live-data-wrapper {
+    width: 100%;
+    background-color: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 16px !important;
+    padding: 24px;
+    margin-bottom: 16px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  /* "Live Data" title and red dot */
+  .live-data-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1f2937;
+  }
+  
+  .live-data-header .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #dc2626;
+    animation: pulse-red 1.5s infinite ease-in-out;
+  }
+  
+  .live-data-text {
+    user-select: none;
+  }
+  
+  /* ROW INSIDE LIVE DATA BLOCK */
+  .cameras-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    overflow: visible;
+    flex-grow: 1;
+  }
+  
+  /* INDIVIDUAL CAMERA BLOCKS */
+  .camera-section {
+    flex: 1 1 48%;
+    min-width: 280px;
+    max-width: 600px;
+    background-color: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 16px !important;
+    padding: 12px;
+    box-sizing: border-box;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+    height: auto;
+  }
+  
+  .camera-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  
+  .section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+  }
+  
+  .camera-header .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #16a34a;
+    animation: pulse-green 1.5s infinite ease-in-out;
+  }
+  
+  .cameras-with-overlay {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-sizing: border-box;
+    padding: 0;
+    background-color: transparent;
+    border-radius: 0;
+    overflow: visible !important;
+    flex-grow: 1;
+  }
+  
+  /* CAMERA ZONE GRIDS */
+  .zone-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    justify-items: center;
+    align-items: start;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 24px;
+    background-color: #f3f4f6;
+    border-radius: 16px !important;
+    overflow-y: visible;
+    flex-grow: 1;
+  }
+  
