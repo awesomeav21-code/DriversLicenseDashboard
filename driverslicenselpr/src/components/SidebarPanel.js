@@ -76,7 +76,7 @@ export default function SidebarPanel({ isDarkMode, onDatePick }) {
               </svg>
               Download Logs
             </button>
-            <button className={isDarkMode ? 'dark-button' : ''}>View Past Logs</button>
+            {/* “View Past Logs” button has been removed */}
           </div>
 
           <div className="log-entries-list">

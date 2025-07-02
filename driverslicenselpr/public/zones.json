@@ -1,0 +1,28 @@
+[
+    { "id": 1, "name": "HV1", "temperature": 145, "threshold": 140, "status": "ALERT", "lastTriggered": "14:22:01", "camera": "left" },
+    { "id": 2, "name": "XMER1", "temperature": 132, "threshold": 140, "status": "NORMAL", "lastTriggered": "Never", "camera": "left" },
+    { "id": 3, "name": "LV1", "temperature": 139, "threshold": 140, "status": "NORMAL", "lastTriggered": "Never", "camera": "left" },
+    { "id": 4, "name": "HV2", "temperature": 142, "threshold": 140, "status": "ALERT", "lastTriggered": "14:22:01", "camera": "left" },
+    { "id": 5, "name": "XMER2", "temperature": 130, "threshold": 140, "status": "NORMAL", "lastTriggered": "Never", "camera": "left" },
+    { "id": 6, "name": "LV2", "temperature": 147, "threshold": 140, "status": "ALERT", "lastTriggered": "14:22:01", "camera": "left" },
+    { "id": 7, "name": "Tie Swit", "temperature": 135, "threshold": 140, "status": "NORMAL", "lastTriggered": "Never", "camera": "left" },
+    { "id": 8, "name": "Global", "temperature": 141, "threshold": 140, "status": "ALERT", "lastTriggered": "14:22:01", "camera": "left" },
+    { "id": 9, "name": "Zone9", "temperature": 133, "threshold": 140, "status": "NORMAL", "lastTriggered": "Never", "camera": "left" },
+    { "id": 10, "name": "Zone10", "temperature": 138, "threshold": 140, "status": "NORMAL", "lastTriggered": "Never", "camera": "left" },
+    { "id": 11, "name": "Zone11", "temperature": 143, "threshold": 140, "status": "ALERT", "lastTriggered": "14:22:01", "camera": "left" },
+    { "id": 12, "name": "Zone12", "temperature": 129, "threshold": 140, "status": "NORMAL", "lastTriggered": "Never", "camera": "left" },
+  
+    { "id": 13, "name": "XMERS", "temperature": 146, "threshold": 140, "status": "ALERT", "lastTriggered": "14:22:01", "camera": "right" },
+    { "id": 14, "name": "Area2", "temperature": 131, "threshold": 140, "status": "NORMAL", "lastTriggered": "Never", "camera": "right" },
+    { "id": 15, "name": "Area3", "temperature": 144, "threshold": 140, "status": "ALERT", "lastTriggered": "14:22:01", "camera": "right" },
+    { "id": 16, "name": "Area4", "temperature": 134, "threshold": 140, "status": "NORMAL", "lastTriggered": "Never", "camera": "right" },
+    { "id": 17, "name": "Area5", "temperature": 150, "threshold": 140, "status": "ALERT", "lastTriggered": "14:22:01", "camera": "right" },
+    { "id": 18, "name": "Area6", "temperature": 139, "threshold": 140, "status": "NORMAL", "lastTriggered": "Never", "camera": "right" },
+    { "id": 19, "name": "Area7", "temperature": 130, "threshold": 140, "status": "NORMAL", "lastTriggered": "Never", "camera": "right" },
+    { "id": 20, "name": "Area8", "temperature": 148, "threshold": 140, "status": "ALERT", "lastTriggered": "14:22:01", "camera": "right" },
+    { "id": 21, "name": "Area9", "temperature": 136, "threshold": 140, "status": "NORMAL", "lastTriggered": "Never", "camera": "right" },
+    { "id": 22, "name": "Area10", "temperature": 137, "threshold": 140, "status": "NORMAL", "lastTriggered": "Never", "camera": "right" },
+    { "id": 23, "name": "Area11", "temperature": 143, "threshold": 140, "status": "ALERT", "lastTriggered": "14:22:01", "camera": "right" },
+    { "id": 24, "name": "Area12", "temperature": 128, "threshold": 140, "status": "NORMAL", "lastTriggered": "Never", "camera": "right" }
+  ]
+  

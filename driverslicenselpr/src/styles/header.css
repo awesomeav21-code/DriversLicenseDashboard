@@ -236,7 +236,14 @@
     white-space: normal;
     word-break: break-word;
   }
-  
+  /* override the help‐icon’s inline blue stroke */
+button[aria-label="Help"] svg {
+  stroke: #888888 !important;   /* gray color */
+  width: 32px !important;       /* adjust size as needed */
+  height: 32px !important;
+  stroke-width: 1 !important;   /* thinner line */
+}
+
   /* Settings dropdown */
   .settings-dropdown {
     position: absolute;
@@ -349,6 +356,30 @@
   input:checked + .slider:before {
     transform: translateX(16px);
   }
+  .settings-icon {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+  }
+  .icon-container.dropdown-parent > button[aria-label="Settings"] {
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+  .settings-icon-container {
+    border: none !important;
+    background: transparent !important;
+  }
+  
+    
+  /* if your .icon-container itself is styling the white box: */
+  .icon-container.dropdown-parent > button[aria-label="Settings"] .icon-img {
+    background: transparent;
+    border: none;
+  }
+  
   
   /* Profile */
   .profile-button {
@@ -356,7 +387,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    flex-direction: row-reverse; /* label on the left, circle on the right */
+    gap: 8px;                   /* adjust spacing between label and icon */
     background-color: transparent;
     color: white;
     padding: 6px 10px;
@@ -371,6 +403,7 @@
     transition: background-color 0.2s ease, border 0.2s ease, box-shadow 0.2s ease;
     box-shadow: none;
   }
+  
   
   .profile-button:hover {
     background-color: rgba(255, 255, 255, 0.08);
@@ -455,5 +488,9 @@
     font-weight: 700;
     color: white;
     font-size: 18px;
+  }
+  .icon-container.dropdown-parent.settings-icon-container {
+    border: none !important;
+    background-color: transparent !important;
   }
   

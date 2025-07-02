@@ -1,0 +1,67 @@
+/* styles/profile.css */
+
+.profile-button {
+    all: unset;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background-color: transparent;
+    color: white;
+    padding: 6px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 13px;
+    height: 36px;
+    min-width: 120px;
+    box-sizing: border-box;
+    transition: background-color 0.2s ease, border 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: none;
+}
+
+.profile-button:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.profile-circle {
+    background-color: #22c55e;
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: none;
+    border: none;
+}
+
+.profile-caret {
+    font-size: 13px;
+    transform: rotate(90deg);
+}
+
+.profile-menu-list {
+    list-style: none;
+    margin: 0;
+    padding: 8px 0;
+}
+
+.profile-menu-item {
+    padding: 8px 16px;
+    cursor: pointer;
+    color: black;
+    margin-top: 6px;
+}
+
+.profile-menu-item:hover,
+.profile-menu-item:focus {
+    background-color: #34D399;
+    color: white;
+    outline: none;
+}
