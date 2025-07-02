@@ -1,14 +1,16 @@
+ /* src/styles/navigation.css */
+
 .navigation {
     width: 1200px !important;
     max-width: none !important;
-    margin-left: auto !important;  /* center the whole nav */
-    margin-right: auto !important; /* center the whole nav */
+    margin-left: auto !important;
+    margin-right: auto !important;
     padding: 8px 20px 8px 0;
     background-color: #fff !important;
     display: flex !important;
-    justify-content: center !important; /* center buttons horizontally */
+    justify-content: center !important;
     align-items: center !important;
-    gap: 32px !important; /* increased gap for better spacing */
+    gap: 32px !important;
     border-radius: 0 !important;
     margin-top: 14px;
     border-bottom: none !important;
@@ -45,7 +47,6 @@
     height: 40px;
     gap: 8px;
     flex-direction: row;
-    /* Remove any margin on buttons */
     margin: 0;
   }
   
@@ -72,5 +73,28 @@
     padding: 0;
     border-radius: 0;
     box-shadow: none;
+  }
+  
+  /* Optional: Dark mode support if needed later */
+  body.dark-mode .navigation {
+    background-color: #1f2937 !important;
+  }
+  
+  body.dark-mode .nav-button {
+    color: #f9fafb;
+  }
+  
+  body.dark-mode .nav-button.active {
+    background-color: #22c55e;
+    color: black;
+  }
+  
+  body.dark-mode .nav-button:not(.active):hover {
+    background-color: #22c55e;
+    color: black;
+  }
+  
+  body.dark-mode .navigation::after {
+    background-color: #4b5563;
   }
   

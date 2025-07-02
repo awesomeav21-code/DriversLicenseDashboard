@@ -3,27 +3,104 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 100px;
-    padding: 20px 40px;
+    height: 120px;
     border-bottom: 1px solid #2c3e66;
     background-color: #0c1424;
     position: relative;
-    z-index: 10;
+    z-index: 9999;
+    padding: 24px 40px;  /* vertical padding */
     box-sizing: border-box;
     overflow: visible;
+  }
+  /* Help Manual Panel Styles */
+.manual-panel {
+    position: absolute;
+    top: 56px;
+    right: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 24px;
+    width: 420px;
+    max-width: 90vw;
+    z-index: 10000;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 14px;
+    color: #1f2937;
+    line-height: 1.6;
+    overflow-y: auto;
+    max-height: 600px;
+  }
+  
+  .manual-panel h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #111827;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 8px;
+  }
+  
+  .manual-panel .manual-section {
+    margin-bottom: 24px;
+  }
+  
+  .manual-panel .manual-section h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #111827;
+  }
+  
+  .manual-panel .manual-section p {
+    font-size: 14px;
+    color: #374151;
+    margin: 6px 0 12px;
+  }
+  
+  .manual-panel ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+  }
+  
+  .manual-panel ul li {
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 8px;
+    color: #1f2937;
+  }
+  
+  .manual-panel ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 7px;
+    width: 6px;
+    height: 6px;
+    background-color: #22c55e;
+    border-radius: 50%;
+  }
+  
+  /* Highlight for Troubleshooting Note */
+  .manual-panel .manual-section span {
+    font-weight: 600;
+    color:black !important;
+    ;
   }
   
   /* Logo section */
   .logo-container {
     display: flex;
-    align-items: stretch; /* Force children like .divider to stretch */
+    align-items: stretch;
     gap: 24px;
     flex-shrink: 0;
-    height: 100%; /* Match height of header */
+    height: 100%;
   }
   
   .logo-image {
-    height: 54px;
+    height: 60px;
     width: auto;
     display: block;
   }
@@ -32,16 +109,30 @@
     filter: brightness(0) invert(1);
   }
   
+  /* RED Divider */
+  .divider-container {
+    position: relative !important;
+    height: 120px !important;
+    display: flex !important;
+    align-items: stretch !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: auto !important;
+  }
   .divider {
-    align-self: stretch;
-    height: 100%; /* Ensure full height inside flex container */
-    width: 1px;
-    background-color: white;
-    opacity: 0.5;
-    margin: 0 24px;
+    position: absolute !important;
+    top: -24px !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 1px !important;              /* thinner */
+    background-color: gray !important; /* gray */
+    border-radius: 1px !important;
+    margin: 0 !important;
+    align-self: stretch !important;
   }
   
-  /* SSAM logo image layout */
+  
+  /* SSAM logo */
   .ssam-logo-group {
     display: flex;
     justify-content: center;
@@ -54,7 +145,7 @@
     object-fit: contain;
   }
   
-  /* Group of icons */
+  /* Header icons */
   .header-icons {
     display: flex;
     align-items: center;
@@ -63,7 +154,6 @@
     flex-wrap: nowrap;
   }
   
-  /* Each icon button container */
   .icon-container {
     width: auto;
     height: 36px;
@@ -86,7 +176,6 @@
     background-color: rgba(255, 255, 255, 0.08);
   }
   
-  /* Basic icon button style */
   .icon-button {
     all: unset;
     font-size: 14px;
@@ -109,7 +198,7 @@
   /* Alert toggle */
   .alert-toggle.on {
     background-color: #e63946;
-    margin-top: 8px; /* Added spacing from header */
+    margin-top: 8px;
   }
   
   .alert-toggle:not(.on) {
@@ -130,14 +219,10 @@
     padding: 0 6px;
   }
   
-  .alert-icon {
-    font-size: 14px;
-  }
-  
-  /* Dropdowns */
+  /* Dropdown */
   .dropdown {
     position: absolute;
-    top: 56px; /* Moved lower from 42px to avoid touching header */
+    top: 56px;
     right: 0;
     background-color: white;
     border: 1px solid #ccc;
@@ -145,14 +230,127 @@
     border-radius: 6px;
     width: 200px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    z-index: 1000;
+    z-index: 10000;
     color: black;
     font-size: 14px;
     white-space: normal;
     word-break: break-word;
   }
   
-  /* Profile section */
+  /* Settings dropdown */
+  .settings-dropdown {
+    position: absolute;
+    top: 56px;
+    right: 0;
+    width: 280px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    padding: 16px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    font-family: sans-serif;
+    color: #111827;
+    border: none;
+  }
+  
+  .settings-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 8px;
+  }
+  
+  .setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 12px;
+  }
+  
+  .setting-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .setting-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #111827;
+  }
+  
+  .setting-description {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 2px;
+  }
+  
+  /* Toggle row */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    min-width: 120px;
+  }
+  
+  .toggle-row span {
+    min-width: 18px;
+    text-align: center;
+  }
+  
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+  }
+  
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #d1d5db;
+    border-radius: 34px;
+    transition: 0.4s;
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+  }
+  
+  input:checked + .slider {
+    background-color: #2563eb;
+  }
+  
+  input:checked + .slider:before {
+    transform: translateX(16px);
+  }
+  
+  /* Profile */
   .profile-button {
     all: unset;
     display: flex;
@@ -213,7 +411,7 @@
     padding: 8px 16px;
     cursor: pointer;
     color: black;
-    margin-top: 6px; /* Added spacing so hover/active box doesn't touch header */
+    margin-top: 6px;
   }
   
   .profile-menu-item:hover,
@@ -223,10 +421,39 @@
     outline: none;
   }
   
-  /* Transparent logo utility */
   .transparent-logo {
     background-color: transparent;
     padding: 0;
     border: none;
+  }
+  
+  .substation-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.08);
+    color: white;
+    border-radius: 10px;
+    padding: 12px 28px;
+    font-size: 18px;
+    font-weight: 600;
+    margin-left: 40px;
+    height: 60px;
+    box-sizing: border-box;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .substation-title {
+    margin-right: 8px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 16px;
+  }
+  
+  .substation-name {
+    font-weight: 700;
+    color: white;
+    font-size: 18px;
   }
   

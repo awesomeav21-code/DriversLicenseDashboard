@@ -19,21 +19,27 @@
     margin: 0;
   }
   
-  /* Light mode background */
+  /* Light mode */
   .sidebar-panel.light-panel {
     background-color: #f4faf4;
   }
   
-  /* Dark mode background (transparent so body bg shows) */
+  /* Dark mode */
   .sidebar-panel.dark-panel {
-    background-color: transparent;
+    background-color: #1f2937;
   }
   
   /* Panel header */
-  .sidebar-panel h2 {
+  .sidebar-panel h2,
+  .sidebar-panel .log-title {
     font-size: 18px;
     margin-bottom: 8px;
     color: #111827;
+  }
+  
+  .sidebar-panel.dark-panel h2,
+  .sidebar-panel.dark-panel .log-title {
+    color: #f9fafb;
   }
   
   /* Event logs container */
@@ -43,9 +49,14 @@
     border: 1px solid #d1d5db;
     border-radius: 6px;
     padding: 16px;
-    background-color: #fff;
+    background-color: #ffffff;
     box-sizing: border-box;
     height: 100%;
+  }
+  
+  .sidebar-panel.dark-panel .event-logs {
+    background-color: #374151! important;
+    border-color: #374151 !important; 
   }
   
   /* Date inputs */
@@ -60,14 +71,25 @@
     color: #111827;
   }
   
+  .sidebar-panel.dark-panel .date-inputs label {
+    color: #f3f4f6;
+  }
+  
   .date-inputs input {
     width: 100%;
     padding: 6px 8px;
     margin-bottom: 12px;
     border: 1px solid #d1d5db;
     border-radius: 4px;
-    background-color: #fff;
+    background-color: #ffffff;
+    color: #111827;
     box-sizing: border-box;
+  }
+  
+  .dark-input {
+    background-color: #4b5563 !important;
+    border-color: #6b7280 !important;
+    color: #f9fafb !important;
   }
   
   /* Log buttons */
@@ -96,7 +118,13 @@
     background-color: #43a047;
   }
   
-  /* Download icon enlargement */
+  .dark-button {
+    background-color: #22c55e !important;
+    border-color: #16a34a !important;
+    color: #f0fdf4 !important;
+  }
+  
+  /* Download icon size fix */
   .download-icon {
     display: inline-block;
     transform: scale(4);
@@ -104,7 +132,7 @@
     vertical-align: middle;
   }
   
-  /* Log entries list */
+  /* Log list */
   .log-entries-list {
     display: flex;
     flex-direction: column;
@@ -114,6 +142,7 @@
     padding-right: 4px;
   }
   
+  /* Individual log entries */
   .log-entry {
     display: flex;
     flex-direction: row;
@@ -126,11 +155,22 @@
     font-size: 13px;
   }
   
+  .sidebar-panel.dark-panel .log-entry {
+    background-color: #4b5563;
+    border-color: #6b7280;
+  }
+  
+  /* Index number */
   .log-index {
     font-weight: bold;
     color: #1f2937;
   }
   
+  .sidebar-panel.dark-panel .log-index {
+    color: #f9fafb;
+  }
+  
+  /* Texts */
   .log-text {
     display: flex;
     flex-direction: column;
@@ -142,11 +182,20 @@
     color: #6b7280;
   }
   
+  .sidebar-panel.dark-panel .log-timestamp {
+    color: #d1d5db;
+  }
+  
   .log-message {
     font-size: 13px;
     color: #111827;
   }
   
+  .sidebar-panel.dark-panel .log-message {
+    color: #f9fafb;
+  }
+  
+  /* Empty state */
   .log-empty {
     font-size: 13px;
     color: #6b7280;
@@ -154,5 +203,10 @@
     background-color: #f9fafb;
     border-radius: 6px;
     text-align: center;
+  }
+  
+  .sidebar-panel.dark-panel .log-empty {
+    background-color: #374151;
+    color: #d1d5db;
   }
   

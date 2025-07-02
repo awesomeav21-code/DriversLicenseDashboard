@@ -1,18 +1,34 @@
-// src/components/VideoFeed.js
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import ZoneCards from './ZoneCard';
 import '../styles/zonecards.css';
 import '../styles/videofeed.css';
 
-export default function VideoFeed({ isDarkMode, camera1Zones = [], camera2Zones = [] }) {
+export default function VideoFeed({ isDarkMode, tempUnit, camera1Zones = [], camera2Zones = [] }) {
+  // Initialize alert toggle state with localStorage
+  const [isAlertOn, setIsAlertOn] = useState(() => {
+    const saved = localStorage.getItem('isAlertOn');
+    return saved === 'true'; // default false if not set
+  });
+
+  // Persist changes to localStorage
+  useEffect(() => {
+    localStorage.setItem('isAlertOn', isAlertOn);
+  }, [isAlertOn]);
+
+  // Toggle handler
+  const toggleAlert = () => setIsAlertOn(prev => !prev);
+
   return (
     <div className={`video-feed-wrapper ${isDarkMode ? 'dark-video' : 'light-video'}`}>
-      {/* Live Data Full Section Block */}
       <div className="live-data-wrapper">
         <div className="live-data-header">
           <span className="section-title">Live Data</span>
-          <span className="status-dot"></span>
+          <span 
+            className={`status-dot ${isAlertOn ? 'alert-on' : 'alert-off'}`} 
+            onClick={toggleAlert}
+            style={{cursor: 'pointer'}}
+            title="Toggle Alert"
+          />
         </div>
 
         <div className="cameras-row">
@@ -27,7 +43,9 @@ export default function VideoFeed({ isDarkMode, camera1Zones = [], camera2Zones 
                 <ZoneCards
                   key={zone.id}
                   zone={zone}
+                  tempUnit={tempUnit}
                   isDarkMode={isDarkMode}
+                  isAlertOn={isAlertOn}          // pass alert state down if needed
                   extraClass={zone.name.toLowerCase() === 'global' ? 'global-zone' : ''}
                 />
               ))}
@@ -45,7 +63,9 @@ export default function VideoFeed({ isDarkMode, camera1Zones = [], camera2Zones 
                 <ZoneCards
                   key={zone.id}
                   zone={zone}
+                  tempUnit={tempUnit}
                   isDarkMode={isDarkMode}
+                  isAlertOn={isAlertOn}         // pass alert state down if needed
                   extraClass={zone.name.toLowerCase() === 'global' ? 'global-zone' : ''}
                 />
               ))}

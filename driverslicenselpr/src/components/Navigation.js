@@ -3,25 +3,25 @@
 import React from 'react';
 import '../styles/navigation.css';
 
-export default function Navigation({ activeTab }) {
+export default function Navigation({ activeTab, setActiveTab, isDarkMode }) {
   return (
     <nav
-      className="navigation"
+      className={`navigation ${isDarkMode ? 'dark-nav' : 'light-nav'}`}
       style={{
-        width: 'calc(100% - 240px)',  // Adjust width for sidebar + gap
-        marginLeft: '240px',           // Shift nav right by sidebar + gap
+        width: 'calc(100% - 240px)',  // Adjust width for sidebar
+        marginLeft: '240px'           // Shift right for sidebar
       }}
     >
       <button
         className={`nav-button ${activeTab === 'dashboard' ? 'active' : ''}`}
-        onClick={e => e.preventDefault()}
+        onClick={() => setActiveTab('dashboard')}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="nav-icon"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#000"
+          stroke={isDarkMode ? '#f9fafb' : '#000'}
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -37,14 +37,14 @@ export default function Navigation({ activeTab }) {
 
       <button
         className={`nav-button thermal ${activeTab === 'thermal' ? 'active' : ''}`}
-        onClick={e => e.preventDefault()}
+        onClick={() => setActiveTab('thermal')}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="nav-icon"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#000"
+          stroke={isDarkMode ? '#f9fafb' : '#000'}
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"

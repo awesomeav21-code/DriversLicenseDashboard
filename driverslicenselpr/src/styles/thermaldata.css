@@ -1,0 +1,44 @@
+/* src/styles/thermaldata.css */
+
+.thermal-data-container {
+    width: 100%;
+    max-width: 1000px;
+    margin: 20px auto;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 24px;
+    box-sizing: border-box;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .thermal-heading {
+    font-size: 20px;
+    text-align: center;
+    margin-bottom: 16px;
+    color: #1f2937;
+    font-weight: 600;
+  }
+  
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 24px;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    color: #111827;
+  }
+  
+  .legend-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 2px;
+    margin-right: 8px;
+  }
+  

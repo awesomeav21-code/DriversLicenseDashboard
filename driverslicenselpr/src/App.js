@@ -1,3 +1,5 @@
+// src/App.js
+
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Navigation from './components/Navigation';
@@ -65,17 +67,11 @@ const createZones = () => {
 };
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState(
-    () => localStorage.getItem('activeTab') || 'dashboard'
-  );
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('activeTab') || 'dashboard');
   const [zones, setZones] = useState([]);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-
-  // Always start in light mode
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  // Always start in Fahrenheit
+  const [isDarkMode, setIsDarkMode] = useState(false); // Dark mode toggle default OFF
   const [tempUnit, setTempUnit] = useState('F');
 
   useEffect(() => {
@@ -109,7 +105,7 @@ export default function App() {
   const camera2Zones = zones.filter(z => z.camera === 'right');
 
   return (
-    <div className="page-wrapper">
+    <>
       <Header
         isDarkMode={isDarkMode}
         setIsDarkMode={setIsDarkMode}
@@ -117,45 +113,48 @@ export default function App() {
         setTempUnit={setTempUnit}
       />
 
-      <div className="main-content">
-        <SidebarPanel
-          isDarkMode={isDarkMode}
-          startDate={startDate}
-          setStartDate={setStartDate}
-          endDate={endDate}
-          setEndDate={setEndDate}
-          addZone={addZone}
-        />
+      <div className="app-layout">
+        <div className="main-content">
+          <SidebarPanel
+            isDarkMode={isDarkMode}
+            startDate={startDate}
+            setStartDate={setStartDate}
+            endDate={endDate}
+            setEndDate={setEndDate}
+            addZone={addZone}
+          />
 
-        <div className="content-area">
-          <div className="content-box">
-            <Navigation
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-              isDarkMode={isDarkMode}
-            />
-          </div>
+          <div className="content-area">
+            <div className="content-box">
+              <Navigation
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                isDarkMode={isDarkMode}
+              />
+            </div>
 
-          <div className="scroll-container">
-            {activeTab === 'dashboard' && (
-              <VideoFeed
-                isDarkMode={isDarkMode}
-                tempUnit={tempUnit}
-                camera1Zones={camera1Zones}
-                camera2Zones={camera2Zones}
-              />
-            )}
-            {activeTab === 'thermal' && (
-              <ThermalData
-                isDarkMode={isDarkMode}
-                tempUnit={tempUnit}
-              />
-            )}
+            <div className="scroll-container">
+              {activeTab === 'dashboard' && (
+                <VideoFeed
+                  isDarkMode={isDarkMode}
+                  tempUnit={tempUnit}
+                  camera1Zones={camera1Zones}
+                  camera2Zones={camera2Zones}
+                />
+              )}
+
+              {activeTab === 'thermal' && (
+                <ThermalData
+                  isDarkMode={isDarkMode}
+                  tempUnit={tempUnit}
+                />
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </>
   );
 }

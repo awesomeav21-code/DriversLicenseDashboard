@@ -8,7 +8,6 @@ export default function SidebarPanel({ isDarkMode, onDatePick }) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  // Sample dynamic log entries — replace with props or API data if needed
   const logs = [
     {
       timestamp: 'Jun 19, 2025 09:28 AM',
@@ -28,7 +27,7 @@ export default function SidebarPanel({ isDarkMode, onDatePick }) {
     <div className={`sidebar-panel ${isDarkMode ? 'dark-panel' : 'light-panel'}`}>
       <div className="sidebar-inner">
         <div className="event-logs">
-          <h2>Event Logs</h2>
+          <h2 className="log-title">Event Logs</h2>
 
           <div className="date-inputs">
             <label htmlFor="start-date">Start Date</label>
@@ -42,6 +41,7 @@ export default function SidebarPanel({ isDarkMode, onDatePick }) {
                 setStartDate(e.target.value);
                 if (onDatePick) onDatePick(e.target.value, endDate);
               }}
+              className={isDarkMode ? 'dark-input' : ''}
             />
 
             <label htmlFor="end-date">End Date</label>
@@ -55,11 +55,12 @@ export default function SidebarPanel({ isDarkMode, onDatePick }) {
                 setEndDate(e.target.value);
                 if (onDatePick) onDatePick(startDate, e.target.value);
               }}
+              className={isDarkMode ? 'dark-input' : ''}
             />
           </div>
 
           <div className="log-buttons">
-            <button>
+            <button className={isDarkMode ? 'dark-button' : ''}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="20"
@@ -75,7 +76,7 @@ export default function SidebarPanel({ isDarkMode, onDatePick }) {
               </svg>
               Download Logs
             </button>
-            <button>View Past Logs</button>
+            <button className={isDarkMode ? 'dark-button' : ''}>View Past Logs</button>
           </div>
 
           <div className="log-entries-list">

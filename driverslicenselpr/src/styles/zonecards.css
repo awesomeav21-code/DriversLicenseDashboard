@@ -1,51 +1,44 @@
 .zone-card {
-    aspect-ratio: 1 / 1;
     width: 100%;
     max-width: 160px;
-    background-color: #f3f4f6;       /* matches zone-grid */
-    border: 1px solid #e5e7eb;       /* softened border */
+    aspect-ratio: 1 / 1;                  /* Ensures square shape */
+    background-color: #f3f4f6;
+    border: 1px solid #e5e7eb;
     border-radius: 8px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-    padding: 8px;                    /* reduced padding */
+    padding: 8px;
     color: #111827;
     box-sizing: border-box;
-    gap: 2px;                        /* tighter spacing */
-    overflow: hidden;
-    font-size: 11px;                 /* smaller font to fit */
+    font-size: 11px;
     line-height: 1.2;
     text-align: center;
+    overflow: visible;
   }
   
   .zone-card * {
     margin: 0;
     padding: 0;
     max-width: 100%;
-    white-space: nowrap;
+    white-space: normal;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   
-  /* Light-mode override */
-  .zone-card.light-zone-card {
-    background-color: #f3f4f6;       /* match grid */
-    border-color: #e5e7eb;
-    color: #111827;
-  }
-  
-  /* Dark-mode override */
-  .zone-card.dark-zone-card {
-    background-color: #374151;
-    border-color: #4b5563;
+  /* Dark Mode Support */
+  .zone-card.dark-zone {
+    background-color: #1f2937;
+    border: 1px solid #4b5563;
     color: #f9fafb;
   }
   
-  /* Ensure text inside also flips in dark mode */
-  .zone-card.dark-zone-card .zone-name,
-  .zone-card.dark-zone-card .zone-temp,
-  .zone-card.dark-zone-card .zone-last {
+  .zone-card.dark-zone .zone-name,
+  .zone-card.dark-zone .zone-temp,
+  .zone-card.dark-zone .zone-threshold,
+  .zone-card.dark-zone .zone-last,
+  .zone-card.dark-zone .zone-status {
     color: #f9fafb;
   }
   

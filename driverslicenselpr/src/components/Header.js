@@ -2,12 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import '../styles/header.css';
 import ANECLogo from './images/ANEEC.png';
 import AssetLogo from './images/Assetlogo.png';
+import SettingsIcon from './images/settings.png';
 
-function Header({ substationName, isDarkMode, setIsDarkMode }) {
+function Header({ substationName, isDarkMode, setIsDarkMode, tempUnit, setTempUnit }) {
   const [showHelp, setShowHelp] = useState(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [isAlertOn, setIsAlertOn] = useState(true);
+  const [isAlertOn, setIsAlertOn] = useState(false);
 
   const helpRef = useRef(null);
   const settingsRef = useRef(null);
@@ -19,15 +20,9 @@ function Header({ substationName, isDarkMode, setIsDarkMode }) {
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (helpRef.current && !helpRef.current.contains(event.target)) {
-        setShowHelp(false);
-      }
-      if (settingsRef.current && !settingsRef.current.contains(event.target)) {
-        setShowSettingsMenu(false);
-      }
-      if (profileRef.current && !profileRef.current.contains(event.target)) {
-        setShowProfileMenu(false);
-      }
+      if (helpRef.current && !helpRef.current.contains(event.target)) setShowHelp(false);
+      if (settingsRef.current && !settingsRef.current.contains(event.target)) setShowSettingsMenu(false);
+      if (profileRef.current && !profileRef.current.contains(event.target)) setShowProfileMenu(false);
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -39,22 +34,22 @@ function Header({ substationName, isDarkMode, setIsDarkMode }) {
 
   const onHelpLeave = () => {
     helpMouseInside.current = false;
-    setTimeout(() => {
-      if (!helpMouseInside.current) setShowHelp(false);
-    }, 100);
+    setTimeout(() => { if (!helpMouseInside.current) setShowHelp(false); }, 100);
   };
   const onSettingsLeave = () => {
     settingsMouseInside.current = false;
-    setTimeout(() => {
-      if (!settingsMouseInside.current) setShowSettingsMenu(false);
-    }, 100);
+    setTimeout(() => { if (!settingsMouseInside.current) setShowSettingsMenu(false); }, 100);
   };
   const onProfileLeave = () => {
     profileMouseInside.current = false;
-    setTimeout(() => {
-      if (!profileMouseInside.current) setShowProfileMenu(false);
-    }, 100);
+    setTimeout(() => { if (!profileMouseInside.current) setShowProfileMenu(false); }, 100);
   };
+
+  const renderIcon = (d) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c7ed6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d={d} />
+    </svg>
+  );
 
   return (
     <header className="header">
@@ -62,28 +57,109 @@ function Header({ substationName, isDarkMode, setIsDarkMode }) {
         <div className="ssam-logo-group">
           <img src={AssetLogo} alt="SSAM Logo" className="ssam-image" />
         </div>
-
-        <div className="divider-container">
-          <div className="divider"></div>
+        <div className="divider-container" style={{ height: '100%' }}>
+          <div className="divider" style={{ height: '100%', alignSelf: 'stretch' }}></div>
         </div>
-
         <div className="logo transparent-logo">
           <a href={ANECLogo} target="_blank" rel="noopener noreferrer" aria-label="ANEC">
             <img src={ANECLogo} alt="ANEC Logo" className="logo-image anec-filter" />
           </a>
         </div>
-
-        <div className="substation-info" style={{ color: 'white', marginLeft: '24px', alignSelf: 'center', fontWeight: '600', fontSize: '16px' }}>
-          Substation: {substationName || 'N/A'}
+        <div className="substation-label">
+          <span className="substation-title">Substation:</span>
+          <span className="substation-name">{substationName || 'N/A'}</span>
         </div>
       </div>
 
       <div className="header-icons">
-        <div className="icon-container dropdown-parent" ref={helpRef} onMouseEnter={onHelpEnter} onMouseLeave={onHelpLeave}>
-          <button className="icon-button" aria-label="Help" onClick={() => setShowHelp(prev => !prev)}>?</button>
+        <div
+          className="icon-container dropdown-parent"
+          ref={helpRef}
+          onMouseEnter={onHelpEnter}
+          onMouseLeave={onHelpLeave}
+        >
+          <button
+            className="icon-button"
+            aria-label="Help"
+            onClick={() => setShowHelp(prev => !prev)}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#1c7ed6"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9 10a3 3 0 0 1 6 0c0 2-3 2-3 4" />
+              <circle cx="12" cy="17" r="1" />
+            </svg>
+          </button>
+
           {showHelp && (
-            <div className="dropdown help-dropdown">
-              For help, contact support@samitsolutions.com or call 123-456-7890.
+            <div
+              className="dropdown help-dropdown manual-panel"
+              onMouseEnter={() => (helpMouseInside.current = true)}
+              onMouseLeave={() => {
+                helpMouseInside.current = false;
+                setTimeout(() => {
+                  if (!helpMouseInside.current) setShowHelp(false);
+                }, 100);
+              }}
+            >
+              <h3 className="settings-title">Help Manual</h3>
+
+              <div className="manual-section">
+                <h4 className="setting-name">Dashboard Overview</h4>
+                <div className="help-feature">
+                  {renderIcon("M12 2a5 5 0 0 0-5 5v5a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5z")}
+                  <span>Monitor real-time temperature data from different zones</span>
+                </div>
+                <div className="help-feature">
+                  {renderIcon("M23 7l-7 5 7 5V7z M1 5h16v14H1V5z")}
+                  <span>View live camera feeds from PTZ, thermal, and normal cameras</span>
+                </div>
+                <div className="help-feature">
+                  {renderIcon("M12 2c4 0 8 4 8 8s-4 8-8 8-8-4-8-8 4-8 8-8z")}
+                  <span>Track AI-powered animal detection alerts</span>
+                </div>
+              </div>
+
+              <div className="manual-section">
+                <h4 className="setting-name">Temperature Monitoring</h4>
+                <div className="help-feature">
+                  {renderIcon("M10.29 3.86L1.82 18a1 1 0 0 0 .86 1.5h18.64a1 1 0 0 0 .86-1.5L13.71 3.86a1 1 0 0 0-1.72 0z")}
+                  <span>Red indicators show when temperatures exceed thresholds</span>
+                </div>
+                <div className="help-feature">
+                  {renderIcon("M4 12h16 M12 4v16")}
+                  <span>Toggle between Fahrenheit and Celsius in settings</span>
+                </div>
+              </div>
+
+              <div className="manual-section">
+                <h4 className="setting-name">Event Logs</h4>
+                <div className="help-feature">
+                  {renderIcon("M8 7V3H4a2 2 0 0 0-2 2v4h6z")}
+                  <span>Filter events by date range</span>
+                </div>
+                <div className="help-feature">
+                  {renderIcon("M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M17 8l4 4-4 4 M7 8l-4 4 4 4")}
+                  <span>Download logs for selected date range</span>
+                </div>
+              </div>
+
+              <div className="manual-section">
+                <h4 className="setting-name">Troubleshooting</h4>
+                <div className="help-feature">
+                  {renderIcon("M4.05 4.05a9 9 0 1 1 0 12.73 M1 1l22 22")}
+                  <span>If temperature shows “--°”, check network connection and refresh the page.</span>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -92,17 +168,26 @@ function Header({ substationName, isDarkMode, setIsDarkMode }) {
           <button
             className="alert-button"
             onClick={() => setIsAlertOn(prev => !prev)}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill={isAlertOn ? 'red' : 'gray'}>
               <path d="M9 21h6v-1H9v1zm3-19a7 7 0 0 0-7 7c0 2.88 1.67 5.38 4.08 6.49L9 21h6l-.08-5.51A6.987 6.987 0 0 0 15 9a7 7 0 0 0-7-7z" />
             </svg>
-            {isAlertOn ? 'ON' : 'OFF'}
           </button>
         </div>
 
-        <div className="icon-container dropdown-parent" ref={settingsRef} onMouseEnter={onSettingsEnter} onMouseLeave={onSettingsLeave}>
-          <button className="icon-button" aria-label="Settings" onClick={() => setShowSettingsMenu(prev => !prev)}>Settings</button>
+        <div
+          className="icon-container dropdown-parent"
+          ref={settingsRef}
+          onMouseEnter={onSettingsEnter}
+          onMouseLeave={onSettingsLeave}
+        >
+          <button
+            className="icon-button"
+            aria-label="Settings"
+            onClick={() => setShowSettingsMenu(prev => !prev)}
+          >
+            <img src={SettingsIcon} alt="Settings" className="icon-img" />
+          </button>
           {showSettingsMenu && (
             <div className="dropdown settings-dropdown">
               <div className="settings-title">Settings</div>
@@ -115,7 +200,11 @@ function Header({ substationName, isDarkMode, setIsDarkMode }) {
                 <div className="toggle-row">
                   <span>F°</span>
                   <label className="switch">
-                    <input type="checkbox" />
+                    <input
+                      type="checkbox"
+                      checked={tempUnit === 'C'}
+                      onChange={() => setTempUnit(tempUnit === 'F' ? 'C' : 'F')}
+                    />
                     <span className="slider" />
                   </label>
                   <span>C°</span>
@@ -131,7 +220,7 @@ function Header({ substationName, isDarkMode, setIsDarkMode }) {
                   <input
                     type="checkbox"
                     checked={isDarkMode}
-                    onChange={(e) => setIsDarkMode(e.target.checked)}
+                    onChange={e => setIsDarkMode(e.target.checked)}
                   />
                   <span className="slider" />
                 </label>
@@ -140,10 +229,18 @@ function Header({ substationName, isDarkMode, setIsDarkMode }) {
           )}
         </div>
 
-        <div className="dropdown-parent" ref={profileRef} onMouseEnter={onProfileEnter} onMouseLeave={onProfileLeave}>
-          <button className="profile-button" aria-label="User Profile" onClick={() => setShowProfileMenu(prev => !prev)}>
-            <span className="profile-label">Operator</span>
-            <div className="profile-circle">O</div>
+        <div
+          className="dropdown-parent"
+          ref={profileRef}
+          onMouseEnter={onProfileEnter}
+          onMouseLeave={onProfileLeave}
+        >
+          <button
+            className="profile-button"
+            aria-label="User Profile"
+            onClick={() => setShowProfileMenu(prev => !prev)}
+          >
+            <span className="profile-circle">O</span>
           </button>
           {showProfileMenu && (
             <div className="dropdown profile-dropdown">
