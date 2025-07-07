@@ -25,8 +25,34 @@ ChartJS.register(
 export default function ThermalPlot({ zones = [], visibleZones = [] }) {
   const [history, setHistory] = useState([])
   const [selectedCamera, setSelectedCamera] = useState('left')
+  const [chartOptions, setChartOptions] = useState(null)
 
-  // Build history only when zones change
+  // Load chart options from thermaldata.json
+  useEffect(() => {
+    fetch('/thermaldata.json')
+      .then(res => res.json())
+      .then(opt => setChartOptions(opt))
+      .catch(err => console.error('Failed to load thermaldata.json:', err))
+  }, [])
+
+  // Load history from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('thermalHistory')
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        const revived = parsed.map(e => ({
+          ...e,
+          time: new Date(e.time)
+        }))
+        setHistory(revived)
+      } catch (e) {
+        console.error('Failed to parse stored history:', e)
+      }
+    }
+  }, [])
+
+  // Update history with new readings from zones
   useEffect(() => {
     const now = new Date()
     const readings = {}
@@ -38,21 +64,21 @@ export default function ThermalPlot({ zones = [], visibleZones = [] }) {
     setHistory(prev => {
       const cutoffHour = Date.now() - 60 * 60 * 1000
       const recent = prev.filter(e => e.time.getTime() >= cutoffHour)
-      return recent.concat({ time: now, readings })
+      const updated = recent.concat({ time: now, readings })
+      localStorage.setItem('thermalHistory', JSON.stringify(updated))
+      return updated
     })
-  }, [zones])
+  }, [zones, visibleZones])
 
-  if (!history.length) {
+  if (!history.length || !chartOptions) {
     return <div style={{ padding: 20 }}>Waiting for data…</div>
   }
 
-  // only keep last 15 minutes worth of entries
   const WINDOW_MS = 15 * 60 * 1000
   const windowStart = Date.now() - WINDOW_MS
   const windowed = history.filter(e => e.time.getTime() >= windowStart)
   const sorted = windowed.slice().sort((a, b) => a.time - b.time)
 
-  // compute explicit axis bounds so the first point sits at left edge
   const firstTimeMs = sorted[0].time.getTime()
   const lastTimeMs = firstTimeMs + WINDOW_MS
 
@@ -69,67 +95,41 @@ export default function ThermalPlot({ zones = [], visibleZones = [] }) {
     borderColor: `hsl(${(idx * 45) % 360},60%,50%)`,
     backgroundColor: 'transparent',
     borderWidth: 2,
-    tension: 0.3,
+    tension: 0.4,
+    pointRadius: 3,
+    pointHoverRadius: 6,
     spanGaps: true
   }))
 
   const data = { datasets }
 
-  const options = {
-    parsing: false,
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: false,
+  const mergedOptions = {
+    ...chartOptions,
     scales: {
+      ...chartOptions.scales,
       x: {
-        type: 'time',
-        time: {
-          unit: 'minute',
-          stepSize: 2,
-          tooltipFormat: 'PPpp'
-        },
-        // anchor axis to 15-minute window beginning at firstTimeMs
+        ...chartOptions.scales.x,
         min: firstTimeMs,
-        max: lastTimeMs,
-        reverse: false,
-        ticks: {
-          maxTicksLimit: 10,
-          autoSkip: false
-        },
-        title: {
-          display: true,
-          text: 'Time'
-        }
+        max: lastTimeMs
       },
       y: {
-        min: 100,
-        max: 160,
+        ...chartOptions.scales.y,
         ticks: {
-          stepSize: 5,
+          ...chartOptions.scales.y.ticks,
           callback: v => `${v}°F`
-        },
-        title: {
-          display: true,
-          text: 'Temperature (°F)'
         }
-      }
-    },
-    plugins: {
-      legend: {
-        position: 'top',
-        labels: {
-          usePointStyle: true
-        }
-      },
-      tooltip: {
-        mode: 'index',
-        intersect: false
       }
     }
   }
 
   return (
-    <div style={{ padding: 20, height: 550 }}>
+    <div style={{
+      padding: 24,
+      height: 550,
+      backgroundColor: '#f7fdfb',
+      borderRadius: 12,
+      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.05)'
+    }}>
       <h2 style={{ marginBottom: 16 }}>Temperature Data</h2>
 
       <div style={{ marginBottom: 16 }}>
@@ -162,7 +162,7 @@ export default function ThermalPlot({ zones = [], visibleZones = [] }) {
         </button>
       </div>
 
-      <Line data={data} options={options} />
+      <Line data={data} options={mergedOptions} />
     </div>
   )
 }

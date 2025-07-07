@@ -1,0 +1,74 @@
+{
+    "parsing": false,
+    "responsive": true,
+    "maintainAspectRatio": false,
+    "animation": false,
+    "scales": {
+      "x": {
+        "type": "time",
+        "time": {
+          "unit": "minute",
+          "stepSize": 2,
+          "tooltipFormat": "PPpp"
+        },
+        "min": null,
+        "max": null,
+        "reverse": false,
+        "ticks": {
+          "maxTicksLimit": 10,
+          "autoSkip": false,
+          "font": {
+            "size": 12
+          }
+        },
+        "title": {
+          "display": true,
+          "text": "Time",
+          "font": {
+            "size": 14
+          }
+        },
+        "grid": {
+          "display": false
+        }
+      },
+      "y": {
+        "min": 100,
+        "max": 160,
+        "ticks": {
+          "stepSize": 5,
+          "font": {
+            "size": 12
+          }
+        },
+        "title": {
+          "display": true,
+          "text": "Temperature (°F)",
+          "font": {
+            "size": 14
+          }
+        },
+        "grid": {
+          "color": "#e0e0e0"
+        }
+      }
+    },
+    "plugins": {
+      "legend": {
+        "position": "top",
+        "labels": {
+          "usePointStyle": true,
+          "boxWidth": 10,
+          "padding": 16,
+          "font": {
+            "size": 13
+          }
+        }
+      },
+      "tooltip": {
+        "mode": "index",
+        "intersect": false
+      }
+    }
+  }
+  
