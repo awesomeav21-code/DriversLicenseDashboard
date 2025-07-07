@@ -101,8 +101,9 @@ export default function ThermalPlot({
   const handleHideAll = () => {
     const chart = chartRef.current
     if (!chart) return
-    chart.data.datasets.forEach(ds => {
+    chart.data.datasets.forEach((ds, idx) => {
       ds.hidden = true
+      chart.getDatasetMeta(idx).hidden = true
     })
     chart.update()
   }
@@ -110,8 +111,9 @@ export default function ThermalPlot({
   const handleShowAll = () => {
     const chart = chartRef.current
     if (!chart) return
-    chart.data.datasets.forEach(ds => {
+    chart.data.datasets.forEach((ds, idx) => {
       ds.hidden = false
+      chart.getDatasetMeta(idx).hidden = false
     })
     chart.update()
   }
@@ -192,15 +194,14 @@ export default function ThermalPlot({
     .filter(entry => new Date(entry.time).getTime() >= rangeCutoff)
     .sort((a, b) => new Date(a.time) - new Date(b.time))
 
-const timestamps = sorted.map(pt => new Date(pt.time).getTime())
-const minTime = Math.min(...timestamps)
-const maxTime = Math.max(...timestamps)
-
-const minRange = 20 * 60 * 1000 // Minimum of 20 minutes
-const span = Math.max(maxTime - minTime, minRange)
-const basePadding = span * 0.75
-const xMin = minTime - basePadding
-const xMax = maxTime + basePadding
+  const timestamps = sorted.map(pt => new Date(pt.time).getTime())
+  const minTime = Math.min(...timestamps)
+  const maxTime = Math.max(...timestamps)
+  const minRange = 20 * 60 * 1000
+  const span = Math.max(maxTime - minTime, minRange)
+  const basePadding = span * 0.75
+  const xMin = minTime - basePadding
+  const xMax = maxTime + basePadding
 
   const filteredNames = Array.from(
     new Set(
@@ -276,8 +277,21 @@ const xMax = maxTime + basePadding
     hover: { mode: 'nearest', intersect: true },
     scales: {
       ...chartOptions.scales,
-      x: { ...chartOptions.scales.x, min: xMin, max: xMax, grid: { display: false }, reverse: false },
-      y: { ...chartOptions.scales.y, grid: { display: false }, ticks: { ...chartOptions.scales.y.ticks, callback: v => `${v}°F` } }
+      x: {
+        ...chartOptions.scales.x,
+        min: xMin,
+        max: xMax,
+        grid: { display: false },
+        reverse: false
+      },
+      y: {
+        ...chartOptions.scales.y,
+        grid: { display: false },
+        ticks: {
+          ...chartOptions.scales.y.ticks,
+          callback: v => `${v}°F`
+        }
+      }
     }
   }
 
