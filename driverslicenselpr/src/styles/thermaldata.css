@@ -1,44 +1,50 @@
-/* src/styles/thermaldata.css */
+.chart-button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding-bottom: 16px;
+  flex-wrap: wrap;
+}
 
-.thermal-data-container {
-    width: 100%;
-    max-width: 1000px;
-    margin: 20px auto;
-    background-color: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 24px;
-    box-sizing: border-box;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  .thermal-heading {
-    font-size: 20px;
-    text-align: center;
-    margin-bottom: 16px;
-    color: #1f2937;
-    font-weight: 600;
-  }
-  
-  .legend {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 16px;
-    margin-top: 24px;
-  }
-  
-  .legend-item {
-    display: flex;
-    align-items: center;
-    font-size: 13px;
-    color: #111827;
-  }
-  
-  .legend-color {
-    width: 14px;
-    height: 14px;
-    border-radius: 2px;
-    margin-right: 8px;
-  }
-  
+.chart-button {
+  padding: 6px 18px;
+  background-color: transparent;
+  border: 1px solid #000000;
+  color: #000000;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: none;
+  outline: none;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.chart-button:hover {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+.zoom-left-button {
+  padding: 6px 18px;
+  background-color: transparent;
+  border: 1px solid #000000;
+  color: #000000;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: none;
+  outline: none;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  margin-right: 4px;
+}
+
+.zoom-left-button:hover {
+  background-color: #000000;
+  color: #ffffff;
+}

@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-export default function ZoneCards({ zone, extraClass = '', tempUnit = 'F', isDarkMode = false }) {
+export default function ZoneCard({ zone, extraClass = '', tempUnit = 'F', isDarkMode = false }) {
   const convertTemp = (f) => {
     return tempUnit === 'C' ? Math.round((f - 32) * (5 / 9)) : f;
   };
@@ -12,7 +12,9 @@ export default function ZoneCards({ zone, extraClass = '', tempUnit = 'F', isDar
   return (
     <div className={`zone-card ${extraClass} ${isDarkMode ? 'dark-zone' : ''}`}>
       <h4 className="zone-name">{zone.name}</h4>
-      <div className="zone-temp">{convertTemp(zone.temperature)}{unitSymbol}</div>
+      <div className="zone-temp">
+        {convertTemp(zone.temperature)}{unitSymbol}
+      </div>
       <div className="zone-threshold">
         Threshold: {convertTemp(zone.threshold)}{unitSymbol}
       </div>
