@@ -188,31 +188,39 @@ export default function ThermalPlot({
     '1m': 30 * 86400_000,
     '1y': 365 * 86400_000
   }
-
-  const rangeCutoff = Date.now() - (timeMap[timeRange] || timeMap['7d'])
+  
+  const now = Date.now()
+  const timeLimit = timeMap[timeRange] || timeMap['7d']
+  const rangeCutoff = now - timeLimit
+  
   const sorted = history
     .filter(entry => new Date(entry.time).getTime() >= rangeCutoff)
     .sort((a, b) => new Date(a.time) - new Date(b.time))
-
+  
   const timestamps = sorted.map(pt => new Date(pt.time).getTime())
-  const minTime = Math.min(...timestamps)
-  const maxTime = Math.max(...timestamps)
-  const minRange = 20 * 60 * 1000
+  
+  const minTime = timestamps.length ? Math.min(...timestamps) : now - timeLimit
+  const maxTime = timestamps.length ? Math.max(...timestamps) : now
+  
+  const minRange = 2 * 60 * 60 * 1000 // 2 hours
   const span = Math.max(maxTime - minTime, minRange)
-  const basePadding = span * 0.75
+  const basePadding = span * 0.1
+  
   const xMin = minTime - basePadding
   const xMax = maxTime + basePadding
+  
 
   const filteredNames = Array.from(
     new Set(
       history.flatMap(entry =>
-        Object.keys(entry.readings).filter(name =>
-          allZones.find(z => z.name === name && z.camera === selectedCamera)
-        )
+        Object.keys(entry.readings).filter(name => {
+          const z = allZones.find(z => z.name === name)
+          return z && z.camera === selectedCamera && visibleZones.includes(name)
+        })
       )
     )
   )
-
+  
   const datasets = filteredNames.map((name, idx) => {
     const color = `hsl(${(idx * 45) % 360},60%,50%)`
     return {
@@ -281,8 +289,22 @@ export default function ThermalPlot({
         ...chartOptions.scales.x,
         min: xMin,
         max: xMax,
-        grid: { display: false },
-        reverse: false
+        grid: { ...(chartOptions.scales.x.grid || {}), display: false },
+        reverse: false,
+        time: {
+          ...chartOptions.scales.x.time,
+          tooltipFormat: 'h:mm a',
+          displayFormats: {
+            hour: 'h:mm a',
+            minute: 'h:mm a'
+          }
+        },
+        ticks: {
+          ...chartOptions.scales.x.ticks,
+          autoSkip: true,
+          maxTicksLimit: 12,
+          font: { size: 12, family: 'Segoe UI' }
+        }
       },
       y: {
         ...chartOptions.scales.y,
@@ -294,6 +316,7 @@ export default function ThermalPlot({
       }
     }
   }
+  
 
   return (
     <div style={{

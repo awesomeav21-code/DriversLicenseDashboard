@@ -30,8 +30,13 @@
       "type": "time",
       "time": {
         "unit": "minute",
-        "stepSize": 2,
-        "tooltipFormat": "hh:mm a"
+        "stepSize": 30,
+        "tooltipFormat": "h:mm a",
+        "displayFormats": {
+          "minute": "h:mm a",
+          "hour": "MMM d, h a",
+          "day": "MMM d"
+        }
       },
       "grid": { "display": false },
       "reverse": false,
