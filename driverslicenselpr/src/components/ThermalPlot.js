@@ -47,7 +47,7 @@ export default function ThermalPlot({
   )
   const [chartOptions, setChartOptions] = useState(null)
   const [initialRange, setInitialRange] = useState(null)
-  const [timeRange, setTimeRange] = useState('7d')
+  const [timeRange, setTimeRange] = useState('1h')
   const [showExportMenu, setShowExportMenu] = useState(false)
 
   const updateHistory = camera => {
@@ -189,31 +189,32 @@ export default function ThermalPlot({
     '1y': 365 * 86400_000
   }
   
-  const now = Date.now()
   const timeLimit = timeMap[timeRange] || timeMap['7d']
-  const rangeCutoff = now - timeLimit
+  const currentTime = Date.now()
+  const rangeCutoff = currentTime - timeLimit
   
   const sorted = history
     .filter(entry => new Date(entry.time).getTime() >= rangeCutoff)
     .sort((a, b) => new Date(a.time) - new Date(b.time))
   
-  const timestamps = sorted.map(pt => new Date(pt.time).getTime())
+    let xMin = rangeCutoff
+    let xMax = currentTime
+    
+    // Add padding only for longer time ranges
+    if (timeRange !== '1h') {
+      const span = xMax - xMin
+      const basePadding = span * 0.05 // 5% padding on each side
+      xMin = xMin - basePadding
+      xMax = xMax + basePadding
+    }
+    
   
-  const minTime = timestamps.length ? Math.min(...timestamps) : now - timeLimit
-  const maxTime = timestamps.length ? Math.max(...timestamps) : now
-  
-  const minRange = 2 * 60 * 60 * 1000 // 2 hours
-  const span = Math.max(maxTime - minTime, minRange)
-  const basePadding = span * 0.1
-  
-  const xMin = minTime - basePadding
-  const xMax = maxTime + basePadding
   
 
   const filteredNames = Array.from(
     new Set(
       history.flatMap(entry =>
-        Object.keys(entry.readings).filter(name => {
+        Object.keys(entry.readings || {}).filter(name => {
           const z = allZones.find(z => z.name === name)
           return z && z.camera === selectedCamera && visibleZones.includes(name)
         })
@@ -221,11 +222,15 @@ export default function ThermalPlot({
     )
   )
   
+  
   const datasets = filteredNames.map((name, idx) => {
     const color = `hsl(${(idx * 45) % 360},60%,50%)`
     return {
       label: name,
-      data: sorted.map(pt => ({ x: new Date(pt.time), y: pt.readings[name] ?? null })),
+      data: sorted.map(pt => ({
+        x: new Date(pt.time),
+        y: (pt.readings && pt.readings[name] !== undefined) ? pt.readings[name] : null
+      })),
       borderColor: color,
       backgroundColor: 'transparent',
       spanGaps: true,
@@ -237,6 +242,7 @@ export default function ThermalPlot({
       pointBorderWidth: 1
     }
   })
+  
 
   const data = { datasets }
 
@@ -271,7 +277,25 @@ export default function ThermalPlot({
         mode: 'index',
         axis: 'x',
         intersect: false,
-        ...(chartOptions.plugins.tooltip || {})
+        ...(chartOptions.plugins.tooltip || {}),
+        callbacks: {
+          title: function (tooltipItems) {
+            const date = new Date(tooltipItems[0].parsed.x)
+            if (['2d', '4d', '7d', '2w', '1m', '1y'].includes(timeRange)) {
+              return date.toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+              })
+            } else {
+              let hours = date.getHours()
+              const minutes = String(date.getMinutes()).padStart(2, '0')
+              const ampm = hours >= 12 ? 'PM' : 'AM'
+              hours = hours % 12 || 12
+              return `${hours}:${minutes} ${ampm}`
+            }
+          }
+        }
       },
       zoom: {
         zoom: {
@@ -284,26 +308,53 @@ export default function ThermalPlot({
     },
     hover: { mode: 'nearest', intersect: true },
     scales: {
-      ...chartOptions.scales,
       x: {
-        ...chartOptions.scales.x,
+        type: 'time',
         min: xMin,
         max: xMax,
-        grid: { ...(chartOptions.scales.x.grid || {}), display: false },
         reverse: false,
         time: {
-          ...chartOptions.scales.x.time,
-          tooltipFormat: 'h:mm a',
+          unit: 'minute',
+          stepSize: timeRange === '1h' ? 10 : timeRange === '3h' ? 30 : undefined,
+          tooltipFormat: timeRange === '1h' || timeRange === '3h' ? 'h:mm a' : 'MMM d, yyyy',
           displayFormats: {
-            hour: 'h:mm a',
-            minute: 'h:mm a'
+            minute: 'h:mm a',
+            hour: 'MMM d, h a',
+            day: 'MMM d, yyyy'
           }
         },
         ticks: {
-          ...chartOptions.scales.x.ticks,
+          source: 'auto',
           autoSkip: true,
-          maxTicksLimit: 12,
-          font: { size: 12, family: 'Segoe UI' }
+          maxRotation: 0,
+          font: {
+            size: 12,
+            family: 'Segoe UI'
+          },
+          callback: function (value) {
+            const date = new Date(value)
+            if (['2d', '4d', '7d', '2w', '1m', '1y'].includes(timeRange)) {
+              return date.toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+              })
+            } else {
+              let hours = date.getHours()
+              const minutes = String(date.getMinutes()).padStart(2, '0')
+              const ampm = hours >= 12 ? 'PM' : 'AM'
+              hours = hours % 12 || 12
+              return `${hours}:${minutes} ${ampm}`
+            }
+          }
+        },
+        grid: {
+          display: false
+        },
+        title: {
+          display: true,
+          text: 'Time',
+          font: { size: 14, family: 'Segoe UI', weight: 'bold' }
         }
       },
       y: {
@@ -317,7 +368,7 @@ export default function ThermalPlot({
     }
   }
   
-
+  
   return (
     <div style={{
       padding: 24,

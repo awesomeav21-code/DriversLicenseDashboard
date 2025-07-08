@@ -30,7 +30,7 @@
       "type": "time",
       "time": {
         "unit": "minute",
-        "stepSize": 30,
+        "stepSize": 1,
         "tooltipFormat": "h:mm a",
         "displayFormats": {
           "minute": "h:mm a",
@@ -41,8 +41,7 @@
       "grid": { "display": false },
       "reverse": false,
       "ticks": {
-        "autoSkip": true,
-        "maxTicksLimit": 6,
+        "autoSkip": false, 
         "font": { "size": 13, "family": "Segoe UI" }
       },
       "title": {
