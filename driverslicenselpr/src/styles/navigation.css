@@ -1,100 +1,74 @@
- /* src/styles/navigation.css */
-
 .navigation {
-    width: 1200px !important;
-    max-width: none !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    padding: 8px 20px 8px 0;
-    background-color: #fff !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    gap: 32px !important;
-    border-radius: 0 !important;
-    margin-top: 14px;
-    border-bottom: none !important;
-    box-sizing: border-box !important;
-    position: relative;
-  }
-  
-  .navigation::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 16px !important;
-    width: calc(100% - 16px) !important;
-    height: 1px;
-    background-color: #ccc;
-    pointer-events: none;
-    z-index: 1000;
-  }
-  
-  .nav-button {
-    padding: 6px 24px;
-    font-size: 16px;
-    font-weight: 500;
-    border: none;
-    border-radius: 6px;
-    background-color: transparent;
-    color: black;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    height: 40px;
-    gap: 8px;
-    flex-direction: row;
-    margin: 0;
-  }
-  
-  .nav-button.active {
-    background-color: #4CAF50;
-    color: black;
-    margin-top: 0;
-    border-radius: 6px;
-  }
-  
-  .nav-button:not(.active):hover {
-    background-color: #4CAF50;
-    color: black;
-    margin-top: 0;
-    border-radius: 6px;
-  }
-  
-  .nav-icon {
-    width: 20px;
-    height: 20px;
-    stroke: #000;
-    fill: none;
-    background: none;
-    padding: 0;
-    border-radius: 0;
-    box-shadow: none;
-  }
-  
-  /* Optional: Dark mode support if needed later */
-  body.dark-mode .navigation {
-    background-color: #1f2937 !important;
-  }
-  
-  body.dark-mode .nav-button {
-    color: #f9fafb;
-  }
-  
-  body.dark-mode .nav-button.active {
-    background-color: #22c55e;
-    color: black;
-  }
-  
-  body.dark-mode .nav-button:not(.active):hover {
-    background-color: #22c55e;
-    color: black;
-  }
-  
-  body.dark-mode .navigation::after {
-    background-color: #4b5563;
-  }
-  
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 8px 0; /* Removed left/right padding */
+  background-color: #fff !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 32px !important;
+  border-radius: 0 !important;
+  margin-top: 14px;
+  border: 1px solid #d1d5db;
+  border-bottom: none !important;
+  box-sizing: border-box !important;
+  position: relative;
+}
+
+.navigation::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0 !important; /* Span full width */
+  width: 100% !important;
+  height: 1px;
+  background-color: #ccc;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.nav-button {
+  padding: 6px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  background-color: transparent;
+  color: black;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 40px;
+  gap: 8px;
+  flex-direction: row;
+  margin: 0;
+}
+
+.nav-button.active {
+  background-color: #4CAF50;
+  color: black;
+  margin-top: 0;
+  border-radius: 6px;
+}
+
+.nav-button:not(.active):hover {
+  background-color: #4CAF50;
+  color: black;
+  margin-top: 0;
+  border-radius: 6px;
+}
+
+.nav-icon {
+  width: 20px;
+  height: 20px;
+  stroke: #000;
+  fill: none;
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+}

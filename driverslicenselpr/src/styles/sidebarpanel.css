@@ -1,13 +1,11 @@
 /* Base sidebar-panel styles */
 .sidebar-panel {
   position: absolute;
-  top: 1px;
+  top: 10px;
   left: calc(100% - 220px);
   width: 220px;
   min-width: 220px;
-  height: calc(100vh - 60px);
-  border: none;
-  border-radius: 0;
+  height: calc(100vh - 80px);
   padding: 12px;
   box-sizing: border-box;
   display: flex;
@@ -15,21 +13,32 @@
   gap: 8px;
   overflow-y: auto;
   z-index: 1;
-  box-shadow: none;
   margin: 0;
+
+  border-radius: 16px;
+  background-color: #ffffff;
+
+  /* Subtle light gray outer border using box-shadow */
+  box-shadow: 0 0 0 1px #e5e7eb;
+
+  /* Inner white border */
+  border: 1px solid #ffffff;
 }
 
-/* Light mode */
+/* Light mode adjustments */
 .sidebar-panel.light-panel {
-  background-color: #f4faf4;
+  background-color: #ffffff;
+  border: 1px solid #ffffff;
 }
 
-/* Dark mode */
+/* Dark mode adjustments */
 .sidebar-panel.dark-panel {
   background-color: #1f2937;
+  border-color: #334155;
+  box-shadow: 0 0 0 1px #0f172a; /* slightly darker outer border in dark mode */
 }
 
-/* Panel header */
+/* Panel heading text */
 .sidebar-panel h2,
 .sidebar-panel .log-title {
   font-size: 18px;
@@ -42,12 +51,12 @@
   color: #f9fafb;
 }
 
-/* Event logs container */
+/* Main logs container */
 .event-logs {
   display: flex;
   flex-direction: column;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
   padding: 16px;
   background-color: #ffffff;
   box-sizing: border-box;
@@ -59,7 +68,7 @@
   border-color: #374151 !important;
 }
 
-/* Date inputs */
+/* Date input fields and labels */
 .date-inputs {
   display: flex;
   flex-direction: column;
@@ -92,7 +101,7 @@
   color: #f9fafb !important;
 }
 
-/* Log buttons */
+/* Control buttons for log management */
 .log-buttons {
   display: flex;
   flex-direction: column;
@@ -124,7 +133,7 @@
   color: #f0fdf4 !important;
 }
 
-/* Download icon size fix */
+/* Icon styling */
 .download-icon {
   display: inline-block;
   transform: scale(4);
@@ -132,22 +141,22 @@
   vertical-align: middle;
 }
 
-/* Log list */
+/* Log entry layout */
 .log-entries-list {
   display: flex;
-  flex-direction: row;   /* horizontal flow */
+  flex-direction: row;
   flex-wrap: wrap;
   gap: 16px;
-  overflow-y: visible;   /* let it grow vertically via wrapping */
+  overflow-y: visible;
   max-height: none;
   padding-right: 0;
 }
 
-/* Individual log entries */
+/* Individual log entry block */
 .log-entry {
   display: flex;
-  flex-direction: column;   /* stack index above text */
-  align-items: flex-start;  /* ← changed: left-align everything */
+  flex-direction: column;
+  align-items: flex-start;
   gap: 4px;
   background: transparent !important;
   border: none !important;
@@ -160,7 +169,7 @@
   border: none !important;
 }
 
-/* Index number */
+/* Log entry index styling */
 .log-index {
   font-weight: bold;
   color: #1f2937;
@@ -171,7 +180,7 @@
   color: #f9fafb;
 }
 
-/* Timestamp & message */
+/* Timestamp below log index */
 .log-timestamp {
   font-size: 12px;
   color: #6b7280;
@@ -181,6 +190,7 @@
   color: #d1d5db;
 }
 
+/* Message text */
 .log-message {
   font-size: 13px;
   color: #111827;
@@ -190,7 +200,7 @@
   color: #f9fafb;
 }
 
-/* Empty state */
+/* Empty state display */
 .log-empty {
   font-size: 13px;
   color: #6b7280;
