@@ -1,15 +1,14 @@
 .navigation {
   width: 100% !important;
   max-width: 100% !important;
-  margin: 0 !important;
-  padding: 8px 0; /* Removed left/right padding */
+  margin: 8px 0 0 0 !important; /* smaller top margin */
+  padding: 8px 12px; /* Reduced left/right padding to 12px for less horizontal space */
   background-color: #fff !important;
   display: flex !important;
-  justify-content: center !important;
+  justify-content: center !important; /* Keep buttons centered */
   align-items: center !important;
-  gap: 32px !important;
+  gap: 32px !important; /* Spacing between buttons */
   border-radius: 0 !important;
-  margin-top: 14px;
   border: 1px solid #d1d5db;
   border-bottom: none !important;
   box-sizing: border-box !important;

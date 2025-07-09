@@ -1,169 +1,168 @@
 @keyframes pulse-red {
-    0% { background-color: #dc2626; opacity: 1; }
-    50% { background-color: #dc2626; opacity: 0.2; }
-    100% { background-color: #dc2626; opacity: 1; }
-  }
-  
-  @keyframes pulse-green {
-    0% { background-color: #16a34a; opacity: 1; }
-    50% { background-color: #16a34a; opacity: 0.2; }
-    100% { background-color: #16a34a; opacity: 1; }
-  }
-  
-  .video-feed-wrapper {
-    position: relative;
-    width: calc(100% + 200px);
-    left: 20px;
-    height: 100%;
-    min-height: 100vh;
-    box-sizing: border-box;
-    padding: 8px 24px 8px 0;
-    background-color: #f4faf4;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    border-radius: 16px;
-    max-width: 100%;
-    flex-grow: 1;
-    flex-shrink: 0;
-  }
-  
-  .video-feed-wrapper.dark-video {
-    background-color: #0f172a;
-    color: #e0e0e0;
-  }
-  
-  .live-data-wrapper {
-    width: 100%;
-    background-color: #ffffff;
-    border: 1px solid #d1d5db;
-    border-radius: 16px !important;
-    padding: 24px;
-    margin-bottom: 16px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  
-  .dark-video .live-data-wrapper {
-    background-color: #0f172a;
-    border-color: #334155;
-  }
-  
-  .live-data-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 20px;
-    font-weight: 600;
-    color: #1f2937;
-  }
-  
-  .dark-video .live-data-header {
-    color: #e2e8f0;
-  }
-  
-  .live-data-header .status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: #dc2626;
-    animation: pulse-red 1.5s infinite ease-in-out;
-  }
-  
-  .live-data-text {
-    user-select: none;
-  }
-  
-  .cameras-row {
-    display: flex;
-    gap: 12px;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    width: 100%;
-    box-sizing: border-box;
-    position: relative;
-    overflow: visible;
-    flex-grow: 1;
-  }
-  
-  .camera-section {
-    flex: 1 1 48%;
-    min-width: 280px;
-    max-width: 600px;
-    background-color: #ffffff;
-    border: 1px solid #d1d5db;
-    border-radius: 16px !important;
-    padding: 12px;
-    box-sizing: border-box;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    overflow: visible;
-    height: auto;
-  }
-  
-  .dark-video .camera-section {
-    background-color: #0f172a;
-    border-color: #334155;
-  }
-  
-  .camera-header {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-  
-  .section-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1f2937;
-  }
-  
-  .dark-video .section-title {
-    color: #e2e8f0;
-  }
-  
-  .camera-header .status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: #16a34a;
-    animation: pulse-green 1.5s infinite ease-in-out;
-  }
-  
-  .cameras-with-overlay {
-    position: relative;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    box-sizing: border-box;
-    padding: 0;
-    background-color: transparent;
-    border-radius: 0;
-    overflow: visible !important;
-    flex-grow: 1;
-  }
-  
-  .zone-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    justify-items: stretch;
-    align-items: start;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 24px;
-    background-color: #f3f4f6;
-    border-radius: 16px;
-    overflow: hidden;
-  }
-  
-  .dark-video .zone-grid {
-    background-color: #1e293b;
-  }
-  
+  0% { background-color: #dc2626; opacity: 1; }
+  50% { background-color: #dc2626; opacity: 0.2; }
+  100% { background-color: #dc2626; opacity: 1; }
+}
+
+@keyframes pulse-green {
+  0% { background-color: #16a34a; opacity: 1; }
+  50% { background-color: #16a34a; opacity: 0.2; }
+  100% { background-color: #16a34a; opacity: 1; }
+}
+
+.video-feed-wrapper {
+  position: relative;
+  width: 100%;
+  left: 0;
+  height: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 8px 8px 8px 0;
+  background-color: #f4faf4;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 16px;
+  max-width: 100%;
+  flex-grow: 1;
+  flex-shrink: 0;
+}
+
+.video-feed-wrapper.dark-video {
+  background-color: #0f172a;
+  color: #e0e0e0;
+}
+
+.live-data-wrapper {
+  width: 100%;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 16px !important;
+  padding: 24px 24px 24px 16px;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dark-video .live-data-wrapper {
+  background-color: #0f172a;
+  border-color: #334155;
+}
+
+.live-data-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.dark-video .live-data-header {
+  color: #e2e8f0;
+}
+
+.live-data-header .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #dc2626;
+  animation: pulse-red 1.5s infinite ease-in-out;
+}
+
+.live-data-text {
+  user-select: none;
+}
+
+.cameras-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  overflow: visible;
+  flex-grow: 1;
+}
+
+.camera-section {
+  flex: 1 1 48%;
+  min-width: 280px;
+  max-width: 600px;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 16px !important;
+  padding: 12px;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  height: auto;
+}
+
+.dark-video .camera-section {
+  background-color: #0f172a;
+  border-color: #334155;
+}
+
+.camera-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.dark-video .section-title {
+  color: #e2e8f0;
+}
+
+.camera-header .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #16a34a;
+  animation: pulse-green 1.5s infinite ease-in-out;
+}
+
+.cameras-with-overlay {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-sizing: border-box;
+  padding: 0;
+  background-color: transparent;
+  border-radius: 0;
+  overflow: visible !important;
+  flex-grow: 1;
+}
+
+.zone-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  justify-items: stretch;
+  align-items: start;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 24px;
+  background-color: #f3f4f6;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.dark-video .zone-grid {
+  background-color: #1e293b;
+}
