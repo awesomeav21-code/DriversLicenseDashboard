@@ -178,51 +178,65 @@ export default function ThermalPlot({
   }
 
   const timeMap = {
-    '1h': 3600_000,
-    '3h': 3 * 3600_000,
-    '24h': 24 * 3600_000,
-    '2d': 2 * 86400_000,
-    '4d': 4 * 86400_000,
-    '7d': 7 * 86400_000,
-    '2w': 14 * 86400_000,
-    '1m': 30 * 86400_000,
-    '1y': 365 * 86400_000
-  }
-  
-  const timeLimit = timeMap[timeRange] || timeMap['7d']
-  const currentTime = Date.now()
-  const rangeCutoff = currentTime - timeLimit
-  
-  const sorted = history
-    .filter(entry => new Date(entry.time).getTime() >= rangeCutoff)
-    .sort((a, b) => new Date(a.time) - new Date(b.time))
-  
-    let xMin = rangeCutoff
-    let xMax = currentTime
+    '1h': 3600000,
+    '3h': 3 * 3600000,
+    '24h': 24 * 3600000,
+    '2d': 2 * 86400000,
+    '4d': 4 * 86400000,
+    '7d': 7 * 86400000,
+    '2w': 14 * 86400000,
+    '1m': 30 * 86400000,
+    '1y': 365 * 86400000
+    }
+    const timeLimit = timeMap[timeRange] || timeMap['7d']
+    const currentTime = Date.now()
+    const rangeCutoff = currentTime - timeLimit
     
-    // Add padding only for longer time ranges
-    if (timeRange !== '1h') {
+    const sorted = history
+      .filter(entry => new Date(entry.time).getTime() >= rangeCutoff)
+      .sort((a, b) => new Date(a.time) - new Date(b.time))
+    
+    let xMin, xMax
+    
+    if (['1h', '3h', '24h', '2d'].includes(timeRange)) {
+      const hours =
+        timeRange === '24h' ? 24 :
+        timeRange === '3h' ? 3 :
+        timeRange === '2d' ? 48 :
+        1
+    
+      xMin = new Date(currentTime - hours * 60 * 60 * 1000)
+      xMin.setSeconds(0, 0)
+    
+      xMax = new Date(currentTime)
+      xMax.setSeconds(0, 0)
+      if (xMax.getTime() < currentTime) {
+        xMax.setMinutes(xMax.getMinutes() + 1)
+      }
+    
+      xMin = xMin.getTime()
+      xMax = xMax.getTime()
+    } else {
+      xMin = rangeCutoff
+      xMax = currentTime
+    
       const span = xMax - xMin
-      const basePadding = span * 0.05 // 5% padding on each side
-      xMin = xMin - basePadding
-      xMax = xMax + basePadding
+      const basePadding = span * 0.05
+      xMin -= basePadding
+      xMax += basePadding
     }
     
-  
-  
-
-  const filteredNames = Array.from(
-    new Set(
-      history.flatMap(entry =>
-        Object.keys(entry.readings || {}).filter(name => {
-          const z = allZones.find(z => z.name === name)
-          return z && z.camera === selectedCamera && visibleZones.includes(name)
-        })
+    const filteredNames = Array.from(
+      new Set(
+        history.flatMap(entry =>
+          Object.keys(entry.readings || {}).filter(name => {
+            const z = allZones.find(z => z.name === name)
+            return z && z.camera === selectedCamera && visibleZones.includes(name)
+          })
+        )
       )
     )
-  )
-  
-  
+      
   const datasets = filteredNames.map((name, idx) => {
     const color = `hsl(${(idx * 45) % 360},60%,50%)`
     return {
@@ -292,7 +306,12 @@ export default function ThermalPlot({
               const minutes = String(date.getMinutes()).padStart(2, '0')
               const ampm = hours >= 12 ? 'PM' : 'AM'
               hours = hours % 12 || 12
-              return `${hours}:${minutes} ${ampm}`
+              const time = `${hours}:${minutes} ${ampm}`
+              if (['24h', '2d'].includes(timeRange)) {
+                const day = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+                return `${time}\n${day}`
+              }
+              return time
             }
           }
         }
@@ -312,6 +331,7 @@ export default function ThermalPlot({
         type: 'time',
         min: xMin,
         max: xMax,
+        bounds: 'ticks',
         reverse: false,
         time: {
           unit: 'minute',
@@ -344,7 +364,12 @@ export default function ThermalPlot({
               const minutes = String(date.getMinutes()).padStart(2, '0')
               const ampm = hours >= 12 ? 'PM' : 'AM'
               hours = hours % 12 || 12
-              return `${hours}:${minutes} ${ampm}`
+              const time = `${hours}:${minutes} ${ampm}`
+              if (['24h', '2d'].includes(timeRange)) {
+                const day = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+                return [time, day]
+              }
+              return time
             }
           }
         },
@@ -367,7 +392,6 @@ export default function ThermalPlot({
       }
     }
   }
-  
   
   return (
     <div style={{
