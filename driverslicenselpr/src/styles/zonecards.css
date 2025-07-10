@@ -61,9 +61,9 @@
 
 /* Dark Mode Support */
 .zone-card.dark-zone {
-  background-color: #1f2937;
-  border: 1px solid #4b5563;
-  color: #f9fafb;
+  background-color: #0f172a; /* darkest navy blue */
+  border: 1px solid #334155;
+  color: #f9fafb; /* white text */
 }
 
 .zone-card.dark-zone .zone-name,
@@ -71,5 +71,5 @@
 .zone-card.dark-zone .zone-threshold,
 .zone-card.dark-zone .zone-last,
 .zone-card.dark-zone .zone-status {
-  color: #f9fafb;
+  color: #f9fafb; /* ensure all text is white */
 }

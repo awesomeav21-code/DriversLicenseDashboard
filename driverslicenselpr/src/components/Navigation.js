@@ -52,6 +52,30 @@ export default function Navigation({ activeTab, setActiveTab, isDarkMode }) {
         </svg>
         Thermal Data
       </button>
+
+      <button
+        className={`nav-button ${activeTab === 'surveillance' ? 'active' : ''}`}
+        onClick={() => setActiveTab('surveillance')}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="nav-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={isDarkMode ? '#f9fafb' : '#000'}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          {/* Example "camera" icon */}
+          <circle cx="12" cy="12" r="3" />
+          <rect x="2" y="7" width="6" height="10" rx="1" ry="1" />
+          <path d="M8 12h1" />
+          <path d="M14 7h8v10h-8z" />
+          <path d="M18 9l-4 3 4 3" />
+        </svg>
+        Surveillance Data
+      </button>
     </nav>
   );
 }

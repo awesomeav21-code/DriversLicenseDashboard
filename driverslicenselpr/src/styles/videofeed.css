@@ -47,7 +47,7 @@
 }
 
 .dark-video .live-data-wrapper {
-  background-color: #0f172a;
+  background-color: #0f172a;   /* darkest navy blue */
   border-color: #334155;
 }
 
@@ -105,7 +105,7 @@
 }
 
 .dark-video .camera-section {
-  background-color: #0f172a;
+  background-color: #0f172a;   /* darkest navy blue */
   border-color: #334155;
 }
 
@@ -151,8 +151,8 @@
 
 .zone-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);  /* Changed to 3 columns */
-  gap: 20px;                             /* Increased gap for spacing */
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
   justify-items: stretch;
   align-items: start;
   width: 100%;
@@ -164,5 +164,5 @@
 }
 
 .dark-video .zone-grid {
-  background-color: #1e293b;
+  background-color: #0f172a;  /* changed from #1e293b to #0f172a */
 }

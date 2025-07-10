@@ -14,13 +14,13 @@ html, body {
 
 /* Light mode override */
 body.light-mode {
-  background-color: #f4faf4;
+  background-color: #f8f9fa;
   color: #111827;
 }
 
 /* Dark mode override */
 body.dark-mode {
-  background-color: #1f2937;
+  background-color:  #0f172a !important;
   color: #f9fafb;
 }
 
@@ -54,7 +54,7 @@ body.dark-mode {
 
 /* Dark mode override for main content */
 body.dark-mode .main-content {
-  background-color: #1f2937;
+  background-color: #0f172a;
 }
 
 /* Centered container - updated to allow full width */
@@ -83,5 +83,5 @@ body.dark-mode .main-content {
 
 /* Optional dark mode override for .content-area if needed */
 body.dark-mode .content-area {
-  background-color: #1f2937;
+  background-color: #0f172a;
 }

@@ -9,6 +9,7 @@
 }
 
 .chart-button {
+  display: inline-block;        /* ensure it's block-like */
   padding: 6px 18px;
   background-color: transparent;
   border: 1px solid #000000;
@@ -20,15 +21,22 @@
   cursor: pointer;
   box-shadow: none;
   outline: none;
+  box-sizing: border-box;
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  user-select: none;            /* optional, avoid text selection on click */
+  text-align: center;           /* center text inside */
+  line-height: 1.2;             /* better vertical alignment */
 }
 
-.chart-button:hover {
+/* Ensure hover color applies to button and all its children */
+.chart-button:hover,
+.chart-button:hover * {
   background-color: #000000;
   color: #ffffff;
 }
 
 .zoom-left-button {
+  display: inline-block;        /* same fix here */
   padding: 6px 18px;
   background-color: transparent;
   border: 1px solid #000000;
@@ -40,11 +48,32 @@
   cursor: pointer;
   box-shadow: none;
   outline: none;
+  box-sizing: border-box;
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
   margin-right: 4px;
+  user-select: none;
+  text-align: center;
+  line-height: 1.2;
 }
 
-.zoom-left-button:hover {
+/* Ensure hover color applies to zoom-left-button and all children */
+.zoom-left-button:hover,
+.zoom-left-button:hover * {
   background-color: #000000;
   color: #ffffff;
+}
+
+/* Dark mode overrides */
+.dark-mode .chart-button,
+.dark-mode .zoom-left-button {
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+.dark-mode .chart-button:hover,
+.dark-mode .chart-button:hover *,
+.dark-mode .zoom-left-button:hover,
+.dark-mode .zoom-left-button:hover * {
+  background-color: #ffffff;
+  color: #000000;
 }

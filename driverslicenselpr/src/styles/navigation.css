@@ -2,7 +2,7 @@
   width: 100% !important;
   max-width: 100% !important;
   margin: 8px 0 0 0 !important; /* smaller top margin */
-  padding: 8px 12px; /* Reduced left/right padding to 12px for less horizontal space */
+  padding: 8px 12px; /* Reduced left/right padding */
   background-color: #fff !important;
   display: flex !important;
   justify-content: center !important; /* Keep buttons centered */
@@ -13,6 +13,7 @@
   border-bottom: none !important;
   box-sizing: border-box !important;
   position: relative;
+  color: black; /* default text color */
 }
 
 .navigation::after {
@@ -25,6 +26,17 @@
   background-color: #ccc;
   pointer-events: none;
   z-index: 1000;
+}
+
+/* Dark mode overrides */
+.navigation.dark-nav {
+  background-color: #1f2937 !important; /* Updated navy blue */
+  border-color: #444 !important;
+  color: #f9fafb;
+}
+
+.navigation.dark-nav::after {
+  background-color: #333;
 }
 
 .nav-button {
@@ -61,6 +73,17 @@
   border-radius: 6px;
 }
 
+/* Dark mode button overrides */
+.navigation.dark-nav .nav-button {
+  color: #f9fafb;
+}
+
+.navigation.dark-nav .nav-button.active,
+.navigation.dark-nav .nav-button:not(.active):hover {
+  background-color: #3a9d2e; /* Darker green for contrast */
+  color: #f9fafb;
+}
+
 .nav-icon {
   width: 20px;
   height: 20px;
@@ -70,4 +93,9 @@
   padding: 0;
   border-radius: 0;
   box-shadow: none;
+}
+
+/* Dark mode icon stroke override */
+.navigation.dark-nav .nav-icon {
+  stroke: #f9fafb;
 }

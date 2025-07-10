@@ -37,10 +37,6 @@ export default function App() {
     return Math.round(140 + Math.random() * 20 - 10)
   }
 
-  function nowTime() {
-    return new Date().toLocaleTimeString()
-  }
-
   useEffect(() => {
     let mounted = true
     let intervalId = null
@@ -117,7 +113,13 @@ export default function App() {
   // Filter logs dynamically from zones based on selected start/end dates
   useEffect(() => {
     if (!startDate || !endDate) {
-      setFilteredLogs([])
+      const logs = zones
+        .filter(z => z.status === 'ALERT' && z.lastTriggered)
+        .map(z => ({
+          timestamp: new Date(z.lastTriggered).toLocaleString(),
+          message: `Temperature alarm – ${z.camera.charAt(0).toUpperCase() + z.camera.slice(1)} Camera – Zone ${z.name}`
+        }))
+      setFilteredLogs(logs)
       return
     }
     const start = new Date(startDate + 'T00:00:00').getTime()
@@ -127,14 +129,13 @@ export default function App() {
       return
     }
 
-    // Filter zones with ALERT status and lastTriggered inside date range
     const logs = zones
       .filter(z => z.status === 'ALERT' && z.lastTriggered)
       .filter(z => {
         const triggeredTime = new Date(z.lastTriggered).getTime()
         return triggeredTime >= start && triggeredTime <= end
       })
-      .map((z, i) => ({
+      .map(z => ({
         timestamp: new Date(z.lastTriggered).toLocaleString(),
         message: `Temperature alarm – ${z.camera.charAt(0).toUpperCase() + z.camera.slice(1)} Camera – Zone ${z.name}`
       }))
@@ -156,7 +157,6 @@ export default function App() {
         setTempUnit={setTempUnit}
       />
 
-      {/* Navigation outside main-content */}
       <Navigation
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -199,6 +199,11 @@ export default function App() {
                   setVisibleZones={setVisibleZones}
                   allZones={allZones}
                   tempUnit={tempUnit}
+                  startDate={startDate}
+                  endDate={endDate}
+                  setStartDate={setStartDate}
+                  setEndDate={setEndDate}
+                  isDarkMode={isDarkMode}
                 />
               </div>
             </div>

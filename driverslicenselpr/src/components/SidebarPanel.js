@@ -1,17 +1,13 @@
-// src/components/SidebarPanel.js
-
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import '../styles/sidebarpanel.css';
 
 export default function SidebarPanel({ isDarkMode, onDatePick, logs = [] }) {
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState(() => localStorage.getItem('logStartDate') || '');
+  const [endDate, setEndDate] = useState(() => localStorage.getItem('logEndDate') || '');
 
-  // Today's date in YYYY-MM-DD format to limit date inputs
   const today = new Date().toISOString().slice(0, 10);
 
-  // Convert date input string (YYYY-MM-DD) to Date object at start or end of day
   const parseInputDate = (dateStr, isStart) => {
     if (!dateStr) return null;
     return isStart
@@ -19,14 +15,14 @@ export default function SidebarPanel({ isDarkMode, onDatePick, logs = [] }) {
       : new Date(dateStr + 'T23:59:59');
   };
 
-  // Reset date inputs and notify parent
   const resetDates = () => {
     setStartDate('');
     setEndDate('');
+    localStorage.removeItem('logStartDate');
+    localStorage.removeItem('logEndDate');
     if (onDatePick) onDatePick('', '');
   };
 
-  // Download filtered logs as CSV
   const downloadLogs = () => {
     if (!startDate || !endDate) {
       alert('Please select both start and end dates.');
@@ -42,12 +38,9 @@ export default function SidebarPanel({ isDarkMode, onDatePick, logs = [] }) {
       return;
     }
 
-    // Filter logs by date range using timestamp comparison for accuracy
     const filteredLogs = logs.filter(log => {
       const logDateMs = Date.parse(log.timestamp);
-      const startMs = start.getTime();
-      const endMs = end.getTime();
-      return logDateMs >= startMs && logDateMs <= endMs;
+      return logDateMs >= start.getTime() && logDateMs <= end.getTime();
     });
 
     if (filteredLogs.length === 0) {
@@ -56,14 +49,12 @@ export default function SidebarPanel({ isDarkMode, onDatePick, logs = [] }) {
       return;
     }
 
-    // Convert filtered logs to CSV string
     const csvRows = [
       ['Index', 'Timestamp', 'Message'],
       ...filteredLogs.map((log, index) => [index + 1, log.timestamp, `"${log.message}"`])
     ];
     const csvContent = csvRows.map(e => e.join(',')).join('\n');
 
-    // Create a blob and trigger download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -73,10 +64,13 @@ export default function SidebarPanel({ isDarkMode, onDatePick, logs = [] }) {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+
+    resetDates();
   };
 
-  // Notify parent when dates change
   useEffect(() => {
+    localStorage.setItem('logStartDate', startDate);
+    localStorage.setItem('logEndDate', endDate);
     if (onDatePick) onDatePick(startDate, endDate);
   }, [startDate, endDate, onDatePick]);
 
@@ -132,24 +126,27 @@ export default function SidebarPanel({ isDarkMode, onDatePick, logs = [] }) {
             </button>
           </div>
 
-          {/* Scroll container for logs */}
           <div
             className="logs-scroll-container"
             style={{ maxHeight: '400px', overflowY: 'auto' }}
           >
             <div className="log-entries-list">
-              {logs.length === 0 ? (
-                <div className="log-empty">No logs available.</div>
-              ) : (
-                logs.map((log, index) => (
-                  <div className="log-entry" key={index}>
-                    <div className="log-index">{index + 1}.</div>
-                    <div className="log-text">
-                      <div className="log-timestamp">{log.timestamp}</div>
-                      <div className="log-message">{log.message}</div>
+              {startDate && endDate ? (
+                logs.length === 0 ? (
+                  <div className="log-empty">No logs available.</div>
+                ) : (
+                  logs.map((log, index) => (
+                    <div className="log-entry" key={index}>
+                      <div className="log-index">{index + 1}.</div>
+                      <div className="log-text">
+                        <div className="log-timestamp">{log.timestamp}</div>
+                        <div className="log-message">{log.message}</div>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  ))
+                )
+              ) : (
+                <div className="log-empty">Please select a start and end date to view logs.</div>
               )}
             </div>
           </div>

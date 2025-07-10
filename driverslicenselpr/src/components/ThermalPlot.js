@@ -32,7 +32,8 @@ export default function ThermalPlot({
   visibleZones = [],
   setVisibleZones,
   allZones = [],
-  tempUnit = 'F' // Receive tempUnit as prop from header
+  tempUnit = 'F',
+  isDarkMode = false // <-- Receive dark mode as prop
 }) {
   const chartRef = useRef(null)
 
@@ -111,7 +112,7 @@ export default function ThermalPlot({
     if (chartRef.current) {
       chartRef.current.update()
     }
-  }, [tempUnit])
+  }, [tempUnit, isDarkMode])
 
   const handleCameraChange = cam => {
     setSelectedCamera(cam)
@@ -211,8 +212,10 @@ export default function ThermalPlot({
       xMax.setMinutes(xMax.getMinutes() + 1)
     }
 
-    xMin = xMin.getTime()
-    xMax = xMax.getTime()
+    // Add 5 minutes padding on both sides for spacing points
+    const paddingMs = 5 * 60 * 1000
+    xMin = xMin.getTime() - paddingMs
+    xMax = xMax.getTime() + paddingMs
   } else {
     xMin = rangeCutoff
     xMax = currentTime
@@ -238,44 +241,66 @@ export default function ThermalPlot({
     const color = `hsl(${(idx * 45) % 360},60%,50%)`
     return {
       label: name,
-      data: sorted.map(pt => ({
-        x: new Date(pt.time),
-        y: (pt.readings && pt.readings[name] !== undefined)
-          ? (tempUnit === 'F' ? pt.readings[name] : fToC(pt.readings[name]))
-          : null
-      })),
+      data: sorted.map(pt => {
+        if (pt.readings && pt.readings[name] !== undefined) {
+          // Add a small jitter to x (time) to separate overlapping points horizontally
+          // Adjust jitter magnitude as needed (e.g. 1000 ms = 1 second max)
+          const jitterMs = (idx % 10) * 1000 // max 10 zones jittered in 1-second steps
+          const jitteredTime = new Date(new Date(pt.time).getTime() + jitterMs)
+          return {
+            x: jitteredTime,
+            y: tempUnit === 'F' ? pt.readings[name] : fToC(pt.readings[name])
+          }
+        }
+        return { x: new Date(pt.time), y: null }
+      }),
       borderColor: color,
       backgroundColor: 'transparent',
       spanGaps: true,
-      pointRadius: 4,
-      pointHoverRadius: 8,
+      pointRadius: 3,
+      pointHoverRadius: 6,
       pointHitRadius: 10,
       pointBackgroundColor: color,
       pointBorderColor: color,
       pointBorderWidth: 1
     }
   })
-
+    // Calculate dynamic y-axis min/max with padding for vertical spacing
+  const allYValues = datasets.flatMap(ds =>
+    ds.data.map(pt => pt.y).filter(y => y !== null)
+  )
+  const yMin = Math.min(...allYValues)
+  const yMax = Math.max(...allYValues)
+  const yPadding = (yMax - yMin) * 0.15 || 10 // increased to 15% padding
+  const yAxisMin = yMin - yPadding
+  const yAxisMax = yMax + yPadding
+  
   const data = { datasets }
 
   const mergedOptions = {
     ...chartOptions,
-    maintainAspectRatio: false,
-    elements: chartOptions.elements,
+    maintainAspectRatio: false, // Added to avoid stretching
+    elements: {
+      ...chartOptions.elements,
+      line: {
+        ...chartOptions.elements?.line,
+        tension: 0.4 // smooth curves
+      }
+    },
     plugins: {
       ...chartOptions.plugins,
       zoom: {
         zoom: {
           wheel: {
-            enabled: true
+            enabled: true // Enable zooming with mouse wheel/trackpad
           },
           pinch: {
-            enabled: true
+            enabled: true // Enable pinch zoom for touch devices
           },
-          mode: 'x'
+          mode: 'x' // Zoom only horizontally (time axis)
         },
         pan: {
-          enabled: true, // Enable panning to allow horizontal drag after zoom
+          enabled: true, // Enable panning on the chart by click/touch drag
           mode: 'x'
         }
       },
@@ -284,7 +309,8 @@ export default function ThermalPlot({
         text: 'Temperature Data',
         position: 'top',
         font: { size: 16, family: 'Segoe UI', weight: 'bold' },
-        padding: { top: 0, bottom: 12 }
+        padding: { top: 0, bottom: 12 },
+        color: isDarkMode ? '#ccc' : '#222'
       },
       legend: {
         ...chartOptions.plugins.legend,
@@ -292,7 +318,8 @@ export default function ThermalPlot({
           ...chartOptions.plugins.legend.labels,
           usePointStyle: false,
           boxWidth: 20,
-          boxHeight: 10
+          boxHeight: 10,
+          color: isDarkMode ? '#fff' : '#000'
         },
         onClick: (e, legendItem, legend) => {
           const ci = legend.chart
@@ -305,6 +332,11 @@ export default function ThermalPlot({
         mode: 'index',
         axis: 'x',
         intersect: false,
+        backgroundColor: isDarkMode ? '#222' : '#fff',
+        titleColor: isDarkMode ? '#fff' : '#000',
+        bodyColor: isDarkMode ? '#fff' : '#000',
+        borderColor: isDarkMode ? '#444' : '#ddd',
+        borderWidth: 1,
         ...(chartOptions.plugins.tooltip || {}),
         callbacks: {
           title: function (tooltipItems) {
@@ -345,9 +377,24 @@ export default function ThermalPlot({
         bounds: 'ticks',
         reverse: false,
         time: {
-          unit: 'minute',
-          stepSize: timeRange === '1h' ? 10 : timeRange === '3h' ? 30 : undefined,
-          tooltipFormat: timeRange === '1h' || timeRange === '3h' ? 'h:mm a' : 'MMM d, yyyy',
+          unit:
+            timeRange === '1h'
+              ? 'minute'
+              : timeRange === '3h'
+              ? 'hour'
+              : timeRange === '24h'
+              ? 'hour'
+              : 'day',
+          stepSize:
+            timeRange === '1h'
+              ? 15
+              : timeRange === '3h'
+              ? 1
+              : timeRange === '24h'
+              ? 3
+              : 1,
+          tooltipFormat:
+            timeRange === '1h' || timeRange === '3h' ? 'h:mm a' : 'MMM d, yyyy',
           displayFormats: {
             minute: 'h:mm a',
             hour: 'MMM d, h a',
@@ -357,11 +404,14 @@ export default function ThermalPlot({
         ticks: {
           source: 'auto',
           autoSkip: true,
+          maxTicksLimit: 6,
+          autoSkipPadding: 50,
           maxRotation: 0,
           font: {
             size: 12,
             family: 'Segoe UI'
           },
+          color: isDarkMode ? '#ccc' : '#222',
           callback: function (value) {
             const date = new Date(value)
             if (['2d', '4d', '7d', '2w', '1m', '1y'].includes(timeRange)) {
@@ -390,20 +440,26 @@ export default function ThermalPlot({
         title: {
           display: true,
           text: 'Time',
-          font: { size: 14, family: 'Segoe UI', weight: 'bold' }
+          font: { size: 14, family: 'Segoe UI', weight: 'bold' },
+          color: isDarkMode ? '#ccc' : '#222'
         }
       },
       y: {
         ...chartOptions.scales.y,
-        min: tempUnit === 'F' ? 100 : 0,
-        max: tempUnit === 'F' ? 200 : 100,
-        grid: { display: false },
+        min: yAxisMin,
+        max: yAxisMax,
+        grid: {
+          display: false
+        },
         ticks: {
           ...chartOptions.scales.y.ticks,
           stepSize: tempUnit === 'F' ? 20 : 10,
-          callback: v => {
-            return `${v.toFixed(0)}°${tempUnit}`
-          }
+          color: isDarkMode ? '#ccc' : '#222',
+          callback: v => `${v.toFixed(0)}°${tempUnit}`
+        },
+        title: {
+          ...chartOptions.scales.y.title,
+          color: isDarkMode ? '#ccc' : '#222'
         }
       }
     }
@@ -413,12 +469,14 @@ export default function ThermalPlot({
     <div
       style={{
         padding: 24,
-        height: 550,
+        height: 900,
         width: '100%',
         boxSizing: 'border-box',
-        backgroundColor: '#f7fdfb',
+        backgroundColor: isDarkMode ? '#0f172a' : '#f7fdfb',
         borderRadius: 12,
-        boxShadow: '0 4px 16px rgba(0,0,0,0.05)',
+        boxShadow: isDarkMode
+          ? '0 4px 16px rgba(15, 23, 42, 0.8)'
+          : '0 4px 16px rgba(0,0,0,0.05)',
         position: 'relative'
       }}
     >
@@ -441,7 +499,7 @@ export default function ThermalPlot({
             cursor: 'pointer'
           }}
         >
-          📷 Left Camera
+          <span>📷 Left Camera</span>
         </button>
         <button
           onClick={() => handleCameraChange('right')}
@@ -454,16 +512,29 @@ export default function ThermalPlot({
             cursor: 'pointer'
           }}
         >
-          📷 Right Camera
+          <span>📷 Right Camera</span>
         </button>
       </div>
 
       <Line ref={chartRef} data={data} options={mergedOptions} />
 
-      <div className="chart-button-container" style={{ position: 'relative' }}>
+      <div
+        className="chart-button-container"
+        style={{
+          position: 'relative',
+          color: isDarkMode ? '#eee' : undefined
+        }}
+      >
         <div style={{ position: 'relative', display: 'inline-block' }}>
-          <button className="chart-button" onClick={() => setShowExportMenu(prev => !prev)}>
-            Save Graph ▼
+          <button
+            className="chart-button"
+            onClick={() => setShowExportMenu(prev => !prev)}
+            style={{
+              borderColor: isDarkMode ? '#fff' : '#000',
+              color: isDarkMode ? '#fff' : '#000'
+            }}
+          >
+            <span>Save Graph ▼</span>
           </button>
           {showExportMenu && (
             <div
@@ -471,13 +542,16 @@ export default function ThermalPlot({
                 position: 'absolute',
                 top: '100%',
                 left: 0,
-                backgroundColor: '#fff',
-                boxShadow: '0px 4px 8px rgba(0,0,0,0.15)',
+                backgroundColor: isDarkMode ? '#0f172a' : '#fff',
+                boxShadow: isDarkMode
+                  ? '0px 4px 8px rgba(255,255,255,0.15)'
+                  : '0px 4px 8px rgba(0,0,0,0.15)',
                 zIndex: 10,
                 borderRadius: 4,
                 minWidth: 160,
                 maxHeight: 120,
-                overflowY: 'auto'
+                overflowY: 'auto',
+                color: isDarkMode ? '#eee' : '#222'
               }}
             >
               <div
@@ -485,7 +559,7 @@ export default function ThermalPlot({
                   setShowExportMenu(false)
                   handleSaveGraph()
                 }}
-                style={{ padding: 8, cursor: 'pointer', borderBottom: '1px solid #eee' }}
+                style={{ padding: 8, cursor: 'pointer', borderBottom: '1px solid #666' }}
               >
                 Save as PNG
               </div>
@@ -494,7 +568,7 @@ export default function ThermalPlot({
                   setShowExportMenu(false)
                   handleExportCSV()
                 }}
-                style={{ padding: 8, cursor: 'pointer', borderBottom: '1px solid #eee' }}
+                style={{ padding: 8, cursor: 'pointer', borderBottom: '1px solid #666' }}
               >
                 Save as CSV
               </div>
@@ -511,18 +585,38 @@ export default function ThermalPlot({
           )}
         </div>
 
-        <button onClick={handleResetZoom} className="chart-button">
-          Reset Zoom
+        <button
+          onClick={handleResetZoom}
+          className="chart-button"
+          style={{
+            borderColor: isDarkMode ? '#fff' : '#000',
+            color: isDarkMode ? '#fff' : '#000'
+          }}
+        >
+          <span>Reset Zoom</span>
         </button>
 
-        <button onClick={toggleAllZones} className="chart-button">
-          {allZonesHidden ? 'Show All Zones' : 'Hide All Zones'}
+        <button
+          onClick={toggleAllZones}
+          className="chart-button"
+          style={{
+            borderColor: isDarkMode ? '#fff' : '#000',
+            color: isDarkMode ? '#fff' : '#000'
+          }}
+        >
+          <span>{allZonesHidden ? 'Show All Zones' : 'Hide All Zones'}</span>
         </button>
 
         <select
           className="chart-dropdown"
           value={timeRange}
           onChange={e => setTimeRange(e.target.value)}
+          style={{
+            borderColor: isDarkMode ? '#fff' : '#000',
+            color: isDarkMode ? '#fff' : '#000',
+            backgroundColor: 'transparent',
+            cursor: 'pointer'
+          }}
         >
           <option value="1h">Last Hour</option>
           <option value="3h">Last 3 Hours</option>
@@ -538,3 +632,4 @@ export default function ThermalPlot({
     </div>
   )
 }
+
