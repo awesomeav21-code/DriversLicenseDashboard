@@ -1,44 +1,75 @@
 .zone-card {
-    width: 100%;
-    max-width: 160px;
-    aspect-ratio: 1 / 1;                  /* Ensures square shape */
-    background-color: #f3f4f6;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px;
-    color: #111827;
-    box-sizing: border-box;
-    font-size: 11px;
-    line-height: 1.2;
-    text-align: center;
-    overflow: visible;
-  }
-  
-  .zone-card * {
-    margin: 0;
-    padding: 0;
-    max-width: 100%;
-    white-space: normal;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  /* Dark Mode Support */
-  .zone-card.dark-zone {
-    background-color: #1f2937;
-    border: 1px solid #4b5563;
-    color: #f9fafb;
-  }
-  
-  .zone-card.dark-zone .zone-name,
-  .zone-card.dark-zone .zone-temp,
-  .zone-card.dark-zone .zone-threshold,
-  .zone-card.dark-zone .zone-last,
-  .zone-card.dark-zone .zone-status {
-    color: #f9fafb;
-  }
-  
+  width: 100%;
+  max-width: 170px;
+  position: relative;
+  padding-top: 100%; /* maintain square shape */
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease;
+  overflow: hidden;
+}
+
+.zone-card:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.zone-card-inner {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* center content vertically */
+  align-items: center;
+  color: #111827;
+  font-size: 13px;
+  line-height: 1.3;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.zone-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.zone-temp {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.zone-threshold,
+.zone-last {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.zone-status {
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-top: 6px;
+  color: inherit;
+}
+
+/* Dark Mode Support */
+.zone-card.dark-zone {
+  background-color: #1f2937;
+  border: 1px solid #4b5563;
+  color: #f9fafb;
+}
+
+.zone-card.dark-zone .zone-name,
+.zone-card.dark-zone .zone-temp,
+.zone-card.dark-zone .zone-threshold,
+.zone-card.dark-zone .zone-last,
+.zone-card.dark-zone .zone-status {
+  color: #f9fafb;
+}

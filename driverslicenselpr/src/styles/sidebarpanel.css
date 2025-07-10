@@ -1,44 +1,42 @@
 /* Base sidebar-panel styles */
 .sidebar-panel {
   position: absolute;
-  top: 10px;
+  top: 9px; /* aligns visually with header/nav */
   left: calc(100% - 220px);
   width: 220px;
   min-width: 220px;
-  height: calc(100vh - 80px);
+  height: auto; 
+  max-height: calc(100vh - 60px); 
+  overflow-y: auto; 
   padding: 12px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  overflow: hidden; /* prevent sidebar itself from scrolling */
   z-index: 1;
   margin: 0;
 
+  /* Visual consistency with live-data-wrapper */
   border-radius: 16px;
   background-color: #ffffff;
-
-  /* Subtle light gray outer border using box-shadow */
-  box-shadow: 0 0 0 1px #e5e7eb;
-
-  /* Inner white border */
-  border: 1px solid #ffffff;
+  border: 1px solid #d1d5db !important; /* explicit outer white border */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* subtle soft edge */
 }
 
-/* Light mode adjustments */
+/* Light mode background override */
 .sidebar-panel.light-panel {
-  background-color: #ffffff;
+  background-color: #ffffff; /* keep white background in light mode */
   border: 1px solid #ffffff;
 }
 
-/* Dark mode adjustments */
+/* Dark mode background and border override */
 .sidebar-panel.dark-panel {
   background-color: #1f2937;
   border-color: #334155;
-  box-shadow: 0 0 0 1px #0f172a; /* slightly darker outer border in dark mode */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-/* Panel heading text */
+/* Panel header */
 .sidebar-panel h2,
 .sidebar-panel .log-title {
   font-size: 18px;
@@ -51,7 +49,7 @@
   color: #f9fafb;
 }
 
-/* Main logs container */
+/* Event logs container */
 .event-logs {
   display: flex;
   flex-direction: column;
@@ -60,7 +58,7 @@
   padding: 16px;
   background-color: #ffffff;
   box-sizing: border-box;
-  height: 100%;
+  height: auto; /* changed to auto for dynamic height */
 }
 
 .sidebar-panel.dark-panel .event-logs {
@@ -68,7 +66,7 @@
   border-color: #374151 !important;
 }
 
-/* Date input fields and labels */
+/* Date inputs */
 .date-inputs {
   display: flex;
   flex-direction: column;
@@ -101,7 +99,7 @@
   color: #f9fafb !important;
 }
 
-/* Control buttons for log management */
+/* Log buttons */
 .log-buttons {
   display: flex;
   flex-direction: column;
@@ -133,7 +131,7 @@
   color: #f0fdf4 !important;
 }
 
-/* Icon styling */
+/* Download icon size fix */
 .download-icon {
   display: inline-block;
   transform: scale(4);
@@ -141,25 +139,18 @@
   vertical-align: middle;
 }
 
-/* Scroll container wrapping the log list - ONLY this scrolls */
-.logs-scroll-container {
-  flex-grow: 1;
-  overflow-y: auto;
-  max-height: 100%;
-  padding-right: 4px; /* optional: to avoid scrollbar overlap */
-}
-
-/* Log entry layout */
+/* Log list */
 .log-entries-list {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   gap: 16px;
+  overflow-y: visible;
   max-height: none;
   padding-right: 0;
 }
 
-/* Individual log entry block styled as cards */
+/* Individual log entries styled as UI cards with shadows */
 .log-entry {
   display: flex;
   flex-direction: column;
@@ -168,7 +159,7 @@
   background-color: #ffffff; /* white card background */
   border-radius: 12px;
   padding: 12px 16px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* subtle shadow */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
   font-size: 13px;
   transition: box-shadow 0.2s ease-in-out;
@@ -176,7 +167,7 @@
 }
 
 .log-entry:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* slightly stronger shadow on hover */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .sidebar-panel.dark-panel .log-entry {
@@ -186,7 +177,7 @@
   color: #f9fafb;
 }
 
-/* Log entry index styling */
+/* Index number */
 .log-index {
   font-weight: bold;
   color: #1f2937;
@@ -197,7 +188,7 @@
   color: #f9fafb;
 }
 
-/* Timestamp below log index */
+/* Timestamp & message */
 .log-timestamp {
   font-size: 12px;
   color: #6b7280;
@@ -207,7 +198,6 @@
   color: #d1d5db;
 }
 
-/* Message text */
 .log-message {
   font-size: 13px;
   color: #111827;
@@ -217,7 +207,7 @@
   color: #f9fafb;
 }
 
-/* Empty state display */
+/* Empty state */
 .log-empty {
   font-size: 13px;
   color: #6b7280;

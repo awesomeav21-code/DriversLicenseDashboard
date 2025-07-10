@@ -18,7 +18,7 @@
   min-height: 100vh;
   box-sizing: border-box;
   padding: 8px 8px 8px 0;
-  background-color: #f4faf4;
+  background-color: #f8f9fa;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -151,8 +151,8 @@
 
 .zone-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(3, 1fr);  /* Changed to 3 columns */
+  gap: 20px;                             /* Increased gap for spacing */
   justify-items: stretch;
   align-items: start;
   width: 100%;

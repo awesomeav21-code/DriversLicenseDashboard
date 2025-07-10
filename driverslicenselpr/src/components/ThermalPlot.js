@@ -260,9 +260,25 @@ export default function ThermalPlot({
 
   const mergedOptions = {
     ...chartOptions,
+    maintainAspectRatio: false,
     elements: chartOptions.elements,
     plugins: {
       ...chartOptions.plugins,
+      zoom: {
+        zoom: {
+          wheel: {
+            enabled: true
+          },
+          pinch: {
+            enabled: true
+          },
+          mode: 'x'
+        },
+        pan: {
+          enabled: true, // Enable panning to allow horizontal drag after zoom
+          mode: 'x'
+        }
+      },
       title: {
         display: true,
         text: 'Temperature Data',
@@ -318,14 +334,6 @@ export default function ThermalPlot({
             return `${zoneName}: ${Math.round(value)}°${tempUnit}`
           }
         }
-      },
-      zoom: {
-        zoom: {
-          wheel: { enabled: false },
-          pinch: { enabled: false },
-          mode: 'x'
-        },
-        pan: { enabled: false, mode: 'x' }
       }
     },
     hover: { mode: 'nearest', intersect: true },

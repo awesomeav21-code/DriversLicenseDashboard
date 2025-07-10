@@ -99,19 +99,14 @@ function Header({
   }
 
   const handleEditProfile = () => {
-    if (profileName) {
-      const parts = profileName.split(' ')
-      setFirstName(parts[0] || '')
-      setLastName(parts.slice(1).join(' ') || '')
-    } else {
-      setFirstName('')
-      setLastName('')
-    }
+    // Always clear inputs when opening edit modal
+    setFirstName('')
+    setLastName('')
     setTempColor(profileColor) // reset color picker to current color
     setModalContent('edit')
     setShowProfileMenu(false)
   }
-
+  
   const handleViewProfile = () => {
     setModalContent('view')
     setShowProfileMenu(false)
@@ -130,6 +125,10 @@ function Header({
       'userProfile',
       JSON.stringify({ name: fullName, color: tempColor })
     )
+
+    // Clear input fields after save
+    setFirstName('')
+    setLastName('')
 
     setModalContent(null)
   }

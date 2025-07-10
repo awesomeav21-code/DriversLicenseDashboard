@@ -1,3 +1,43 @@
+/* Reset and base styles */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  background-color: #f8f9fa !important;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Light mode override */
+body.light-mode {
+  background-color: #f4faf4;
+  color: #111827;
+}
+
+/* Dark mode override */
+body.dark-mode {
+  background-color: #1f2937;
+  color: #f9fafb;
+}
+
+/* Apply border-box to all elements */
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+/* Full-page layout wrapper */
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  height: 100%;
+  min-height: 100vh;
+}
+
 /* Content expands to fill space above footer */
 .main-content {
   flex: 1;
@@ -10,14 +50,21 @@
   min-height: 100vh;
   overflow-y: visible;
   overflow-x: hidden;
-
-  /* Ensures background behind sidebar is solid white */
-  background-color: #ffffff;
 }
 
 /* Dark mode override for main content */
 body.dark-mode .main-content {
   background-color: #1f2937;
+}
+
+/* Centered container - updated to allow full width */
+.content-box {
+  max-width: none;
+  margin: 0;
+  width: 100%;
+  position: relative;
+  height: 100%;
+  flex-grow: 1;
 }
 
 /* Left feed column */
@@ -32,9 +79,6 @@ body.dark-mode .main-content {
   overflow: visible;
   height: 100%;
   flex-grow: 1;
-
-  /* Ensures the left side is also white to match the sidebar */
-  background-color: #ffffff;
 }
 
 /* Optional dark mode override for .content-area if needed */

@@ -28,6 +28,11 @@ export default function App() {
     return saved ? JSON.parse(saved) : []
   })
 
+  // States for date filters and filtered logs
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [filteredLogs, setFilteredLogs] = useState([])
+
   function getTemp() {
     return Math.round(140 + Math.random() * 20 - 10)
   }
@@ -63,7 +68,7 @@ export default function App() {
               ...z,
               temperature: temp,
               status,
-              lastTriggered: status === 'ALERT' ? nowTime() : 'Never'
+              lastTriggered: status === 'ALERT' ? new Date().toISOString() : null
             }
           })
 
@@ -109,6 +114,34 @@ export default function App() {
     document.body.classList.toggle('light-mode', !isDarkMode)
   }, [activeTab, isDarkMode])
 
+  // Filter logs dynamically from zones based on selected start/end dates
+  useEffect(() => {
+    if (!startDate || !endDate) {
+      setFilteredLogs([])
+      return
+    }
+    const start = new Date(startDate + 'T00:00:00').getTime()
+    const end = new Date(endDate + 'T23:59:59').getTime()
+    if (start > end) {
+      setFilteredLogs([])
+      return
+    }
+
+    // Filter zones with ALERT status and lastTriggered inside date range
+    const logs = zones
+      .filter(z => z.status === 'ALERT' && z.lastTriggered)
+      .filter(z => {
+        const triggeredTime = new Date(z.lastTriggered).getTime()
+        return triggeredTime >= start && triggeredTime <= end
+      })
+      .map((z, i) => ({
+        timestamp: new Date(z.lastTriggered).toLocaleString(),
+        message: `Temperature alarm – ${z.camera.charAt(0).toUpperCase() + z.camera.slice(1)} Camera – Zone ${z.name}`
+      }))
+
+    setFilteredLogs(logs)
+  }, [startDate, endDate, zones])
+
   function addZone() {}
 
   const camera1Zones = zones.filter(z => z.camera === 'left')
@@ -123,7 +156,7 @@ export default function App() {
         setTempUnit={setTempUnit}
       />
 
-      {/* 🟢 Navigation moved OUTSIDE of main-content */}
+      {/* Navigation outside main-content */}
       <Navigation
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -135,11 +168,16 @@ export default function App() {
           {activeTab === 'dashboard' && (
             <SidebarPanel
               isDarkMode={isDarkMode}
-              startDate=""
-              setStartDate={() => {}}
-              endDate=""
-              setEndDate={() => {}}
+              startDate={startDate}
+              setStartDate={setStartDate}
+              endDate={endDate}
+              setEndDate={setEndDate}
+              logs={filteredLogs}
               addZone={addZone}
+              onDatePick={(start, end) => {
+                setStartDate(start)
+                setEndDate(end)
+              }}
             />
           )}
 
@@ -160,7 +198,7 @@ export default function App() {
                   visibleZones={visibleZones}
                   setVisibleZones={setVisibleZones}
                   allZones={allZones}
-                  tempUnit={tempUnit}  
+                  tempUnit={tempUnit}
                 />
               </div>
             </div>
