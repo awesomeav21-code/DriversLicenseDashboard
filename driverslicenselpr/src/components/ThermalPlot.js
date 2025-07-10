@@ -32,7 +32,7 @@ export default function ThermalPlot({
   visibleZones = [],
   setVisibleZones,
   allZones = [],
-  tempUnit = 'F' // from header
+  tempUnit = 'F' // Receive tempUnit as prop from header
 }) {
   const chartRef = useRef(null)
 
@@ -64,7 +64,7 @@ export default function ThermalPlot({
   const [showExportMenu, setShowExportMenu] = useState(false)
   const [allZonesHidden, setAllZonesHidden] = useState(false)
 
-  const fToC = f => ((f - 32) * 5) / 9
+  const fToC = f => Math.round(((f - 32) * 5) / 9)
 
   const updateHistory = camera => {
     const now = new Date()
@@ -107,7 +107,6 @@ export default function ThermalPlot({
     }
   }, [history, initialRange])
 
-  // Refresh chart on tempUnit change
   useEffect(() => {
     if (chartRef.current) {
       chartRef.current.update()
@@ -117,7 +116,6 @@ export default function ThermalPlot({
   const handleCameraChange = cam => {
     setSelectedCamera(cam)
     localStorage.setItem('selectedCamera', cam)
-    // Sync visibleZones for selected camera zones
     const current = allZones.filter(z => z.camera === cam).map(z => z.name)
     setVisibleZones(current)
     setAllZonesHidden(false)
@@ -225,7 +223,6 @@ export default function ThermalPlot({
     xMax += basePadding
   }
 
-  // Filter zone names to display for selected camera and visible zones
   const filteredNames = Array.from(
     new Set(
       history.flatMap(entry =>
@@ -260,10 +257,6 @@ export default function ThermalPlot({
   })
 
   const data = { datasets }
-
-  // Y-axis limits for Celsius and Fahrenheit
-  const yMin = tempUnit === 'F' ? 32 : 0
-  const yMax = tempUnit === 'F' ? 212 : 100
 
   const mergedOptions = {
     ...chartOptions,
@@ -320,9 +313,9 @@ export default function ThermalPlot({
             }
           },
           label: function (context) {
-            const datasetLabel = context.dataset.label || ''
+            const zoneName = context.dataset.label || ''
             const value = context.parsed.y
-            return `${datasetLabel}: ${value.toFixed(1)}°${tempUnit}`
+            return `${zoneName}: ${Math.round(value)}°${tempUnit}`
           }
         }
       },
@@ -394,18 +387,14 @@ export default function ThermalPlot({
       },
       y: {
         ...chartOptions.scales.y,
-        min: yMin,
-        max: yMax,
+        min: tempUnit === 'F' ? 100 : 0,
+        max: tempUnit === 'F' ? 200 : 100,
         grid: { display: false },
         ticks: {
           ...chartOptions.scales.y.ticks,
+          stepSize: tempUnit === 'F' ? 20 : 10,
           callback: v => {
-            // Show ticks scaled with tempUnit
-            if (tempUnit === 'F') {
-              return `${v.toFixed(1)}°F`
-            } else {
-              return `${((v - 32) * 5 / 9).toFixed(1)}°C`
-            }
+            return `${v.toFixed(0)}°${tempUnit}`
           }
         }
       }
