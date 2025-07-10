@@ -76,23 +76,25 @@ export default function SidebarPanel({ isDarkMode, onDatePick }) {
               </svg>
               Download Logs
             </button>
-            {/* “View Past Logs” button has been removed */}
           </div>
 
-          <div className="log-entries-list">
-            {logs.length === 0 ? (
-              <div className="log-empty">No logs available.</div>
-            ) : (
-              logs.map((log, index) => (
-                <div className="log-entry" key={index}>
-                  <div className="log-index">{index + 1}.</div>
-                  <div className="log-text">
-                    <div className="log-timestamp">{log.timestamp}</div>
-                    <div className="log-message">{log.message}</div>
+          {/* Scroll container added here */}
+          <div className="logs-scroll-container">
+            <div className="log-entries-list">
+              {logs.length === 0 ? (
+                <div className="log-empty">No logs available.</div>
+              ) : (
+                logs.map((log, index) => (
+                  <div className="log-entry" key={index}>
+                    <div className="log-index">{index + 1}.</div>
+                    <div className="log-text">
+                      <div className="log-timestamp">{log.timestamp}</div>
+                      <div className="log-message">{log.message}</div>
+                    </div>
                   </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>

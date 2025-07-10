@@ -160,6 +160,7 @@ export default function App() {
                   visibleZones={visibleZones}
                   setVisibleZones={setVisibleZones}
                   allZones={allZones}
+                  tempUnit={tempUnit}  
                 />
               </div>
             </div>

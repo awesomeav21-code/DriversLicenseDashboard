@@ -11,7 +11,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  overflow-y: auto;
+  overflow: hidden; /* prevent sidebar itself from scrolling */
   z-index: 1;
   margin: 0;
 
@@ -141,32 +141,49 @@
   vertical-align: middle;
 }
 
+/* Scroll container wrapping the log list - ONLY this scrolls */
+.logs-scroll-container {
+  flex-grow: 1;
+  overflow-y: auto;
+  max-height: 100%;
+  padding-right: 4px; /* optional: to avoid scrollbar overlap */
+}
+
 /* Log entry layout */
 .log-entries-list {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   gap: 16px;
-  overflow-y: visible;
   max-height: none;
   padding-right: 0;
 }
 
-/* Individual log entry block */
+/* Individual log entry block styled as cards */
 .log-entry {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
-  background: transparent !important;
-  border: none !important;
-  padding: 0 !important;
+  background-color: #ffffff; /* white card background */
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* subtle shadow */
+  border: 1px solid #e5e7eb;
   font-size: 13px;
+  transition: box-shadow 0.2s ease-in-out;
+  cursor: default;
+}
+
+.log-entry:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* slightly stronger shadow on hover */
 }
 
 .sidebar-panel.dark-panel .log-entry {
-  background: transparent !important;
-  border: none !important;
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+  color: #f9fafb;
 }
 
 /* Log entry index styling */

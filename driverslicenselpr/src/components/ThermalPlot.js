@@ -12,7 +12,7 @@ import {
   Tooltip,
   Legend
 } from 'chart.js'
-import zoomPlugin, { zoom } from 'chartjs-plugin-zoom'
+import zoomPlugin from 'chartjs-plugin-zoom'
 import 'chartjs-adapter-date-fns'
 import '../styles/thermaldata.css'
 
@@ -31,9 +31,22 @@ export default function ThermalPlot({
   zones = [],
   visibleZones = [],
   setVisibleZones,
-  allZones = []
+  allZones = [],
+  tempUnit = 'F' // from header
 }) {
   const chartRef = useRef(null)
+
+  const timeMap = {
+    '1h': 3600000,
+    '3h': 3 * 3600000,
+    '24h': 24 * 3600000,
+    '2d': 2 * 86400000,
+    '4d': 4 * 86400000,
+    '7d': 7 * 86400000,
+    '2w': 14 * 86400000,
+    '1m': 30 * 86400000,
+    '1y': 365 * 86400000
+  }
 
   const [history, setHistory] = useState(() => {
     const saved = localStorage.getItem('thermalHistory')
@@ -49,6 +62,9 @@ export default function ThermalPlot({
   const [initialRange, setInitialRange] = useState(null)
   const [timeRange, setTimeRange] = useState('1h')
   const [showExportMenu, setShowExportMenu] = useState(false)
+  const [allZonesHidden, setAllZonesHidden] = useState(false)
+
+  const fToC = f => ((f - 32) * 5) / 9
 
   const updateHistory = camera => {
     const now = new Date()
@@ -91,31 +107,32 @@ export default function ThermalPlot({
     }
   }, [history, initialRange])
 
+  // Refresh chart on tempUnit change
+  useEffect(() => {
+    if (chartRef.current) {
+      chartRef.current.update()
+    }
+  }, [tempUnit])
+
   const handleCameraChange = cam => {
     setSelectedCamera(cam)
     localStorage.setItem('selectedCamera', cam)
+    // Sync visibleZones for selected camera zones
     const current = allZones.filter(z => z.camera === cam).map(z => z.name)
     setVisibleZones(current)
+    setAllZonesHidden(false)
   }
 
-  const handleHideAll = () => {
+  const toggleAllZones = () => {
     const chart = chartRef.current
     if (!chart) return
+    const hide = !allZonesHidden
     chart.data.datasets.forEach((ds, idx) => {
-      ds.hidden = true
-      chart.getDatasetMeta(idx).hidden = true
+      ds.hidden = hide
+      chart.getDatasetMeta(idx).hidden = hide
     })
     chart.update()
-  }
-
-  const handleShowAll = () => {
-    const chart = chartRef.current
-    if (!chart) return
-    chart.data.datasets.forEach((ds, idx) => {
-      ds.hidden = false
-      chart.getDatasetMeta(idx).hidden = false
-    })
-    chart.update()
+    setAllZonesHidden(hide)
   }
 
   const handleSaveGraph = () => {
@@ -159,13 +176,6 @@ export default function ThermalPlot({
     }
   }
 
-  const handleZoomIn = () => {
-    const chart = chartRef.current
-    if (chart) {
-      zoom(chart, { x: { scale: 'x', factor: 1.2 } })
-    }
-  }
-
   const handleResetZoom = () => {
     const chart = chartRef.current
     if (chart && chart.resetZoom) {
@@ -177,73 +187,65 @@ export default function ThermalPlot({
     return <div style={{ padding: 20 }}>Waiting for data…</div>
   }
 
-  const timeMap = {
-    '1h': 3600000,
-    '3h': 3 * 3600000,
-    '24h': 24 * 3600000,
-    '2d': 2 * 86400000,
-    '4d': 4 * 86400000,
-    '7d': 7 * 86400000,
-    '2w': 14 * 86400000,
-    '1m': 30 * 86400000,
-    '1y': 365 * 86400000
+  const timeLimit = timeMap[timeRange] || timeMap['7d']
+  const currentTime = Date.now()
+  const rangeCutoff = currentTime - timeLimit
+
+  const sorted = history
+    .filter(entry => new Date(entry.time).getTime() >= rangeCutoff)
+    .sort((a, b) => new Date(a.time) - new Date(b.time))
+
+  let xMin, xMax
+
+  if (['1h', '3h', '24h', '2d'].includes(timeRange)) {
+    const hours =
+      timeRange === '24h' ? 24 :
+      timeRange === '3h' ? 3 :
+      timeRange === '2d' ? 48 :
+      1
+
+    xMin = new Date(currentTime - hours * 60 * 60 * 1000)
+    xMin.setSeconds(0, 0)
+
+    xMax = new Date(currentTime)
+    xMax.setSeconds(0, 0)
+    if (xMax.getTime() < currentTime) {
+      xMax.setMinutes(xMax.getMinutes() + 1)
     }
-    const timeLimit = timeMap[timeRange] || timeMap['7d']
-    const currentTime = Date.now()
-    const rangeCutoff = currentTime - timeLimit
-    
-    const sorted = history
-      .filter(entry => new Date(entry.time).getTime() >= rangeCutoff)
-      .sort((a, b) => new Date(a.time) - new Date(b.time))
-    
-    let xMin, xMax
-    
-    if (['1h', '3h', '24h', '2d'].includes(timeRange)) {
-      const hours =
-        timeRange === '24h' ? 24 :
-        timeRange === '3h' ? 3 :
-        timeRange === '2d' ? 48 :
-        1
-    
-      xMin = new Date(currentTime - hours * 60 * 60 * 1000)
-      xMin.setSeconds(0, 0)
-    
-      xMax = new Date(currentTime)
-      xMax.setSeconds(0, 0)
-      if (xMax.getTime() < currentTime) {
-        xMax.setMinutes(xMax.getMinutes() + 1)
-      }
-    
-      xMin = xMin.getTime()
-      xMax = xMax.getTime()
-    } else {
-      xMin = rangeCutoff
-      xMax = currentTime
-    
-      const span = xMax - xMin
-      const basePadding = span * 0.05
-      xMin -= basePadding
-      xMax += basePadding
-    }
-    
-    const filteredNames = Array.from(
-      new Set(
-        history.flatMap(entry =>
-          Object.keys(entry.readings || {}).filter(name => {
-            const z = allZones.find(z => z.name === name)
-            return z && z.camera === selectedCamera && visibleZones.includes(name)
-          })
-        )
+
+    xMin = xMin.getTime()
+    xMax = xMax.getTime()
+  } else {
+    xMin = rangeCutoff
+    xMax = currentTime
+
+    const span = xMax - xMin
+    const basePadding = span * 0.05
+    xMin -= basePadding
+    xMax += basePadding
+  }
+
+  // Filter zone names to display for selected camera and visible zones
+  const filteredNames = Array.from(
+    new Set(
+      history.flatMap(entry =>
+        Object.keys(entry.readings || {}).filter(name => {
+          const z = allZones.find(z => z.name === name)
+          return z && z.camera === selectedCamera && visibleZones.includes(name)
+        })
       )
     )
-      
+  )
+
   const datasets = filteredNames.map((name, idx) => {
     const color = `hsl(${(idx * 45) % 360},60%,50%)`
     return {
       label: name,
       data: sorted.map(pt => ({
         x: new Date(pt.time),
-        y: (pt.readings && pt.readings[name] !== undefined) ? pt.readings[name] : null
+        y: (pt.readings && pt.readings[name] !== undefined)
+          ? (tempUnit === 'F' ? pt.readings[name] : fToC(pt.readings[name]))
+          : null
       })),
       borderColor: color,
       backgroundColor: 'transparent',
@@ -256,9 +258,12 @@ export default function ThermalPlot({
       pointBorderWidth: 1
     }
   })
-  
 
   const data = { datasets }
+
+  // Y-axis limits for Celsius and Fahrenheit
+  const yMin = tempUnit === 'F' ? 32 : 0
+  const yMax = tempUnit === 'F' ? 212 : 100
 
   const mergedOptions = {
     ...chartOptions,
@@ -313,6 +318,11 @@ export default function ThermalPlot({
               }
               return time
             }
+          },
+          label: function (context) {
+            const datasetLabel = context.dataset.label || ''
+            const value = context.parsed.y
+            return `${datasetLabel}: ${value.toFixed(1)}°${tempUnit}`
           }
         }
       },
@@ -384,48 +394,71 @@ export default function ThermalPlot({
       },
       y: {
         ...chartOptions.scales.y,
+        min: yMin,
+        max: yMax,
         grid: { display: false },
         ticks: {
           ...chartOptions.scales.y.ticks,
-          callback: v => `${v}°F`
+          callback: v => {
+            // Show ticks scaled with tempUnit
+            if (tempUnit === 'F') {
+              return `${v.toFixed(1)}°F`
+            } else {
+              return `${((v - 32) * 5 / 9).toFixed(1)}°C`
+            }
+          }
         }
       }
     }
   }
-  
+
   return (
-    <div style={{
-      padding: 24,
-      height: 550,
-      width: '100%',
-      boxSizing: 'border-box',
-      backgroundColor: '#f7fdfb',
-      borderRadius: 12,
-      boxShadow: '0 4px 16px rgba(0,0,0,0.05)',
-      position: 'relative'
-    }}>
-      <div style={{
-        marginBottom: 16,
-        display: 'flex',
-        justifyContent: 'center',
-        gap: 10
-      }}>
-        <button onClick={() => handleCameraChange('left')} style={{
-          padding: '8px 16px',
-          backgroundColor: selectedCamera === 'left' ? '#4caf50' : '#e0e0e0',
-          color: selectedCamera === 'left' ? 'white' : 'black',
-          border: 'none',
-          borderRadius: 4,
-          cursor: 'pointer'
-        }}>📷 Left Camera</button>
-        <button onClick={() => handleCameraChange('right')} style={{
-          padding: '8px 16px',
-          backgroundColor: selectedCamera === 'right' ? '#4caf50' : '#e0e0e0',
-          color: selectedCamera === 'right' ? 'white' : 'black',
-          border: 'none',
-          borderRadius: 4,
-          cursor: 'pointer'
-        }}>📷 Right Camera</button>
+    <div
+      style={{
+        padding: 24,
+        height: 550,
+        width: '100%',
+        boxSizing: 'border-box',
+        backgroundColor: '#f7fdfb',
+        borderRadius: 12,
+        boxShadow: '0 4px 16px rgba(0,0,0,0.05)',
+        position: 'relative'
+      }}
+    >
+      <div
+        style={{
+          marginBottom: 16,
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 10
+        }}
+      >
+        <button
+          onClick={() => handleCameraChange('left')}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: selectedCamera === 'left' ? '#4caf50' : '#e0e0e0',
+            color: selectedCamera === 'left' ? 'white' : 'black',
+            border: 'none',
+            borderRadius: 4,
+            cursor: 'pointer'
+          }}
+        >
+          📷 Left Camera
+        </button>
+        <button
+          onClick={() => handleCameraChange('right')}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: selectedCamera === 'right' ? '#4caf50' : '#e0e0e0',
+            color: selectedCamera === 'right' ? 'white' : 'black',
+            border: 'none',
+            borderRadius: 4,
+            cursor: 'pointer'
+          }}
+        >
+          📷 Right Camera
+        </button>
       </div>
 
       <Line ref={chartRef} data={data} options={mergedOptions} />
@@ -436,29 +469,64 @@ export default function ThermalPlot({
             Save Graph ▼
           </button>
           {showExportMenu && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              backgroundColor: '#fff',
-              boxShadow: '0px 4px 8px rgba(0,0,0,0.15)',
-              zIndex: 10,
-              borderRadius: 4,
-              minWidth: 160,
-              maxHeight: 120,
-              overflowY: 'auto'
-            }}>
-              <div onClick={() => { setShowExportMenu(false); handleSaveGraph() }} style={{ padding: 8, cursor: 'pointer', borderBottom: '1px solid #eee' }}>Save as PNG</div>
-              <div onClick={() => { setShowExportMenu(false); handleExportCSV() }} style={{ padding: 8, cursor: 'pointer', borderBottom: '1px solid #eee' }}>Save as CSV</div>
-              <div onClick={() => { setShowExportMenu(false); handleExportPDF() }} style={{ padding: 8, cursor: 'pointer' }}>Save as PDF</div>
+            <div
+              style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                backgroundColor: '#fff',
+                boxShadow: '0px 4px 8px rgba(0,0,0,0.15)',
+                zIndex: 10,
+                borderRadius: 4,
+                minWidth: 160,
+                maxHeight: 120,
+                overflowY: 'auto'
+              }}
+            >
+              <div
+                onClick={() => {
+                  setShowExportMenu(false)
+                  handleSaveGraph()
+                }}
+                style={{ padding: 8, cursor: 'pointer', borderBottom: '1px solid #eee' }}
+              >
+                Save as PNG
+              </div>
+              <div
+                onClick={() => {
+                  setShowExportMenu(false)
+                  handleExportCSV()
+                }}
+                style={{ padding: 8, cursor: 'pointer', borderBottom: '1px solid #eee' }}
+              >
+                Save as CSV
+              </div>
+              <div
+                onClick={() => {
+                  setShowExportMenu(false)
+                  handleExportPDF()
+                }}
+                style={{ padding: 8, cursor: 'pointer' }}
+              >
+                Save as PDF
+              </div>
             </div>
           )}
         </div>
 
-        <button onClick={handleResetZoom} className="chart-button">Reset Zoom</button>
-        <button onClick={handleHideAll} className="chart-button">Hide All Zones</button>
-        <button onClick={handleShowAll} className="chart-button">Show All Zones</button>
-        <select className="chart-dropdown" value={timeRange} onChange={e => setTimeRange(e.target.value)}>
+        <button onClick={handleResetZoom} className="chart-button">
+          Reset Zoom
+        </button>
+
+        <button onClick={toggleAllZones} className="chart-button">
+          {allZonesHidden ? 'Show All Zones' : 'Hide All Zones'}
+        </button>
+
+        <select
+          className="chart-dropdown"
+          value={timeRange}
+          onChange={e => setTimeRange(e.target.value)}
+        >
           <option value="1h">Last Hour</option>
           <option value="3h">Last 3 Hours</option>
           <option value="24h">Last 24 Hours</option>
