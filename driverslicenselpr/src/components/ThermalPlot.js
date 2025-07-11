@@ -1,5 +1,3 @@
-// src/components/ThermalPlot.js
-
 import React, { useState, useEffect, useRef } from 'react'
 import { Line } from 'react-chartjs-2'
 import {
@@ -10,11 +8,85 @@ import {
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 } from 'chart.js'
 import zoomPlugin from 'chartjs-plugin-zoom'
 import 'chartjs-adapter-date-fns'
 import '../styles/thermaldata.css'
+
+// Updated jitter plugin: draws jitter dots after everything else
+const jitterPlugin = {
+  id: 'jitterPlugin',
+
+  afterDraw(chart) {
+    if (!chart.options.plugins.jitterPlugin?.isChartReady) return
+    if (chart._zooming || chart._panning) return // skip during zoom/pan
+
+    const ctx = chart.ctx
+    const datasets = chart.data.datasets
+    const xScale = chart.scales.x
+
+    const pointsByTime = new Map()
+    datasets.forEach((dataset, dsIndex) => {
+      const meta = chart.getDatasetMeta(dsIndex)
+      if (meta.hidden) return
+
+      dataset.data.forEach((point, i) => {
+        if (point && point.x != null) {
+          const timeMs = new Date(point.x).getTime()
+          const roundedTime = Math.round(timeMs / 3000) * 3000
+          if (!pointsByTime.has(roundedTime)) pointsByTime.set(roundedTime, [])
+          pointsByTime.get(roundedTime).push({ dsIndex, index: i, timeMs, y: point.y })
+        }
+      })
+    })
+
+    const now = Date.now()
+    const maxOffsetBase = 1
+    const maxTimeSpan = 3600000
+
+    ctx.save()
+    ctx.lineWidth = 2
+
+    pointsByTime.forEach(points => {
+      const count = points.length
+      if (count <= 1) return
+
+      const avgTime = points.reduce((acc, p) => acc + p.timeMs, 0) / count
+      let timeDiff = now - avgTime
+      if (timeDiff < 0) timeDiff = 0
+      const scaleFactor = 1 + (1 - Math.min(timeDiff / maxTimeSpan, 1)) * 2
+      const maxOffset = maxOffsetBase * scaleFactor
+
+      points.forEach((p, i) => {
+        const meta = chart.getDatasetMeta(p.dsIndex)
+        if (meta.hidden) return
+
+        const offsetPx = ((i - (count - 1) / 2) * maxOffset) / ((count - 1) / 2)
+        const originalX = xScale.getPixelForValue(p.timeMs)
+
+        const yAxisID = datasets[p.dsIndex].yAxisID || 'y'
+        const yScale = chart.scales[yAxisID]
+        if (!yScale) return
+
+        const jitteredX = originalX + offsetPx
+        const yPixel = yScale.getPixelForValue(p.y)
+
+        if (jitteredX < xScale.left || jitteredX > xScale.right) return
+        if (yPixel < yScale.top || yPixel > yScale.bottom) return
+
+        const color = datasets[p.dsIndex].borderColor || 'black'
+        ctx.fillStyle = color
+        ctx.beginPath()
+        ctx.arc(jitteredX, yPixel, 3, 0, 2 * Math.PI)
+        ctx.fill()
+      })
+    })
+
+    ctx.restore()
+  }
+}
 
 ChartJS.register(
   TimeScale,
@@ -24,8 +96,39 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  zoomPlugin
+  zoomPlugin,
+  jitterPlugin,
+  Filler
 )
+
+// Simple Moving Average smoothing function
+function smoothData(data, windowSize = 5) {
+  const smoothed = []
+  for (let i = 0; i < data.length; i++) {
+    let count = 0
+    let sum = 0
+    for (
+      let j = i - Math.floor(windowSize / 2);
+      j <= i + Math.floor(windowSize / 2);
+      j++
+    ) {
+      if (
+        j >= 0 &&
+        j < data.length &&
+        data[j].y !== null &&
+        data[j].y !== undefined
+      ) {
+        sum += data[j].y
+        count++
+      }
+    }
+    smoothed.push({
+      x: data[i].x,
+      y: count > 0 ? sum / count : null
+    })
+  }
+  return smoothed
+}
 
 export default function ThermalPlot({
   zones = [],
@@ -33,9 +136,38 @@ export default function ThermalPlot({
   setVisibleZones,
   allZones = [],
   tempUnit = 'F',
-  isDarkMode = false // <-- Receive dark mode as prop
+  isDarkMode = false
 }) {
   const chartRef = useRef(null)
+  const [isChartReady, setIsChartReady] = useState(false)
+
+  useEffect(() => {
+    const chart = chartRef.current?.chartInstance || chartRef.current
+    if (!chart) return
+
+    function onZoomStart() {
+      chart._zooming = true
+    }
+    function onZoomEnd() {
+      chart._zooming = false
+      chart.update()
+    }
+    function onPanStart() {
+      chart._panning = true
+    }
+    function onPanEnd() {
+      chart._panning = false
+      chart.update()
+    }
+
+    chart.options.plugins.zoom.zoom.onZoomStart = onZoomStart
+    chart.options.plugins.zoom.zoom.onZoomComplete = onZoomEnd
+    chart.options.plugins.zoom.pan.onPanStart = onPanStart
+    chart.options.plugins.zoom.pan.onPanComplete = onPanEnd
+
+    const readyTimeout = setTimeout(() => setIsChartReady(true), 600)
+    return () => clearTimeout(readyTimeout)
+  }, [])
 
   const timeMap = {
     '1h': 3600000,
@@ -56,10 +188,10 @@ export default function ThermalPlot({
       : []
   })
 
-  const [selectedCamera, setSelectedCamera] = useState(
-    () => localStorage.getItem('selectedCamera') || 'left'
+  const [selectedCamera, setSelectedCamera] = useState(() =>
+    localStorage.getItem('selectedCamera') || 'left'
   )
-  const [chartOptions, setChartOptions] = useState(null)
+
   const [initialRange, setInitialRange] = useState(null)
   const [timeRange, setTimeRange] = useState('1h')
   const [showExportMenu, setShowExportMenu] = useState(false)
@@ -89,13 +221,6 @@ export default function ThermalPlot({
     }, 0)
     return () => clearTimeout(timeout)
   }, [zones, visibleZones, selectedCamera])
-
-  useEffect(() => {
-    fetch('/thermaldata.json')
-      .then(r => r.json())
-      .then(opt => setChartOptions(opt))
-      .catch(console.error)
-  }, [])
 
   useEffect(() => {
     if (history.length && !initialRange) {
@@ -182,7 +307,7 @@ export default function ThermalPlot({
     }
   }
 
-  if (!history.length || !chartOptions || !initialRange) {
+  if (!history.length || !initialRange) {
     return <div style={{ padding: 20 }}>Waiting for data…</div>
   }
 
@@ -193,38 +318,6 @@ export default function ThermalPlot({
   const sorted = history
     .filter(entry => new Date(entry.time).getTime() >= rangeCutoff)
     .sort((a, b) => new Date(a.time) - new Date(b.time))
-
-  let xMin, xMax
-
-  if (['1h', '3h', '24h', '2d'].includes(timeRange)) {
-    const hours =
-      timeRange === '24h' ? 24 :
-      timeRange === '3h' ? 3 :
-      timeRange === '2d' ? 48 :
-      1
-
-    xMin = new Date(currentTime - hours * 60 * 60 * 1000)
-    xMin.setSeconds(0, 0)
-
-    xMax = new Date(currentTime)
-    xMax.setSeconds(0, 0)
-    if (xMax.getTime() < currentTime) {
-      xMax.setMinutes(xMax.getMinutes() + 1)
-    }
-
-    // Add 5 minutes padding on both sides for spacing points
-    const paddingMs = 5 * 60 * 1000
-    xMin = xMin.getTime() - paddingMs
-    xMax = xMax.getTime() + paddingMs
-  } else {
-    xMin = rangeCutoff
-    xMax = currentTime
-
-    const span = xMax - xMin
-    const basePadding = span * 0.05
-    xMin -= basePadding
-    xMax += basePadding
-  }
 
   const filteredNames = Array.from(
     new Set(
@@ -237,73 +330,92 @@ export default function ThermalPlot({
     )
   )
 
+  const offsetStep = 5 // vertical offset between lines
+
+  // Build smoothed + offset datasets here:
   const datasets = filteredNames.map((name, idx) => {
     const color = `hsl(${(idx * 45) % 360},60%,50%)`
+    const rawData = sorted.map(pt => {
+      if (pt.readings && pt.readings[name] !== undefined) {
+        const baseValue = tempUnit === 'F' ? pt.readings[name] : fToC(pt.readings[name])
+        return {
+          x: new Date(pt.time),
+          y: baseValue + idx * offsetStep // apply vertical offset per dataset
+        }
+      }
+      return { x: new Date(pt.time), y: null }
+    })
+    const smoothedData = smoothData(rawData, 5) // smoothing window of 5 points
+
     return {
       label: name,
-      data: sorted.map(pt => {
-        if (pt.readings && pt.readings[name] !== undefined) {
-          // Add a small jitter to x (time) to separate overlapping points horizontally
-          // Adjust jitter magnitude as needed (e.g. 1000 ms = 1 second max)
-          const jitterMs = (idx % 10) * 1000 // max 10 zones jittered in 1-second steps
-          const jitteredTime = new Date(new Date(pt.time).getTime() + jitterMs)
-          return {
-            x: jitteredTime,
-            y: tempUnit === 'F' ? pt.readings[name] : fToC(pt.readings[name])
-          }
-        }
-        return { x: new Date(pt.time), y: null }
-      }),
+      data: smoothedData,
       borderColor: color,
       backgroundColor: 'transparent',
       spanGaps: true,
-      pointRadius: 3,
-      pointHoverRadius: 6,
+      pointRadius: 0,      // hide points to reduce clutter
+      pointHoverRadius: 6, // show points on hover
       pointHitRadius: 10,
       pointBackgroundColor: color,
       pointBorderColor: color,
-      pointBorderWidth: 1
+      pointBorderWidth: 1,
+      yAxisID: 'y',
+      order: 2 // draw above grid and axes
     }
   })
-    // Calculate dynamic y-axis min/max with padding for vertical spacing
+
   const allYValues = datasets.flatMap(ds =>
     ds.data.map(pt => pt.y).filter(y => y !== null)
   )
   const yMin = Math.min(...allYValues)
   const yMax = Math.max(...allYValues)
-  const yPadding = (yMax - yMin) * 0.15 || 10 // increased to 15% padding
+  const yPadding = (yMax - yMin) * 0.15 || 10
   const yAxisMin = yMin - yPadding
   const yAxisMax = yMax + yPadding
-  
-  const data = { datasets }
+
+  // Explicit labels from sorted timestamps:
+  const labels = sorted.map(pt => new Date(pt.time))
+
+  const data = { labels, datasets }
 
   const mergedOptions = {
-    ...chartOptions,
-    maintainAspectRatio: false, // Added to avoid stretching
+    maintainAspectRatio: false,
     elements: {
-      ...chartOptions.elements,
       line: {
-        ...chartOptions.elements?.line,
-        tension: 0.4 // smooth curves
+        tension: 0.3,
+        borderWidth: 2
+      },
+      point: {
+        radius: 0,
+        hoverRadius: 6,
+        hitRadius: 10
       }
     },
     plugins: {
-      ...chartOptions.plugins,
       zoom: {
         zoom: {
-          wheel: {
-            enabled: true // Enable zooming with mouse wheel/trackpad
-          },
-          pinch: {
-            enabled: true // Enable pinch zoom for touch devices
-          },
-          mode: 'x' // Zoom only horizontally (time axis)
+          wheel: { enabled: true },
+          pinch: { enabled: true },
+          mode: 'x',
+          limits: {
+            x: {
+              min: initialRange.min,
+              max: initialRange.max
+            }
+          }
         },
         pan: {
-          enabled: true, // Enable panning on the chart by click/touch drag
-          mode: 'x'
+          enabled: true,
+          mode: 'x',
+          limits: {
+            x: {
+              min: initialRange.min,
+              max: initialRange.max
+            }
+          }
         }
       },
+      jitterPlugin: { isChartReady },
       title: {
         display: true,
         text: 'Temperature Data',
@@ -313,9 +425,7 @@ export default function ThermalPlot({
         color: isDarkMode ? '#ccc' : '#222'
       },
       legend: {
-        ...chartOptions.plugins.legend,
         labels: {
-          ...chartOptions.plugins.legend.labels,
           usePointStyle: false,
           boxWidth: 20,
           boxHeight: 10,
@@ -329,7 +439,7 @@ export default function ThermalPlot({
         }
       },
       tooltip: {
-        mode: 'index',
+        mode: 'nearest',
         axis: 'x',
         intersect: false,
         backgroundColor: isDarkMode ? '#222' : '#fff',
@@ -337,7 +447,6 @@ export default function ThermalPlot({
         bodyColor: isDarkMode ? '#fff' : '#000',
         borderColor: isDarkMode ? '#444' : '#ddd',
         borderWidth: 1,
-        ...(chartOptions.plugins.tooltip || {}),
         callbacks: {
           title: function (tooltipItems) {
             const date = new Date(tooltipItems[0].parsed.x)
@@ -354,7 +463,10 @@ export default function ThermalPlot({
               hours = hours % 12 || 12
               const time = `${hours}:${minutes} ${ampm}`
               if (['24h', '2d'].includes(timeRange)) {
-                const day = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+                const day = date.toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric'
+                })
                 return `${time}\n${day}`
               }
               return time
@@ -362,7 +474,7 @@ export default function ThermalPlot({
           },
           label: function (context) {
             const zoneName = context.dataset.label || ''
-            const value = context.parsed.y
+            const value = context.parsed.y - context.datasetIndex * offsetStep
             return `${zoneName}: ${Math.round(value)}°${tempUnit}`
           }
         }
@@ -372,8 +484,6 @@ export default function ThermalPlot({
     scales: {
       x: {
         type: 'time',
-        min: xMin,
-        max: xMax,
         bounds: 'ticks',
         reverse: false,
         time: {
@@ -381,17 +491,25 @@ export default function ThermalPlot({
             timeRange === '1h'
               ? 'minute'
               : timeRange === '3h'
-              ? 'hour'
+              ? 'minute'
               : timeRange === '24h'
+              ? 'hour'
+              : timeRange === '2d'
+              ? 'hour'
+              : timeRange === '4d'
               ? 'hour'
               : 'day',
           stepSize:
             timeRange === '1h'
-              ? 15
+              ? 2
               : timeRange === '3h'
-              ? 1
+              ? 3
               : timeRange === '24h'
               ? 3
+              : timeRange === '2d'
+              ? 6
+              : timeRange === '4d'
+              ? 12
               : 1,
           tooltipFormat:
             timeRange === '1h' || timeRange === '3h' ? 'h:mm a' : 'MMM d, yyyy',
@@ -402,17 +520,15 @@ export default function ThermalPlot({
           }
         },
         ticks: {
-          source: 'auto',
+          source: 'labels',
           autoSkip: true,
-          maxTicksLimit: 6,
-          autoSkipPadding: 50,
-          maxRotation: 0,
-          font: {
-            size: 12,
-            family: 'Segoe UI'
-          },
+          maxTicksLimit: ['24h', '2d'].includes(timeRange) ? 6 : 12,
+          autoSkipPadding: ['24h', '2d'].includes(timeRange) ? 30 : 20,
+          maxRotation: ['24h', '2d'].includes(timeRange) ? 90 : 45,
+          minRotation: ['24h', '2d'].includes(timeRange) ? 60 : 30,
+          font: { size: 12, family: 'Segoe UI' },
           color: isDarkMode ? '#ccc' : '#222',
-          callback: function (value) {
+          callback(value) {
             const date = new Date(value)
             if (['2d', '4d', '7d', '2w', '1m', '1y'].includes(timeRange)) {
               return date.toLocaleDateString(undefined, {
@@ -427,39 +543,47 @@ export default function ThermalPlot({
               hours = hours % 12 || 12
               const time = `${hours}:${minutes} ${ampm}`
               if (['24h', '2d'].includes(timeRange)) {
-                const day = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+                const day = date.toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric'
+                })
                 return [time, day]
               }
               return time
             }
           }
         },
-        grid: {
-          display: false
-        },
+        grid: { display: false },
         title: {
           display: true,
           text: 'Time',
           font: { size: 14, family: 'Segoe UI', weight: 'bold' },
           color: isDarkMode ? '#ccc' : '#222'
-        }
+        },
+        min: initialRange.min,
+        max: initialRange.max
       },
       y: {
-        ...chartOptions.scales.y,
         min: yAxisMin,
         max: yAxisMax,
         grid: {
-          display: false
+          display: true,
+          drawTicks: true,
+          drawOnChartArea: true,
+          drawBorder: true,
+          color: isDarkMode ? '#444' : '#ccc',
+          borderColor: isDarkMode ? '#666' : '#999'
         },
         ticks: {
-          ...chartOptions.scales.y.ticks,
           stepSize: tempUnit === 'F' ? 20 : 10,
           color: isDarkMode ? '#ccc' : '#222',
           callback: v => `${v.toFixed(0)}°${tempUnit}`
         },
         title: {
-          ...chartOptions.scales.y.title,
-          color: isDarkMode ? '#ccc' : '#222'
+          display: true,
+          text: 'Temperature',
+          color: isDarkMode ? '#ccc' : '#222',
+          font: { family: 'Segoe UI', size: 14 }
         }
       }
     }
@@ -469,7 +593,7 @@ export default function ThermalPlot({
     <div
       style={{
         padding: 24,
-        height: 900,
+        height: 500,  // Reduced from 900 for smaller vertical size
         width: '100%',
         boxSizing: 'border-box',
         backgroundColor: isDarkMode ? '#0f172a' : '#f7fdfb',
@@ -632,4 +756,3 @@ export default function ThermalPlot({
     </div>
   )
 }
-
