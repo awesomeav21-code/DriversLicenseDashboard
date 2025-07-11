@@ -15,13 +15,12 @@ import zoomPlugin from 'chartjs-plugin-zoom'
 import 'chartjs-adapter-date-fns'
 import '../styles/thermaldata.css'
 
-// Updated jitter plugin: draws jitter dots after everything else
 const jitterPlugin = {
   id: 'jitterPlugin',
 
   afterDraw(chart) {
     if (!chart.options.plugins.jitterPlugin?.isChartReady) return
-    if (chart._zooming || chart._panning) return // skip during zoom/pan
+    if (chart._zooming || chart._panning) return
 
     const ctx = chart.ctx
     const datasets = chart.data.datasets
@@ -101,7 +100,6 @@ ChartJS.register(
   Filler
 )
 
-// Simple Moving Average smoothing function
 function smoothData(data, windowSize = 5) {
   const smoothed = []
   for (let i = 0; i < data.length; i++) {
@@ -330,22 +328,29 @@ export default function ThermalPlot({
     )
   )
 
-  const offsetStep = 5 // vertical offset between lines
+  const maxVerticalOffset = 15 // max total degrees for vertical offset
 
-  // Build smoothed + offset datasets here:
   const datasets = filteredNames.map((name, idx) => {
     const color = `hsl(${(idx * 45) % 360},60%,50%)`
+
+    // Calculate offset per dataset to distribute evenly within maxVerticalOffset
+    const offsetStep =
+      filteredNames.length > 1 ? maxVerticalOffset / (filteredNames.length - 1) : 0
+    const offset = idx * offsetStep
+
     const rawData = sorted.map(pt => {
       if (pt.readings && pt.readings[name] !== undefined) {
-        const baseValue = tempUnit === 'F' ? pt.readings[name] : fToC(pt.readings[name])
+        const baseValue =
+          tempUnit === 'F' ? pt.readings[name] : fToC(pt.readings[name])
+        const yValue = baseValue + offset // add vertical offset
         return {
           x: new Date(pt.time),
-          y: baseValue + idx * offsetStep // apply vertical offset per dataset
+          y: yValue
         }
       }
       return { x: new Date(pt.time), y: null }
     })
-    const smoothedData = smoothData(rawData, 5) // smoothing window of 5 points
+    const smoothedData = smoothData(rawData, 5)
 
     return {
       label: name,
@@ -353,27 +358,17 @@ export default function ThermalPlot({
       borderColor: color,
       backgroundColor: 'transparent',
       spanGaps: true,
-      pointRadius: 0,      // hide points to reduce clutter
-      pointHoverRadius: 6, // show points on hover
+      pointRadius: 2,
+      pointHoverRadius: 6,
       pointHitRadius: 10,
       pointBackgroundColor: color,
       pointBorderColor: color,
       pointBorderWidth: 1,
       yAxisID: 'y',
-      order: 2 // draw above grid and axes
+      order: 2
     }
   })
 
-  const allYValues = datasets.flatMap(ds =>
-    ds.data.map(pt => pt.y).filter(y => y !== null)
-  )
-  const yMin = Math.min(...allYValues)
-  const yMax = Math.max(...allYValues)
-  const yPadding = (yMax - yMin) * 0.15 || 10
-  const yAxisMin = yMin - yPadding
-  const yAxisMax = yMax + yPadding
-
-  // Explicit labels from sorted timestamps:
   const labels = sorted.map(pt => new Date(pt.time))
 
   const data = { labels, datasets }
@@ -386,7 +381,7 @@ export default function ThermalPlot({
         borderWidth: 2
       },
       point: {
-        radius: 0,
+        radius: 2,
         hoverRadius: 6,
         hitRadius: 10
       }
@@ -400,7 +395,7 @@ export default function ThermalPlot({
           limits: {
             x: {
               min: initialRange.min,
-              max: initialRange.max
+              max: initialRange.max + 2 * 60 * 1000
             }
           }
         },
@@ -410,7 +405,7 @@ export default function ThermalPlot({
           limits: {
             x: {
               min: initialRange.min,
-              max: initialRange.max
+              max: initialRange.max + 2 * 60 * 1000
             }
           }
         }
@@ -474,7 +469,7 @@ export default function ThermalPlot({
           },
           label: function (context) {
             const zoneName = context.dataset.label || ''
-            const value = context.parsed.y - context.datasetIndex * offsetStep
+            const value = context.parsed.y
             return `${zoneName}: ${Math.round(value)}°${tempUnit}`
           }
         }
@@ -561,11 +556,11 @@ export default function ThermalPlot({
           color: isDarkMode ? '#ccc' : '#222'
         },
         min: initialRange.min,
-        max: initialRange.max
+        max: initialRange.max + 2 * 60 * 1000
       },
       y: {
-        min: yAxisMin,
-        max: yAxisMax,
+        min: 120,
+        max: 160,
         grid: {
           display: true,
           drawTicks: true,
@@ -575,7 +570,7 @@ export default function ThermalPlot({
           borderColor: isDarkMode ? '#666' : '#999'
         },
         ticks: {
-          stepSize: tempUnit === 'F' ? 20 : 10,
+          stepSize: 10,
           color: isDarkMode ? '#ccc' : '#222',
           callback: v => `${v.toFixed(0)}°${tempUnit}`
         },
@@ -593,7 +588,7 @@ export default function ThermalPlot({
     <div
       style={{
         padding: 24,
-        height: 500,  // Reduced from 900 for smaller vertical size
+        height: 500,
         width: '100%',
         boxSizing: 'border-box',
         backgroundColor: isDarkMode ? '#0f172a' : '#f7fdfb',
@@ -756,3 +751,4 @@ export default function ThermalPlot({
     </div>
   )
 }
+

@@ -16,6 +16,7 @@ export default function Navigation({ activeTab, setActiveTab, isDarkMode }) {
         className={`nav-button ${activeTab === 'dashboard' ? 'active' : ''}`}
         onClick={() => setActiveTab('dashboard')}
       >
+        {/* Dashboard Icon */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="nav-icon"
@@ -38,6 +39,7 @@ export default function Navigation({ activeTab, setActiveTab, isDarkMode }) {
         className={`nav-button ${activeTab === 'thermal' ? 'active' : ''}`}
         onClick={() => setActiveTab('thermal')}
       >
+        {/* Thermal Icon */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="nav-icon"
@@ -54,9 +56,10 @@ export default function Navigation({ activeTab, setActiveTab, isDarkMode }) {
       </button>
 
       <button
-        className={`nav-button ${activeTab === 'surveillance' ? 'active' : ''}`}
-        onClick={() => setActiveTab('surveillance')}
+        className={`nav-button ${activeTab === 'streams' ? 'active' : ''}`}
+        onClick={() => setActiveTab('streams')}
       >
+        {/* Camera Icon */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="nav-icon"
@@ -67,7 +70,6 @@ export default function Navigation({ activeTab, setActiveTab, isDarkMode }) {
           strokeLinecap="round"
           strokeLinejoin="round"
         >
-          {/* Example "camera" icon */}
           <circle cx="12" cy="12" r="3" />
           <rect x="2" y="7" width="6" height="10" rx="1" ry="1" />
           <path d="M8 12h1" />

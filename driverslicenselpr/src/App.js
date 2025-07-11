@@ -7,6 +7,8 @@ import VideoFeed from './components/VideoFeed'
 import ThermalPlot from './components/ThermalPlot'
 import SidebarPanel from './components/SidebarPanel'
 import Footer from './components/Footer'
+import SurveillanceStreams from './components/SurveillanceStreams' // New import
+
 import './styles/videofeed.css'
 import './App.css'
 
@@ -161,6 +163,7 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         isDarkMode={isDarkMode}
+        // Make sure your Navigation includes the 'streams' tab button
       />
 
       <div className="app-layout">
@@ -192,7 +195,7 @@ export default function App() {
                 />
               )}
 
-              <div style={{ display: activeTab === 'thermal' ? 'block' : 'none' }}>
+              {activeTab === 'thermal' && (
                 <ThermalPlot
                   zones={zones}
                   visibleZones={visibleZones}
@@ -205,7 +208,11 @@ export default function App() {
                   setEndDate={setEndDate}
                   isDarkMode={isDarkMode}
                 />
-              </div>
+              )}
+
+              {activeTab === 'streams' && (
+                <SurveillanceStreams />
+              )}
             </div>
           </div>
         </div>
