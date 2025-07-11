@@ -328,12 +328,12 @@ export default function ThermalPlot({
     )
   )
 
-  const maxVerticalOffset = 15 // max total degrees for vertical offset
+  // Convert offset to proper unit scale
+  const maxVerticalOffset = tempUnit === 'F' ? 15 : fToC(15) // crucial for correct vertical offsets in °C
 
   const datasets = filteredNames.map((name, idx) => {
     const color = `hsl(${(idx * 45) % 360},60%,50%)`
 
-    // Calculate offset per dataset to distribute evenly within maxVerticalOffset
     const offsetStep =
       filteredNames.length > 1 ? maxVerticalOffset / (filteredNames.length - 1) : 0
     const offset = idx * offsetStep
@@ -342,7 +342,7 @@ export default function ThermalPlot({
       if (pt.readings && pt.readings[name] !== undefined) {
         const baseValue =
           tempUnit === 'F' ? pt.readings[name] : fToC(pt.readings[name])
-        const yValue = baseValue + offset // add vertical offset
+        const yValue = baseValue + offset // vertical offset in proper scale
         return {
           x: new Date(pt.time),
           y: yValue
@@ -372,6 +372,10 @@ export default function ThermalPlot({
   const labels = sorted.map(pt => new Date(pt.time))
 
   const data = { labels, datasets }
+
+  // Apply y-axis min/max conversion for Celsius if needed
+  const yAxisMin = tempUnit === 'F' ? 120 : fToC(120)
+  const yAxisMax = tempUnit === 'F' ? 160 : fToC(160)
 
   const mergedOptions = {
     maintainAspectRatio: false,
@@ -559,8 +563,8 @@ export default function ThermalPlot({
         max: initialRange.max + 2 * 60 * 1000
       },
       y: {
-        min: 120,
-        max: 160,
+        min: yAxisMin,
+        max: yAxisMax,
         grid: {
           display: true,
           drawTicks: true,
@@ -570,9 +574,11 @@ export default function ThermalPlot({
           borderColor: isDarkMode ? '#666' : '#999'
         },
         ticks: {
-          stepSize: 10,
+          stepSize: tempUnit === 'F' ? 10 : 6,
           color: isDarkMode ? '#ccc' : '#222',
-          callback: v => `${v.toFixed(0)}°${tempUnit}`
+          callback: function(value) {
+            return `${Math.round(value)}°${tempUnit}`
+          }
         },
         title: {
           display: true,
@@ -751,4 +757,3 @@ export default function ThermalPlot({
     </div>
   )
 }
-
