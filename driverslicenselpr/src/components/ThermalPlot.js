@@ -197,6 +197,7 @@ export default function ThermalPlot({
 
   const fToC = f => Math.round(((f - 32) * 5) / 9)
 
+  // Always replace last history entry with current zones temps for visible zones
   const updateHistory = camera => {
     const now = new Date()
     const readings = {}
@@ -205,19 +206,22 @@ export default function ThermalPlot({
       .forEach(z => {
         readings[z.name] = z.temperature
       })
+
     setHistory(prev => {
-      const updated = [...prev, { time: now, readings }]
-      if (updated.length > 1000) updated.shift()
+      if (prev.length > 0) {
+        const updated = [...prev]
+        updated[updated.length - 1] = { time: now, readings }
+        localStorage.setItem('thermalHistory', JSON.stringify(updated))
+        return updated
+      }
+      const updated = [{ time: now, readings }]
       localStorage.setItem('thermalHistory', JSON.stringify(updated))
       return updated
     })
   }
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      updateHistory(selectedCamera)
-    }, 0)
-    return () => clearTimeout(timeout)
+    updateHistory(selectedCamera)
   }, [zones, visibleZones, selectedCamera])
 
   useEffect(() => {
@@ -236,6 +240,13 @@ export default function ThermalPlot({
       chartRef.current.update()
     }
   }, [tempUnit, isDarkMode])
+
+  // Force chart update whenever history changes for sync
+  useEffect(() => {
+    if (chartRef.current) {
+      chartRef.current.update()
+    }
+  }, [history])
 
   const handleCameraChange = cam => {
     setSelectedCamera(cam)
@@ -281,7 +292,6 @@ export default function ThermalPlot({
     a.href = url
     a.download = filename
     a.click()
-    URL.revokeObjectURL(url)
   }
 
   const handleExportPDF = () => {
@@ -328,8 +338,7 @@ export default function ThermalPlot({
     )
   )
 
-  // Convert offset to proper unit scale
-  const maxVerticalOffset = tempUnit === 'F' ? 15 : fToC(15) // crucial for correct vertical offsets in °C
+  const maxVerticalOffset = tempUnit === 'F' ? 15 : fToC(15)
 
   const datasets = filteredNames.map((name, idx) => {
     const color = `hsl(${(idx * 45) % 360},60%,50%)`
@@ -338,23 +347,39 @@ export default function ThermalPlot({
       filteredNames.length > 1 ? maxVerticalOffset / (filteredNames.length - 1) : 0
     const offset = idx * offsetStep
 
-    const rawData = sorted.map(pt => {
-      if (pt.readings && pt.readings[name] !== undefined) {
-        const baseValue =
-          tempUnit === 'F' ? pt.readings[name] : fToC(pt.readings[name])
-        const yValue = baseValue + offset // vertical offset in proper scale
-        return {
-          x: new Date(pt.time),
-          y: yValue
+    // Build raw points with no offset
+    const zoneDataPoints = sorted
+      .map(pt => {
+        if (pt.readings && pt.readings[name] !== undefined) {
+          const baseValue =
+            tempUnit === 'F' ? pt.readings[name] : fToC(pt.readings[name])
+          return {
+            x: new Date(pt.time),
+            y: baseValue
+          }
         }
-      }
-      return { x: new Date(pt.time), y: null }
-    })
-    const smoothedData = smoothData(rawData, 5)
+        return { x: new Date(pt.time), y: null }
+      })
+      .filter(p => p.y !== null)
+
+    if (zoneDataPoints.length === 0) return null
+
+    // Separate all but last for smoothing and offset
+    const allButLast = zoneDataPoints.slice(0, -1).map(p => ({
+      x: p.x,
+      y: p.y + offset
+    }))
+
+    const smoothedData = smoothData(allButLast, 5)
+
+    const lastPoint = zoneDataPoints[zoneDataPoints.length - 1]
+
+    // Combine smoothed with last raw (no offset)
+    const combinedData = [...smoothedData, { x: lastPoint.x, y: lastPoint.y }]
 
     return {
       label: name,
-      data: smoothedData,
+      data: combinedData,
       borderColor: color,
       backgroundColor: 'transparent',
       spanGaps: true,
@@ -367,13 +392,12 @@ export default function ThermalPlot({
       yAxisID: 'y',
       order: 2
     }
-  })
+  }).filter(Boolean)
 
   const labels = sorted.map(pt => new Date(pt.time))
 
   const data = { labels, datasets }
 
-  // Apply y-axis min/max conversion for Celsius if needed
   const yAxisMin = tempUnit === 'F' ? 120 : fToC(120)
   const yAxisMax = tempUnit === 'F' ? 160 : fToC(160)
 
