@@ -1,5 +1,3 @@
-// src/App.js
-
 import React, { useState, useEffect } from 'react'
 import Header from './components/Header'
 import Navigation from './components/Navigation'
@@ -7,104 +5,148 @@ import VideoFeed from './components/VideoFeed'
 import ThermalPlot from './components/ThermalPlot'
 import SidebarPanel from './components/SidebarPanel'
 import Footer from './components/Footer'
-import SurveillanceStreams from './components/SurveillanceStreams' // New import
+import SurveillanceStreams from './components/SurveillanceStreams'
 
 import './styles/videofeed.css'
 import './App.css'
 
+// Helper: randomly pick N zones from array
+function getRandomZones(arr, count) {
+  const shuffled = arr.slice().sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, Math.max(1, Math.min(count, arr.length)));
+}
+
+// New helper: always include at least 1 from each camera if possible
+function pickZonesWithBothCameras(allZonesArr, count) {
+  const cam1 = allZonesArr.filter(z => z.camera === 'planck_1');
+  const cam2 = allZonesArr.filter(z => z.camera === 'planck_2');
+  let picks = [];
+  if (cam1.length > 0) picks.push(cam1[Math.floor(Math.random() * cam1.length)]);
+  if (cam2.length > 0) picks.push(cam2[Math.floor(Math.random() * cam2.length)]);
+  const remainingZones = allZonesArr.filter(
+    z => !picks.find(p => p.camera === z.camera && p.name === z.name)
+  );
+  const restCount = Math.max(0, count - picks.length);
+  picks = picks.concat(getRandomZones(remainingZones, restCount));
+  return picks;
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('activeTab') || 'dashboard')
-  const [zones, setZones] = useState(() => {
-    const saved = localStorage.getItem('zones')
-    return saved ? JSON.parse(saved) : []
-  })
+  const [zones, setZones] = useState([])
   const [allZones, setAllZones] = useState([])
-  const [history, setHistory] = useState(() => {
-    const saved = localStorage.getItem('thermalHistory')
-    return saved ? JSON.parse(saved, (key, val) => key === 'time' ? new Date(val) : val) : []
-  })
+  const [history, setHistory] = useState([])
+  const [visibleZones, setVisibleZones] = useState([])
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [tempUnit, setTempUnit] = useState('F')
-  const [visibleZones, setVisibleZones] = useState(() => {
-    const saved = localStorage.getItem('visibleZones')
-    return saved ? JSON.parse(saved) : []
+  const [selectedCamera, setSelectedCamera] = useState(() => {
+    const saved = localStorage.getItem('selectedCamera')
+    return saved || 'planck_1'
   })
 
-  // States for date filters and filtered logs
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [filteredLogs, setFilteredLogs] = useState([])
 
-  function getTemp() {
-    return Math.round(140 + Math.random() * 20 - 10)
-  }
-
   useEffect(() => {
     let mounted = true
-    let intervalId = null
 
-    fetch('/zones.json')
+    fetch('/SSAM.temperature_logs.json')
       .then(res => res.json())
       .then(json => {
         if (!mounted) return
-        setAllZones(json)
 
-        function generateZones() {
-          if (!mounted) return
+        const recent = Array.isArray(json) ? json.slice(-20) : [];
 
-          const leftPool = json.filter(z => z.camera === 'left')
-          const rightPool = json.filter(z => z.camera === 'right')
-          const shuffle = arr => [...arr].sort(() => 0.5 - Math.random())
-
-          const selectedLeft = shuffle(leftPool).slice(0, Math.floor(Math.random() * 12) + 1)
-          const selectedRight = shuffle(rightPool).slice(0, Math.floor(Math.random() * 12) + 1)
-
-          const combined = [...selectedLeft, ...selectedRight].map(z => {
-            const temp = getTemp()
-            const status = temp > z.threshold ? 'ALERT' : 'NORMAL'
-            return {
-              ...z,
-              temperature: temp,
-              status,
-              lastTriggered: status === 'ALERT' ? new Date().toISOString() : null
+        // Only those zones with actual numeric data
+        const validZoneMap = {};
+        recent.forEach(entry => {
+          const camera = entry.camera_id ? entry.camera_id.trim().toLowerCase() : null
+          if (!camera) return
+          (entry.zones || []).forEach(zoneObj => {
+            const name = Object.keys(zoneObj)[0]
+            const value = zoneObj[name]
+            if (name && typeof value === 'number') {
+              validZoneMap[`${camera}__${name}`] = { name, camera }
             }
           })
+        });
+        const validZonesArr = Object.values(validZoneMap);
 
-          setZones(combined)
-          setHistory(prev => {
-            const cutoff = Date.now() - 1000 * 60 * 60
-            const recent = prev.filter(item => item.time >= cutoff)
-            return [...recent, { time: Date.now(), zones: combined }]
-          })
+        // Pick 1-12 zones, guarantee both cameras if possible
+        const zoneCount = Math.floor(Math.random() * 12) + 1; // 1..12
+        const selectedZonesArr = pickZonesWithBothCameras(validZonesArr, zoneCount);
 
-          if (visibleZones.length === 0) {
-            const defaultVisible = combined.slice(0, 10).map(z => z.name)
-            setVisibleZones(defaultVisible)
+        setAllZones(selectedZonesArr);
+        setVisibleZones(selectedZonesArr.map(z => z.name));
+
+        // Build history, rounding values
+        const fullHistory = recent.map(entry => {
+          const camera = entry.camera_id ? entry.camera_id.trim().toLowerCase() : null;
+          const readings = {};
+          selectedZonesArr.forEach(z => {
+            let found = null
+            if (camera === z.camera) {
+              (entry.zones || []).forEach(zoneObj => {
+                if (Object.keys(zoneObj)[0] === z.name) found = zoneObj[z.name]
+              })
+            }
+            readings[z.name] = typeof found === 'number' ? Math.round(found) : null
+          });
+          return {
+            time: new Date(entry.time || entry.timestamp),
+            readings
           }
-        }
+        });
+        setHistory(fullHistory);
 
-        generateZones()
-        // intervalId = setInterval(generateZones, 7000)
+        // For each selected zone, find latest value from the correct camera, rounding it
+        if (recent.length) {
+          const curZones = selectedZonesArr.map(z => {
+            let value = null
+            for (let i = recent.length - 1; i >= 0; i--) {
+              const entry = recent[i];
+              const camera = entry.camera_id ? entry.camera_id.trim().toLowerCase() : null;
+              if (camera === z.camera) {
+                for (const zoneObj of (entry.zones || [])) {
+                  if (Object.keys(zoneObj)[0] === z.name) {
+                    value = zoneObj[z.name];
+                    break;
+                  }
+                }
+                if (value !== null) break;
+              }
+            }
+            return {
+              name: z.name,
+              camera: z.camera,
+              temperature: typeof value === 'number' ? Math.round(value) : null
+            }
+          })
+          setZones(curZones)
+        } else {
+          setZones(selectedZonesArr.map(z => ({
+            name: z.name,
+            camera: z.camera,
+            temperature: null
+          })))
+        }
       })
-      .catch(err => console.error('Failed to load zones:', err))
+      .catch(err => {
+        setZones([])
+        setAllZones([])
+        setHistory([])
+        setVisibleZones([])
+      })
 
     return () => {
       mounted = false
-      if (intervalId) clearInterval(intervalId)
     }
   }, [])
 
   useEffect(() => {
-    localStorage.setItem('zones', JSON.stringify(zones))
-  }, [zones])
-
-  useEffect(() => {
-    localStorage.setItem('thermalHistory', JSON.stringify(history))
-  }, [history])
-
-  useEffect(() => {
-    localStorage.setItem('visibleZones', JSON.stringify(visibleZones))
-  }, [visibleZones])
+    localStorage.setItem('selectedCamera', selectedCamera)
+  }, [selectedCamera])
 
   useEffect(() => {
     localStorage.setItem('activeTab', activeTab)
@@ -112,16 +154,9 @@ export default function App() {
     document.body.classList.toggle('light-mode', !isDarkMode)
   }, [activeTab, isDarkMode])
 
-  // Filter logs dynamically from zones based on selected start/end dates
   useEffect(() => {
     if (!startDate || !endDate) {
-      const logs = zones
-        .filter(z => z.status === 'ALERT' && z.lastTriggered)
-        .map(z => ({
-          timestamp: new Date(z.lastTriggered).toLocaleString(),
-          message: `Temperature alarm – ${z.camera.charAt(0).toUpperCase() + z.camera.slice(1)} Camera – Zone ${z.name}`
-        }))
-      setFilteredLogs(logs)
+      setFilteredLogs([]);
       return
     }
     const start = new Date(startDate + 'T00:00:00').getTime()
@@ -130,25 +165,17 @@ export default function App() {
       setFilteredLogs([])
       return
     }
-
-    const logs = zones
-      .filter(z => z.status === 'ALERT' && z.lastTriggered)
-      .filter(z => {
-        const triggeredTime = new Date(z.lastTriggered).getTime()
-        return triggeredTime >= start && triggeredTime <= end
-      })
-      .map(z => ({
-        timestamp: new Date(z.lastTriggered).toLocaleString(),
-        message: `Temperature alarm – ${z.camera.charAt(0).toUpperCase() + z.camera.slice(1)} Camera – Zone ${z.name}`
-      }))
-
-    setFilteredLogs(logs)
+    setFilteredLogs([]);
   }, [startDate, endDate, zones])
 
   function addZone() {}
 
-  const camera1Zones = zones.filter(z => z.camera === 'left')
-  const camera2Zones = zones.filter(z => z.camera === 'right')
+  const camera1Zones = zones.filter(z => z.camera?.trim().toLowerCase() === 'planck_1')
+  const camera2Zones = zones.filter(z => z.camera?.trim().toLowerCase() === 'planck_2')
+
+  if (zones.length === 0) {
+    return <div>Loading zones...</div>
+  }
 
   return (
     <>
@@ -163,7 +190,6 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         isDarkMode={isDarkMode}
-        // Make sure your Navigation includes the 'streams' tab button
       />
 
       <div className="app-layout">
@@ -207,6 +233,9 @@ export default function App() {
                   setStartDate={setStartDate}
                   setEndDate={setEndDate}
                   isDarkMode={isDarkMode}
+                  selectedCamera={selectedCamera}
+                  setSelectedCamera={setSelectedCamera}
+                  history={history}   
                 />
               )}
 
