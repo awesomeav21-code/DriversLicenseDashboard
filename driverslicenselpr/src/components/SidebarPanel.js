@@ -2,58 +2,54 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import '../styles/sidebarpanel.css';
 
-export default function SidebarPanel({ isDarkMode, onDatePick, logs = [] }) {
-  const [startDate, setStartDate] = useState(() => localStorage.getItem('logStartDate') || '');
-  const [endDate, setEndDate] = useState(() => localStorage.getItem('logEndDate') || '');
-
+export default function SidebarPanel({ isDarkMode, onDatePick, logs = [], visibleZones = [] }) {
   const today = new Date().toISOString().slice(0, 10);
+
+  const [startDate, setStartDate] = useState(() => localStorage.getItem('logStartDate') || today);
+  const [endDate, setEndDate] = useState(() => localStorage.getItem('logEndDate') || today);
 
   const parseInputDate = (dateStr, isStart) => {
     if (!dateStr) return null;
     return isStart
       ? new Date(dateStr + 'T00:00:00')
-      : new Date(dateStr + 'T23:59:59');
+      : new Date(dateStr + 'T23:59:59.999');
   };
 
+  useEffect(() => {
+    localStorage.setItem('logStartDate', startDate);
+    localStorage.setItem('logEndDate', endDate);
+    if (onDatePick) onDatePick(startDate, endDate);
+  }, [startDate, endDate, onDatePick]);
+
   const resetDates = () => {
-    setStartDate('');
-    setEndDate('');
+    setStartDate(today);
+    setEndDate(today);
     localStorage.removeItem('logStartDate');
     localStorage.removeItem('logEndDate');
-    if (onDatePick) onDatePick('', '');
+    if (onDatePick) onDatePick(today, today);
   };
 
   const downloadLogs = () => {
     if (!startDate || !endDate) {
       alert('Please select both start and end dates.');
-      resetDates();
       return;
     }
     const start = parseInputDate(startDate, true);
     const end = parseInputDate(endDate, false);
-
     if (start > end) {
       alert('Start date must be before end date.');
-      resetDates();
       return;
     }
-
-    const filteredLogs = logs.filter(log => {
-      const logDateMs = Date.parse(log.timestamp);
-      return logDateMs >= start.getTime() && logDateMs <= end.getTime();
-    });
-
-    if (filteredLogs.length === 0) {
-      alert('No logs available for the selected date range.');
-      resetDates();
+    if (logs.length === 0) {
+      alert('No logs available for the selected date range and zones.');
       return;
     }
 
     const csvRows = [
       ['Index', 'Timestamp', 'Message'],
-      ...filteredLogs.map((log, index) => [index + 1, log.timestamp, `"${log.message}"`])
+      ...logs.map((log, index) => [index + 1, log.timestamp, `"${log.message}"`])
     ];
-    const csvContent = csvRows.map(e => e.join(',')).join('\n');
+    const csvContent = csvRows.map(row => row.join(',')).join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -64,24 +60,15 @@ export default function SidebarPanel({ isDarkMode, onDatePick, logs = [] }) {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-
-    resetDates();
   };
-
-  useEffect(() => {
-    localStorage.setItem('logStartDate', startDate);
-    localStorage.setItem('logEndDate', endDate);
-    if (onDatePick) onDatePick(startDate, endDate);
-  }, [startDate, endDate, onDatePick]);
 
   return (
     <div className={`sidebar-panel ${isDarkMode ? 'dark-panel' : 'light-panel'}`}>
       <div className="sidebar-inner">
         <div className="event-logs">
           <h2 className="log-title">Event Logs</h2>
-
           <div className="date-inputs">
-            <label htmlFor="start-date">Start Date</label>
+            <label htmlFor="start-date">Start</label>
             <input
               id="start-date"
               type="date"
@@ -90,9 +77,9 @@ export default function SidebarPanel({ isDarkMode, onDatePick, logs = [] }) {
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
               className={isDarkMode ? 'dark-input' : ''}
+              style={{ marginBottom: '6px' }}
             />
-
-            <label htmlFor="end-date">End Date</label>
+            <label htmlFor="end-date">End</label>
             <input
               id="end-date"
               type="date"
@@ -103,32 +90,32 @@ export default function SidebarPanel({ isDarkMode, onDatePick, logs = [] }) {
               className={isDarkMode ? 'dark-input' : ''}
             />
           </div>
-
           <div className="log-buttons">
             <button
-              className={isDarkMode ? 'dark-button' : ''}
+              className={`download-logs-btn${isDarkMode ? ' dark-btn' : ''}`}
               onClick={downloadLogs}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                fill="currentColor"
-                viewBox="0 0 16 16"
-                style={{ marginRight: '8px' }}
+              <span
+                className="download-icon"
                 aria-hidden="true"
-                focusable="false"
+                style={{ marginRight: '6px', display: 'inline-flex', alignItems: 'center' }}
               >
-                <path d="M.5 9.9v3.6A1.5 1.5 0 0 0 2 15h12a1.5 1.5 0 0 0 1.5-1.5v-3.6h-1v3.6a.5.5 0 0 1-.5.5H2a.5.5 0 0 1-.5-.5v-3.6h-1z" />
-                <path fillRule="evenodd" d="M7.646 12.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 11.293V1.5a.5.5 0 0 0-1 0v9.793L5.354 9.146a.5.5 0 1 0-.708.708l3 3z" />
-              </svg>
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ display: 'block' }}>
+                  <path
+                    d="M10 3v9m0 0l-4-4m4 4l4-4m-9 7h10"
+                    stroke="#fff"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
               Download Logs
             </button>
           </div>
-
           <div
             className="logs-scroll-container"
-            style={{ maxHeight: '400px', overflowY: 'auto' }}
+            style={{ maxHeight: '340px', overflowY: 'auto', marginTop: '10px' }}
           >
             <div className="log-entries-list">
               {startDate && endDate ? (
@@ -159,5 +146,6 @@ export default function SidebarPanel({ isDarkMode, onDatePick, logs = [] }) {
 SidebarPanel.propTypes = {
   isDarkMode: PropTypes.bool,
   onDatePick: PropTypes.func,
-  logs: PropTypes.array
+  logs: PropTypes.array,
+  visibleZones: PropTypes.array
 };

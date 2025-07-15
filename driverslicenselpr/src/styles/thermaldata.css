@@ -1,15 +1,66 @@
+/* === CONTAINER FOR CHART AREA === */
+.thermal-container {
+  background: #f7fdfb;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+  padding: 28px;           /* Slightly reduced padding */
+  height: 600px;           /* Shorter, so more is visible! */
+  width: 1400px;
+  max-width: 98vw;         /* Prevents overflow on small screens */
+  box-sizing: border-box;
+  position: relative;
+  margin: 10px auto 0 auto; /* Top margin, center horizontally */
+}
+
+.thermal-container.dark-mode {
+  background: #0f172a;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.8);
+  color: #eee;
+}
+
+/* === CAMERA BUTTON BAR (centered above chart) === */
+.camera-switcher-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+  margin-top: 4px;
+}
+
+.camera-switcher-btn {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 6px;
+  background: #e0e0e0;
+  color: #333;
+  font-size: 15px;
+  font-family: 'Segoe UI', sans-serif;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.18s, color 0.18s;
+}
+.camera-switcher-btn.selected {
+  background: #4caf50;
+  color: #fff;
+}
+.camera-switcher-btn:hover:not(.selected) {
+  background: #c1ebe0;
+}
+
+/* === BUTTON BAR FOR CHART === */
 .chart-button-container {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 10px;
-  margin-top: 20px;
-  padding-bottom: 16px;
+  margin-top: 18px;
+  padding-bottom: 12px;
   flex-wrap: wrap;
 }
 
 .chart-button {
-  display: inline-block;        /* ensure it's block-like */
+  display: inline-block;
   padding: 6px 18px;
   background-color: transparent;
   border: 1px solid #000000;
@@ -23,9 +74,9 @@
   outline: none;
   box-sizing: border-box;
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-  user-select: none;            /* optional, avoid text selection on click */
-  text-align: center;           /* center text inside */
-  line-height: 1.2;             /* better vertical alignment */
+  user-select: none;
+  text-align: center;
+  line-height: 1.2;
 }
 
 /* Ensure hover color applies to button and all its children */
@@ -36,7 +87,7 @@
 }
 
 .zoom-left-button {
-  display: inline-block;        /* same fix here */
+  display: inline-block;
   padding: 6px 18px;
   background-color: transparent;
   border: 1px solid #000000;
@@ -76,4 +127,18 @@
 .dark-mode .zoom-left-button:hover * {
   background-color: #ffffff;
   color: #000000;
+}
+
+/* Responsive tweak for very small screens */
+@media (max-width: 1500px) {
+  .thermal-container {
+    width: 96vw;
+    padding: 10px;
+    height: 440px;    /* Reduce further for smaller screens */
+  }
+}
+
+.chartjs-legend li span {
+  text-decoration: line-through !important;
+  color: #bbb !important;
 }

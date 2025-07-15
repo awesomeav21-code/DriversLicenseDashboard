@@ -392,10 +392,12 @@ input:checked + .slider:before {
   cursor: pointer;
   font-size: 13px;
   height: 36px;
-  min-width: 120px;
+  min-width: 140px; /* Increased min-width to fit name */
   box-sizing: border-box;
   transition: background-color 0.2s ease, border 0.2s ease, box-shadow 0.2s ease;
   box-shadow: none;
+  white-space: nowrap;
+  overflow: visible;
 }
 
 .profile-button:hover {
@@ -403,8 +405,12 @@ input:checked + .slider:before {
   border-color: rgba(255, 255, 255, 0.4);
 }
 
-.profile-label {
-  color: white;
+.profile-label-text {
+  color: white; /* Always white */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
 }
 
 .profile-circle {
@@ -488,4 +494,54 @@ input:checked + .slider:before {
 .icon-container.dropdown-parent.settings-icon-container {
   border: none !important;
   background-color: transparent !important;
+}
+
+/* Dark mode input fields for First Name and Last Name */
+.dark-video input.profile-input,
+.dark-video input.profile-input[type="text"],
+.dark-video input.profile-input[type="text"]:focus {
+  background-color: #0f172a;      /* darkest navy blue */
+  color: #f9fafb;                 /* white text */
+  border: 1px solid #334155;      /* subtle border */
+  caret-color: #f9fafb;           /* white cursor */
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.dark-video input.profile-input::placeholder {
+  color: #94a3b8;                 /* lighter placeholder for dark mode */
+}
+
+.dark-video input.profile-input:focus {
+  border-color: #22c55e;          /* green accent on focus */
+  outline: none;
+  box-shadow: 0 0 4px #22c55e;
+}
+
+
+/* ---------------- DARK MODE FOR MANUAL PANEL ------------------- */
+.dark-mode .manual-panel,
+.dark-mode .manual-panel h3,
+.dark-mode .manual-panel .manual-section,
+.dark-mode .manual-panel .manual-section h4,
+.dark-mode .manual-panel .manual-section p,
+.dark-mode .manual-panel ul,
+.dark-mode .manual-panel ul li,
+.dark-mode .manual-panel .help-feature,
+.dark-mode .manual-panel span {
+  background-color: #0f172a !important;
+  color: #f9fafb !important;
+  border-color: #334155 !important;
+}
+
+.dark-mode .manual-panel h3,
+.dark-mode .manual-panel .manual-section h4 {
+  color: #f3f4f6 !important;
+}
+
+.dark-mode .manual-panel .manual-section span {
+  color: #f9fafb !important; /* Ensure troubleshooting and regular text stays white */
+}
+
+.dark-mode .manual-panel {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.8) !important;
 }

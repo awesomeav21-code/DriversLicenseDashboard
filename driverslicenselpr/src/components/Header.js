@@ -145,6 +145,22 @@ function Header({
   // Profile circle shows first letter uppercase or fallback "O"
   const profileInitial = profileName ? profileName.charAt(0).toUpperCase() : 'O'
 
+  // Colors for dark mode
+  const helpTextColor = isDarkMode ? '#f9fafb' : '#1f2937'
+  const helpHeadingColor = isDarkMode ? '#f3f4f6' : '#111827'
+  const helpBorderColor = isDarkMode ? '#334155' : '#ccc'
+  const helpBgColor = isDarkMode ? '#0f172a' : 'white'
+  const helpShadow = isDarkMode
+    ? '0 8px 24px rgba(0, 0, 0, 0.8)'
+    : '0 8px 24px rgba(0, 0, 0, 0.2)'
+
+  const settingsTextColor = isDarkMode ? '#f9fafb' : '#111827'
+  const settingsBgColor = isDarkMode ? '#0f172a' : '#ffffff'
+  const settingsBorderColor = isDarkMode ? '#334155' : 'none'
+  const settingsShadow = isDarkMode
+    ? '0 8px 24px rgba(0, 0, 0, 0.8)'
+    : '0 8px 24px rgba(0, 0, 0, 0.12)'
+
   return (
     <>
       <header className="header">
@@ -196,7 +212,7 @@ function Header({
                 height="24"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="#1c7ed6"
+                stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'}
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -211,19 +227,35 @@ function Header({
                 className="dropdown help-dropdown manual-panel"
                 onMouseEnter={() => (helpMouseInside.current = true)}
                 onMouseLeave={onHelpLeave}
+                style={{
+                  backgroundColor: helpBgColor,
+                  border: `1px solid ${helpBorderColor}`,
+                  color: helpTextColor,
+                  boxShadow: helpShadow,
+                }}
               >
-                <h3 className="settings-title">Help Manual</h3>
+                <h3
+                  className="settings-title"
+                  style={{ color: helpHeadingColor }}
+                >
+                  Help Manual
+                </h3>
 
-                <div className="manual-section">
-                  <h4 className="setting-name">Dashboard Overview</h4>
-                  <div className="help-feature">
+                <div className="manual-section" style={{ color: helpTextColor }}>
+                  <h4
+                    className="setting-name"
+                    style={{ color: helpHeadingColor }}
+                  >
+                    Dashboard Overview
+                  </h4>
+                  <div className="help-feature" style={{ color: helpTextColor }}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
                       height="16"
                       viewBox="0 0 24 24"
                       fill="none"
-                      stroke="#1c7ed6"
+                      stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -232,14 +264,14 @@ function Header({
                     </svg>
                     <span>Monitor real-time temperature data from different zones</span>
                   </div>
-                  <div className="help-feature">
+                  <div className="help-feature" style={{ color: helpTextColor }}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
                       height="16"
                       viewBox="0 0 24 24"
                       fill="none"
-                      stroke="#1c7ed6"
+                      stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -248,14 +280,14 @@ function Header({
                     </svg>
                     <span>View live camera feeds from PTZ, thermal, and normal cameras</span>
                   </div>
-                  <div className="help-feature">
+                  <div className="help-feature" style={{ color: helpTextColor }}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
                       height="16"
                       viewBox="0 0 24 24"
                       fill="none"
-                      stroke="#1c7ed6"
+                      stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -266,16 +298,18 @@ function Header({
                   </div>
                 </div>
 
-                <div className="manual-section">
-                  <h4 className="setting-name">Temperature Monitoring</h4>
-                  <div className="help-feature">
+                <div className="manual-section" style={{ color: helpTextColor }}>
+                  <h4 className="setting-name" style={{ color: helpHeadingColor }}>
+                    Temperature Monitoring
+                  </h4>
+                  <div className="help-feature" style={{ color: helpTextColor }}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
                       height="16"
                       viewBox="0 0 24 24"
                       fill="none"
-                      stroke="#1c7ed6"
+                      stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -284,14 +318,14 @@ function Header({
                     </svg>
                     <span>Red indicators show when temperatures exceed thresholds</span>
                   </div>
-                  <div className="help-feature">
+                  <div className="help-feature" style={{ color: helpTextColor }}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
                       height="16"
                       viewBox="0 0 24 24"
                       fill="none"
-                      stroke="#1c7ed6"
+                      stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -302,16 +336,18 @@ function Header({
                   </div>
                 </div>
 
-                <div className="manual-section">
-                  <h4 className="setting-name">Event Logs</h4>
-                  <div className="help-feature">
+                <div className="manual-section" style={{ color: helpTextColor }}>
+                  <h4 className="setting-name" style={{ color: helpHeadingColor }}>
+                    Event Logs
+                  </h4>
+                  <div className="help-feature" style={{ color: helpTextColor }}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
                       height="16"
                       viewBox="0 0 24 24"
                       fill="none"
-                      stroke="#1c7ed6"
+                      stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -320,14 +356,14 @@ function Header({
                     </svg>
                     <span>Filter events by date range</span>
                   </div>
-                  <div className="help-feature">
+                  <div className="help-feature" style={{ color: helpTextColor }}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
                       height="16"
                       viewBox="0 0 24 24"
                       fill="none"
-                      stroke="#1c7ed6"
+                      stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -338,16 +374,18 @@ function Header({
                   </div>
                 </div>
 
-                <div className="manual-section">
-                  <h4 className="setting-name">Troubleshooting</h4>
-                  <div className="help-feature">
+                <div className="manual-section" style={{ color: helpTextColor }}>
+                  <h4 className="setting-name" style={{ color: helpHeadingColor }}>
+                    Troubleshooting
+                  </h4>
+                  <div className="help-feature" style={{ color: helpTextColor }}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
                       height="16"
                       viewBox="0 0 24 24"
                       fill="none"
-                      stroke="#1c7ed6"
+                      stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -400,13 +438,28 @@ function Header({
               />
             </button>
             {showSettingsMenu && (
-              <div className="dropdown settings-dropdown">
-                <div className="settings-title">Settings</div>
+              <div
+                className="dropdown settings-dropdown"
+                style={{
+                  backgroundColor: settingsBgColor,
+                  color: settingsTextColor,
+                  boxShadow: settingsShadow,
+                  border: `1px solid ${settingsBorderColor}`,
+                }}
+              >
+                <div
+                  className="settings-title"
+                  style={{ color: settingsTextColor }}
+                >
+                  Settings
+                </div>
 
-                <div className="setting-item">
-                  <div className="setting-text">
-                    <div className="setting-name">Temperature Unit</div>
-                    <div className="setting-description">
+                <div className="setting-item" style={{ color: settingsTextColor }}>
+                  <div className="setting-text" style={{ color: settingsTextColor }}>
+                    <div className="setting-name" style={{ color: settingsTextColor }}>
+                      Temperature Unit
+                    </div>
+                    <div className="setting-description" style={{ color: settingsTextColor }}>
                       Switch between Fahrenheit and Celsius
                     </div>
                   </div>
@@ -424,10 +477,12 @@ function Header({
                   </div>
                 </div>
 
-                <div className="setting-item">
-                  <div className="setting-text">
-                    <div className="setting-name">Dark Mode</div>
-                    <div className="setting-description">
+                <div className="setting-item" style={{ color: settingsTextColor }}>
+                  <div className="setting-text" style={{ color: settingsTextColor }}>
+                    <div className="setting-name" style={{ color: settingsTextColor }}>
+                      Dark Mode
+                    </div>
+                    <div className="setting-description" style={{ color: settingsTextColor }}>
                       Switch between light and dark theme
                     </div>
                   </div>
@@ -453,6 +508,7 @@ function Header({
               className="profile-button"
               aria-label="User Profile"
               onClick={() => setShowProfileMenu(prev => !prev)}
+              style={{ color: isDarkMode ? 'white' : 'inherit' }}
             >
               <span
                 className="profile-circle"
@@ -465,12 +521,13 @@ function Header({
               </span>
             </button>
             {showProfileMenu && (
-              <div className="dropdown profile-dropdown">
+              <div className="dropdown profile-dropdown" style={{ backgroundColor: isDarkMode ? '#0f172a' : 'white', color: isDarkMode ? 'white' : 'black' }}>
                 <ul className="profile-menu-list">
                   <li
                     className="profile-menu-item"
                     tabIndex={0}
                     onClick={handleEditProfile}
+                    style={{ color: isDarkMode ? 'white' : 'black' }}
                   >
                     Edit Profile
                   </li>
@@ -478,6 +535,7 @@ function Header({
                     className="profile-menu-item"
                     tabIndex={0}
                     onClick={handleViewProfile}
+                    style={{ color: isDarkMode ? 'white' : 'black' }}
                   >
                     View Profile
                   </li>
@@ -509,12 +567,13 @@ function Header({
             className="modal-content"
             onClick={e => e.stopPropagation()}
             style={{
-              background: 'white',
+              background: isDarkMode ? '#0f172a' : 'white',
               padding: '20px',
               borderRadius: '8px',
               width: '320px',
               boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
               position: 'relative',
+              color: isDarkMode ? 'white' : 'black',
             }}
           >
             <button
@@ -528,6 +587,7 @@ function Header({
                 fontSize: '24px',
                 cursor: 'pointer',
                 lineHeight: '1',
+                color: isDarkMode ? 'white' : 'black',
               }}
               aria-label="Close modal"
             >
@@ -540,7 +600,7 @@ function Header({
                   <div style={{ marginBottom: '12px' }}>
                     <label
                       htmlFor="firstName"
-                      style={{ display: 'block', marginBottom: '4px' }}
+                      style={{ display: 'block', marginBottom: '4px', color: isDarkMode ? 'white' : 'black' }}
                     >
                       First Name:
                     </label>
@@ -550,13 +610,21 @@ function Header({
                       value={firstName}
                       onChange={e => setFirstName(e.target.value)}
                       required
-                      style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+                      style={{
+                        width: '100%',
+                        padding: '8px',
+                        boxSizing: 'border-box',
+                        backgroundColor: isDarkMode ? '#0f172a' : 'white',
+                        color: isDarkMode ? 'white' : 'black',
+                        border: isDarkMode ? '1px solid #334155' : '1px solid #ccc',
+                        borderRadius: '4px',
+                      }}
                     />
                   </div>
                   <div style={{ marginBottom: '12px' }}>
                     <label
                       htmlFor="lastName"
-                      style={{ display: 'block', marginBottom: '4px' }}
+                      style={{ display: 'block', marginBottom: '4px', color: isDarkMode ? 'white' : 'black' }}
                     >
                       Last Name:
                     </label>
@@ -566,13 +634,21 @@ function Header({
                       value={lastName}
                       onChange={e => setLastName(e.target.value)}
                       required
-                      style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+                      style={{
+                        width: '100%',
+                        padding: '8px',
+                        boxSizing: 'border-box',
+                        backgroundColor: isDarkMode ? '#0f172a' : 'white',
+                        color: isDarkMode ? 'white' : 'black',
+                        border: isDarkMode ? '1px solid #334155' : '1px solid #ccc',
+                        borderRadius: '4px',
+                      }}
                     />
                   </div>
                   <div style={{ marginBottom: '12px' }}>
                     <label
                       htmlFor="colorPicker"
-                      style={{ display: 'block', marginBottom: '4px' }}
+                      style={{ display: 'block', marginBottom: '4px', color: isDarkMode ? 'white' : 'black' }}
                     >
                       Profile Color:
                     </label>

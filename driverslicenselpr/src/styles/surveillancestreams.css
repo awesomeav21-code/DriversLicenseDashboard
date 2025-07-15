@@ -1,83 +1,225 @@
-/* src/styles/surveillancestreams.css */
-
 .page {
-    background-color: #f9fafb; /* very light gray background */
-    color: #1f2937; /* dark slate gray text */
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    padding: 20px;
-    min-height: 100vh;
+  background-color: #f9fafb;
+  color: #1f2937;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 32px 18px 32px 18px;
+  min-height: 100vh;
+  max-width: 1420px;
+  margin: 0 auto;
+}
+
+/* OUTER CARD/CONTAINER for main content area */
+.surveillance-container {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 14px 0 rgba(34, 34, 44, 0.09);
+  border: 1.5px solid #e1e6ea;
+  padding: 28px 26px 32px 26px;
+  margin-bottom: 18px;
+  margin-top: 0;
+  margin-right: 0;
+  margin-left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  /* Allow children to fill width */
+}
+
+.title {
+  text-align: left;
+  margin-bottom: 18px;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.archive-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-bottom: 12px;
+  margin-top: 0;
+  width: 100%;
+  background: none;
+  box-shadow: none;
+}
+
+.archive-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); /* Always fills horizontally */
+  gap: 18px 14px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.archive-card {
+  background: #fff;
+  border-radius: 13px;
+  box-shadow: 0 1.5px 8px 0 rgba(40,60,80,0.10);
+  border: 1px solid #e1e6ea;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+  width: 100%;    /* Take up full grid column */
+  box-sizing: border-box;
+  /* max-width removed for desktop; only use for mobile if needed */
+}
+
+/* Blue bar below image for time + badge */
+.archive-card-caption {
+  background: #233046;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 7px 0 4px 0;
+  border-radius: 0;
+}
+
+.archive-card-time {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 3px;
+  text-align: center;
+}
+
+.card-badge {
+  border-radius: 7px;
+  font-size: 0.92rem;
+  padding: 1.5px 11px;
+  font-weight: 700;
+  margin-left: 0;
+  margin-bottom: 0;
+  margin-top: 0;
+  display: inline-block;
+  line-height: 1.18;
+  color: #fff;
+}
+.card-badge.active {
+  background: #ea3b3b;
+}
+.card-badge.cleared {
+  background: #0ac676;
+}
+.card-badge.no-data {
+  background: #bbb;
+}
+
+.archive-card-img {
+  width: 100%;
+  height: 88px;
+  background: #e6e6e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.archive-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #e6e6e6;
+  display: block;
+}
+
+.archive-card-meta {
+  width: 100%;
+  padding: 10px 0 0 0;
+  font-size: 0.96rem;
+}
+.archive-card-meta > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 13px;
+  min-height: 22px;
+}
+
+.meta-label {
+  color: #666;
+  font-weight: 500;
+  min-width: 60px;
+  flex-shrink: 0;
+  font-size: 0.96em;
+}
+.meta-value {
+  color: #294066;
+  font-weight: 400;
+  margin-left: 4px;
+  font-size: 0.96em;
+}
+
+.archive-no-video-btn {
+  background: #e5e7ea;
+  color: #767d88;
+  border: none;
+  border-radius: 4px;
+  margin: 10px 10px 12px 10px;
+  padding: 6px 0 6px 0;
+  font-size: 0.96rem;
+  font-weight: 600;
+  cursor: not-allowed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.92;
+  letter-spacing: 0.01em;
+  box-shadow: 0 0.5px 0.5px rgba(80,80,80,0.04);
+}
+
+/* Apple green download button */
+.archive-download-btn {
+  background: #8DB600;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 5px 14px 5px 11px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 1px 4px 0 rgba(34, 204, 64, 0.10);
+  margin-left: 8px;
+  margin-top: 0;
+  transition: background 0.13s;
+}
+.archive-download-btn:hover {
+  background: #27b538;
+}
+.archive-download-btn .download-icon {
+  width: 12px;
+  height: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.archive-download-btn .download-icon svg {
+  width: 8px;
+  height: 8px;
+  display: block;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .surveillance-container {
+    padding: 12px 5px 18px 5px;
   }
-  
-  .title {
-    text-align: left;
-    margin-bottom: 20px;
-    font-size: 1.8rem;
-    font-weight: 600;
-    color: #111827;
+  .archive-cards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 11px;
   }
-  
-  .streams-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-    justify-items: stretch;
+  .archive-card {
+    max-width: 180px;
   }
-  
-  .stream-container {
-    position: relative;
-    background: #ffffff; /* pure white */
-    border: 1px solid #e5e7eb; /* light gray border */
-    border-radius: 10px;
-    box-shadow: 0 1px 3px rgb(0 0 0 / 0.1); /* subtle shadow */
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    max-width: 320px;
-    width: 100%;
+  .archive-card-img {
+    height: 58px;
   }
-  
-  .stream-label {
-    position: absolute;
-    top: 8px;
-    left: 12px;
-    background-color: #22c55e; /* green badge color */
-    color: white;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    user-select: none;
-    z-index: 10;
-    box-shadow: 0 1px 4px rgb(34 197 94 / 0.5);
-  }
-  
-  .video-player {
-    width: 100%;
-    height: 180px;
-    border-radius: 0;
-    background-color: #f3f4f6; /* very light gray background for video */
-    object-fit: cover;
-  }
-  
-  /* Responsive tweaks */
-  @media (max-width: 768px) {
-    .streams-grid {
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    }
-    
-    .video-player {
-      height: 140px;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .streams-grid {
-      grid-template-columns: 1fr;
-    }
-  
-    .video-player {
-      height: 200px;
-    }
-  }
-  
+}

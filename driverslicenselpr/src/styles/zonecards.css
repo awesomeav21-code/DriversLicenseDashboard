@@ -64,6 +64,14 @@
   background-color: #0f172a; /* darkest navy blue */
   border: 1px solid #334155;
   color: #f9fafb; /* white text */
+  /* Brighter, more visible shadow for dark mode */
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1), /* subtle white glow */
+              0 8px 24px rgba(0, 0, 0, 0.8); /* dark shadow for depth */
+}
+
+.zone-card.dark-zone:hover {
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15),
+              0 12px 40px rgba(0, 0, 0, 0.95);
 }
 
 .zone-card.dark-zone .zone-name,
