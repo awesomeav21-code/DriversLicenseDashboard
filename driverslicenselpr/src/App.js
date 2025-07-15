@@ -51,11 +51,16 @@ export default function App() {
     let mounted = true
 
     fetch('/SSAM.temperature_logs.json')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
+        return res.json()
+      })
       .then(json => {
+        console.log('JSON loaded:', json) // Log JSON data to debug
         if (!mounted) return
 
         const recent = Array.isArray(json) ? json.slice(-20) : []
+        console.log('Recent entries:', recent.length)
 
         const validZoneMap = {}
         recent.forEach(entry => {
@@ -70,9 +75,11 @@ export default function App() {
           })
         })
         const validZonesArr = Object.values(validZoneMap)
+        console.log('Valid zones:', validZonesArr.length)
 
         const zoneCount = Math.floor(Math.random() * 12) + 1
         const selectedZonesArr = pickZonesWithBothCameras(validZonesArr, zoneCount)
+        console.log('Selected zones:', selectedZonesArr.length)
 
         setAllZones(selectedZonesArr)
         setVisibleZones(selectedZonesArr.map(z => z.name))
@@ -103,42 +110,32 @@ export default function App() {
         setHistory(fullHistory)
 
         const curZones = selectedZonesArr.map(z => {
-          let latestValue = null
-          let latestTimestamp = null
-
+          let value = null
           for (let i = recent.length - 1; i >= 0; i--) {
             const entry = recent[i]
             const camera = entry.camera_id ? entry.camera_id.trim().toLowerCase() : null
-            if (camera !== z.camera) continue
-
-            const entryTime = entry.timestamp && entry.timestamp.$date
-              ? new Date(entry.timestamp.$date)
-              : null
-
-            for (const zoneObj of entry.zones || []) {
-              const zoneName = Object.keys(zoneObj)[0]
-              if (zoneName === z.name) {
-                latestValue = zoneObj[zoneName]
-                latestTimestamp = entryTime
-                break
+            if (camera === z.camera) {
+              for (const zoneObj of entry.zones || []) {
+                if (Object.keys(zoneObj)[0] === z.name) {
+                  value = zoneObj[z.name]
+                  break
+                }
               }
+              if (value !== null) break
             }
-
-            if (latestValue != null) break
           }
-
           return {
             name: z.name,
             camera: z.camera,
-            temperature: typeof latestValue === 'number' ? Math.round(latestValue) : null,
+            temperature: typeof value === 'number' ? Math.round(value) : null,
             threshold: 75,
-            lastTriggered: latestTimestamp ? latestTimestamp.toLocaleString() : 'N/A'
+            lastTriggered: new Date().toLocaleString()
           }
         })
-
         setZones(curZones)
       })
       .catch(err => {
+        console.error('Fetch or parsing error:', err) // Log errors for debugging
         setZones([])
         setAllZones([])
         setHistory([])

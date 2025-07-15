@@ -552,34 +552,42 @@ export default function ThermalPlot({
 
   function clampZoomPan(chart) {
     const xScale = chart.scales.x
-    const yScale = chart.scales.y
-    if (!xScale || !yScale) return
-
-    // For x, same as before
+    if (!xScale) return
+  
     const allPoints = chart.data.datasets.flatMap(ds => ds.data)
     if (allPoints.length === 0) return
-    const times = allPoints.map(p => new Date(p.x).getTime()).sort((a, b) => a - b)
+  
+    const times = allPoints
+      .map(p => (p.x instanceof Date ? p.x.getTime() : new Date(p.x).getTime()))
+      .sort((a, b) => a - b)
     const minTime = times[0]
     const now = Date.now()
+  
     let newMin = xScale.min
     let newMax = xScale.max
     const windowWidth = newMax - newMin
+  
+    // Clamp max to now
     if (newMax > now) {
       newMax = now
       newMin = newMax - windowWidth
       if (newMin < minTime) newMin = minTime
     }
+  
+    // Clamp min to earliest data
     if (newMin < minTime) {
       newMin = minTime
       newMax = newMin + windowWidth
       if (newMax > now) newMax = now
     }
+  
+    // Apply clamped values to x axis
     xScale.options.min = newMin
     xScale.options.max = newMax
-
-    // For y, do nothing (let user scroll/zoom arbitrarily)
+  
+    // No clamping for y axis, allow free vertical pan
   }
-  function onLegendClick(e, legendItem) {
+      function onLegendClick(e, legendItem) {
     const zoneName = legendItem.text.replace(/\u0336/g, '')
     const currentlyVisible = zonesVisibility[zoneName] !== false
     const updatedVisibility = {
