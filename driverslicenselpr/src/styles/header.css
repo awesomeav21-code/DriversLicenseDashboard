@@ -97,6 +97,10 @@
   gap: 24px;
   flex-shrink: 0;
   height: 100%;
+
+  /* FIX: Let logo-container expand fully to fill space */
+  flex-grow: 1;
+  min-width: 0;
 }
 
 .logo-image {
@@ -121,7 +125,7 @@
 }
 .divider {
   position: absolute !important;
-  top: -24px !important;
+  top: 0 !important; /* changed from -24px */
   bottom: 0 !important;
   left: 0 !important;
   width: 1px !important;
@@ -462,7 +466,7 @@ input:checked + .slider:before {
 /* Substation label box */
 .substation-label {
   display: flex;
-  align-items: center;
+  align-items: right;
   justify-content: center;
   background-color: rgba(255, 255, 255, 0.08);
   color: white;
@@ -480,20 +484,57 @@ input:checked + .slider:before {
 
 .substation-title {
   margin-right: 8px;
+  align-items: center;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.75);
   font-size: 16px;
 }
 
-.substation-name {
-  font-weight: 700;
-  color: white;
-  font-size: 18px;
+/* Fix: override margin-left auto to allow movement */
+.substation-info-box {
+  border: 2px solid rgba(0, 123, 255, 0.6); /* blue border */
+  background-color: rgba(0, 123, 255, 0.1); /* transparent blue bg */
+  padding: 10px 14px;
+  border-radius: 8px;
+  display: flex !important;
+  align-items: center;
+  color: #003366;
+  margin-left: 125px !important; /* moves it 40px right */
+  width: fit-content !important;
 }
 
-.icon-container.dropdown-parent.settings-icon-container {
-  border: none !important;
-  background-color: transparent !important;
+/* NEW CLASS: Substation clickable container moved more left */
+.substation-clickable {
+  cursor: pointer;
+  user-select: none;
+  font-weight: bold;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 0; /* removed negative margin */
+  max-width: none; /* allow full width */
+  color: black;
+}
+
+/* Dark mode for substation clickable */
+.dark-mode .substation-clickable {
+  color: white;
+}
+
+/* Added to shift mini-navbar and sidebar right */
+.mini-navbar-outer {
+  padding-left: 60px; /* increase left padding */
+  max-width: 1400px;
+  margin-right: auto;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.sidebar-event-dates {
+  flex: 0 0 220px;
+  margin-left: 40px; /* shifts sidebar 40px to the right */
+  overflow-y: auto;
 }
 
 /* Dark mode input fields for First Name and Last Name */
@@ -516,7 +557,6 @@ input:checked + .slider:before {
   outline: none;
   box-shadow: 0 0 4px #22c55e;
 }
-
 
 /* ---------------- DARK MODE FOR MANUAL PANEL ------------------- */
 .dark-mode .manual-panel,

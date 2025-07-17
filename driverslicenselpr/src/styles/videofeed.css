@@ -36,19 +36,23 @@
 .live-data-wrapper {
   width: 100%;
   background-color: #ffffff;
-  border: 1px solid #d1d5db;
+  margin: 0 2px 0 0;  /* 2px gap on right */
+  border: 1px solid #d1d5db;  /* light mode border */
   border-radius: 16px !important;
   padding: 24px 24px 24px 16px;
-  margin-bottom: 16px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  padding-left: 8px;
   gap: 16px;
+  z-index: 10;
+  box-shadow: none;
 }
 
 .dark-video .live-data-wrapper {
   background-color: #0f172a;   /* darkest navy blue */
-  border-color: #334155;
+  border-color: #ffffff;       /* changed to white */
+  box-shadow: none;
 }
 
 .live-data-header {
@@ -93,7 +97,7 @@
   min-width: 280px;
   max-width: 600px;
   background-color: #ffffff;
-  border: 1px solid #d1d5db;
+  border: 1px solid #d1d5db;  /* light mode border */
   border-radius: 16px !important;
   padding: 12px;
   box-sizing: border-box;
@@ -106,7 +110,7 @@
 
 .dark-video .camera-section {
   background-color: #0f172a;   /* darkest navy blue */
-  border-color: #334155;
+  border-color: #ffffff;        /* changed to white */
 }
 
 .camera-header {
@@ -166,3 +170,5 @@
 .dark-video .zone-grid {
   background-color: #0f172a;  /* changed from #1e293b to #0f172a */
 }
+
+/* Add here any other inner borders inside video-feed-wrapper you want to change similarly */

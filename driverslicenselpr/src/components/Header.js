@@ -5,12 +5,43 @@ import AssetLogo from './images/Assetlogo.png'
 import SettingsIcon from './images/settings.png'
 
 function Header({
-  substationName,
   isDarkMode,
   setIsDarkMode,
   tempUnit,
   setTempUnit,
 }) {
+  // Sample substations data
+  const substations = [
+    {
+      id: 1,
+      name: 'Tasley - 1, VA',
+      temperatureThreshold: '75°F',
+      lastMaintenance: '2025-06-20',
+      status: 'Normal',
+    },
+    {
+      id: 2,
+      name: 'Richmond - 2, VA',
+      temperatureThreshold: '80°F',
+      lastMaintenance: '2025-05-15',
+      status: 'Warning',
+    },
+    {
+      id: 3,
+      name: 'Norfolk - 3, VA',
+      temperatureThreshold: '78°F',
+      lastMaintenance: '2025-04-10',
+      status: 'Critical',
+    },
+  ]
+
+  // State for current selected substation (defaults to first)
+  const [selectedSubstationId, setSelectedSubstationId] = useState(substations[0].id)
+
+  // Find current substation object
+  const currentSubstation = substations.find(s => s.id === selectedSubstationId)
+
+  // Profile and UI states
   const [showHelp, setShowHelp] = useState(false)
   const [showSettingsMenu, setShowSettingsMenu] = useState(false)
   const [showProfileMenu, setShowProfileMenu] = useState(false)
@@ -21,9 +52,10 @@ function Header({
   // Form fields for profile editing
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
-  const [profileColor, setProfileColor] = useState('#1c7ed6') // default profile circle color
-  const [tempColor, setTempColor] = useState(profileColor) // temporary color for modal
+  const [profileColor, setProfileColor] = useState('#1c7ed6')
+  const [tempColor, setTempColor] = useState(profileColor)
 
+  // Refs for dropdown close handling
   const helpRef = useRef(null)
   const settingsRef = useRef(null)
   const profileRef = useRef(null)
@@ -32,7 +64,7 @@ function Header({
   const settingsMouseInside = useRef(false)
   const profileMouseInside = useRef(false)
 
-  // Load saved profile from localStorage on component mount
+  // Load profile from localStorage once
   useEffect(() => {
     const savedProfile = localStorage.getItem('userProfile')
     if (savedProfile) {
@@ -44,11 +76,12 @@ function Header({
           setTempColor(parsed.color)
         }
       } catch {
-        // Ignore JSON parse errors silently
+        // ignore parse errors
       }
     }
   }, [])
 
+  // Close dropdowns on outside click
   useEffect(() => {
     function handleClickOutside(event) {
       if (helpRef.current && !helpRef.current.contains(event.target)) {
@@ -67,6 +100,7 @@ function Header({
     }
   }, [])
 
+  // Mouse enter/leave handlers for help dropdown
   const onHelpEnter = () => {
     helpMouseInside.current = true
     setShowHelp(true)
@@ -77,6 +111,7 @@ function Header({
       if (!helpMouseInside.current) setShowHelp(false)
     }, 100)
   }
+  // Mouse enter/leave handlers for settings dropdown
   const onSettingsEnter = () => {
     settingsMouseInside.current = true
     setShowSettingsMenu(true)
@@ -87,6 +122,7 @@ function Header({
       if (!settingsMouseInside.current) setShowSettingsMenu(false)
     }, 100)
   }
+  // Mouse enter/leave handlers for profile dropdown
   const onProfileEnter = () => {
     profileMouseInside.current = true
     setShowProfileMenu(true)
@@ -98,42 +134,39 @@ function Header({
     }, 100)
   }
 
+  // Edit profile modal open
   const handleEditProfile = () => {
-    // Always clear inputs when opening edit modal
     setFirstName('')
     setLastName('')
-    setTempColor(profileColor) // reset color picker to current color
+    setTempColor(profileColor)
     setModalContent('edit')
     setShowProfileMenu(false)
   }
-  
+  // View profile modal open
   const handleViewProfile = () => {
     setModalContent('view')
     setShowProfileMenu(false)
   }
-
+  // Close modal
   const closeModal = () => setModalContent(null)
 
+  // Submit profile form
   const handleProfileSubmit = (e) => {
     e.preventDefault()
     const fullName = `${firstName.trim()}${lastName.trim() ? ' ' + lastName.trim() : ''}`
     setProfileName(fullName || null)
     setProfileColor(tempColor)
 
-    // Save profile info persistently in localStorage
     localStorage.setItem(
       'userProfile',
       JSON.stringify({ name: fullName, color: tempColor })
     )
 
-    // Clear input fields after save
     setFirstName('')
     setLastName('')
-
     setModalContent(null)
   }
-
-  // Clear profile info from state and localStorage
+  // Remove profile data
   const handleRemoveProfile = () => {
     setProfileName(null)
     setProfileColor('#1c7ed6')
@@ -142,7 +175,6 @@ function Header({
     setModalContent(null)
   }
 
-  // Profile circle shows first letter uppercase or fallback "O"
   const profileInitial = profileName ? profileName.charAt(0).toUpperCase() : 'O'
 
   // Colors for dark mode
@@ -161,10 +193,17 @@ function Header({
     ? '0 8px 24px rgba(0, 0, 0, 0.8)'
     : '0 8px 24px rgba(0, 0, 0, 0.12)'
 
+  // Cycle substation on click
+  function handleSubstationClick() {
+    const currentIndex = substations.findIndex(s => s.id === selectedSubstationId)
+    const nextIndex = (currentIndex + 1) % substations.length
+    setSelectedSubstationId(substations[nextIndex].id)
+  }
+
   return (
     <>
       <header className="header">
-        <div className="logo-container">
+        <div className="logo-container" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div className="ssam-logo-group">
             <img src={AssetLogo} alt="SSAM Logo" className="ssam-image" />
           </div>
@@ -188,13 +227,32 @@ function Header({
               />
             </a>
           </div>
-          <div className="substation-label">
-            <span className="substation-title">Substation:</span>
-            <span className="substation-name">{substationName || 'N/A'}</span>
+
+          {/* Substation name clickable */}
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={handleSubstationClick}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                handleSubstationClick()
+              }
+            }}
+            className="substation-clickable"
+            aria-label="Change substation"
+          >
+            <div className="substation-info-box">          
+              <span className="substation-title">Substation:</span>
+              <span className="substation-name">{currentSubstation?.name || 'N/A'}</span>
+            </div>
           </div>
+
+          {/* Substation info box REMOVED as requested */}
         </div>
 
         <div className="header-icons">
+          {/* Help icon */}
           <div
             className="icon-container dropdown-parent"
             ref={helpRef}
@@ -586,7 +644,7 @@ function Header({
                 background: 'transparent',
                 fontSize: '24px',
                 cursor: 'pointer',
-                lineHeight: '1',
+                lineHeight: 1,
                 color: isDarkMode ? 'white' : 'black',
               }}
               aria-label="Close modal"

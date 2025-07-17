@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import ZoneCard from './ZoneCard';  // <-- singular
+import ZoneCard from './ZoneCard';
 import '../styles/zonecards.css';
 import '../styles/videofeed.css';
 
@@ -37,7 +37,7 @@ export default function VideoFeed({ isDarkMode, tempUnit, camera1Zones = [], cam
             <div className="zone-grid">
               {camera1Zones.map((zone) => (
                 <ZoneCard
-                  key={zone.id}
+                  key={`${zone.camera}-${zone.name}`}
                   zone={zone}
                   tempUnit={tempUnit}
                   isDarkMode={isDarkMode}
@@ -56,7 +56,7 @@ export default function VideoFeed({ isDarkMode, tempUnit, camera1Zones = [], cam
             <div className="zone-grid">
               {camera2Zones.map((zone) => (
                 <ZoneCard
-                  key={zone.id}
+                  key={`${zone.camera}-${zone.name}`}
                   zone={zone}
                   tempUnit={tempUnit}
                   isDarkMode={isDarkMode}

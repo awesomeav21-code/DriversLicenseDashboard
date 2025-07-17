@@ -17,7 +17,7 @@ import '../styles/thermaldata.css'
 
 const jitterPlugin = {
   id: 'jitterPlugin',
-  afterDraw(chart) {
+  beforeTooltipDraw(chart) {
     if (!chart.options.plugins.jitterPlugin?.isChartReady) return
     if (chart._zooming || chart._panning) return
     const ctx = chart.ctx
@@ -921,8 +921,8 @@ export default function ThermalPlot({
         },
       },
       y: {
-        // min: minY,   // <---- REMOVE THIS LINE
-        // max: maxY,   // <---- REMOVE THIS LINE
+        min: 0, 
+        max: 100, 
         grid: {
           display: true,
           drawTicks: false,

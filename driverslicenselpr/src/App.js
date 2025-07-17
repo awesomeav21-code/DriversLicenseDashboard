@@ -6,27 +6,76 @@ import ThermalPlot from './components/ThermalPlot'
 import SidebarPanel from './components/SidebarPanel'
 import Footer from './components/Footer'
 import SurveillanceStreams from './components/SurveillanceStreams'
-
+import Surveillance from './components/images/Surveillance.png'
+import Thermal from './components/images/Thermal.png'
+import FixedPopup from './components/FixedPopup'
 import './styles/videofeed.css'
 import './App.css'
 
-function getRandomZones(arr, count) {
-  const shuffled = arr.slice().sort(() => 0.5 - Math.random())
-  return shuffled.slice(0, Math.max(1, Math.min(count, arr.length)))
+function pickZonesAtLeastOnePerCameraUniqueNames(allZonesArr, count) {
+  const cameras = ['planck_1', 'planck_2']
+  const byName = new Map()
+  allZonesArr.forEach((z) => {
+    if (!byName.has(z.name)) byName.set(z.name, [])
+    byName.get(z.name).push(z)
+  })
+
+  const picks = []
+  const usedNames = new Set()
+
+  cameras.forEach((cam) => {
+    const candidates = Array.from(byName.values())
+      .map((arr) => arr.find((z) => z.camera === cam))
+      .filter(Boolean)
+      .filter((z) => !usedNames.has(z.name))
+    if (candidates.length) {
+      const pick = candidates[Math.floor(Math.random() * candidates.length)]
+      picks.push(pick)
+      usedNames.add(pick.name)
+    }
+  })
+
+  const remaining = Array.from(byName.entries())
+    .filter(([name]) => !usedNames.has(name))
+    .map(([name, arr]) => arr[0])
+  const shuffled = remaining.sort(() => 0.5 - Math.random())
+
+  for (let z of shuffled) {
+    if (picks.length >= count) break
+    picks.push(z)
+    usedNames.add(z.name)
+  }
+
+  return picks
 }
 
-function pickZonesWithBothCameras(allZonesArr, count) {
-  const cam1 = allZonesArr.filter(z => z.camera === 'planck_1')
-  const cam2 = allZonesArr.filter(z => z.camera === 'planck_2')
-  let picks = []
-  if (cam1.length > 0) picks.push(cam1[Math.floor(Math.random() * cam1.length)])
-  if (cam2.length > 0) picks.push(cam2[Math.floor(Math.random() * cam2.length)])
-  const remainingZones = allZonesArr.filter(
-    z => !picks.find(p => p.camera === z.camera && p.name === z.name)
+function ZoneVideoFeed({ zone }) {
+  return (
+    <div
+      style={{
+        margin: 8,
+        border: '1px solid #ccc',
+        borderRadius: 6,
+        padding: 4,
+        width: 320,
+        textAlign: 'center',
+      }}
+    >
+      <div style={{ fontWeight: 'bold', marginBottom: 4 }}>{zone.name}</div>
+      <video
+        src={zone.videoFeedUrl || 'https://www.w3schools.com/html/mov_bbb.mp4'}
+        controls
+        width="300"
+        height="170"
+        style={{ borderRadius: 6, background: '#000' }}
+        autoPlay
+        muted
+        loop
+      >
+        Your browser does not support the video tag.
+      </video>
+    </div>
   )
-  const restCount = Math.max(0, count - picks.length)
-  picks = picks.concat(getRandomZones(remainingZones, restCount))
-  return picks
 }
 
 export default function App() {
@@ -42,6 +91,13 @@ export default function App() {
     return saved || 'planck_1'
   })
 
+  // Popup states
+  const [show360Popup, setShow360Popup] = useState(false)
+  const [selectedThermalCamera, setSelectedThermalCamera] = useState(null)
+  const [isHoveringThermal, setIsHoveringThermal] = useState(false)
+  const [selectedOpticalCamera, setSelectedOpticalCamera] = useState(null)
+  const [isHoveringOptical, setIsHoveringOptical] = useState(false)
+
   const todayStr = new Date().toISOString().slice(0, 10)
   const [startDate, setStartDate] = useState(() => localStorage.getItem('logStartDate') || todayStr)
   const [endDate, setEndDate] = useState(() => localStorage.getItem('logEndDate') || todayStr)
@@ -51,46 +107,42 @@ export default function App() {
     let mounted = true
 
     fetch('/SSAM.temperature_logs.json')
-      .then(res => {
+      .then((res) => {
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
         return res.json()
       })
-      .then(json => {
-        console.log('JSON loaded:', json) // Log JSON data to debug
+      .then((json) => {
         if (!mounted) return
 
-        const recent = Array.isArray(json) ? json.slice(-20) : []
-        console.log('Recent entries:', recent.length)
+        const recent = Array.isArray(json) ? json.slice(-100) : []
 
-        const validZoneMap = {}
-        recent.forEach(entry => {
+        const validZones = []
+        recent.forEach((entry) => {
           const camera = entry.camera_id ? entry.camera_id.trim().toLowerCase() : null
           if (!camera) return
-          ;(entry.zones || []).forEach(zoneObj => {
+          ;(entry.zones || []).forEach((zoneObj) => {
             const name = Object.keys(zoneObj)[0]
             const value = zoneObj[name]
             if (name && typeof value === 'number') {
-              validZoneMap[`${camera}__${name}`] = { name, camera }
+              validZones.push({ name, camera, videoFeedUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' })
             }
           })
         })
-        const validZonesArr = Object.values(validZoneMap)
-        console.log('Valid zones:', validZonesArr.length)
 
         const zoneCount = Math.floor(Math.random() * 12) + 1
-        const selectedZonesArr = pickZonesWithBothCameras(validZonesArr, zoneCount)
-        console.log('Selected zones:', selectedZonesArr.length)
+
+        const selectedZonesArr = pickZonesAtLeastOnePerCameraUniqueNames(validZones, zoneCount)
 
         setAllZones(selectedZonesArr)
-        setVisibleZones(selectedZonesArr.map(z => z.name))
+        setVisibleZones(selectedZonesArr.map((z) => z.name))
 
-        const fullHistory = recent.map(entry => {
+        const fullHistory = recent.map((entry) => {
           const camera = entry.camera_id ? entry.camera_id.trim().toLowerCase() : null
           const readings = {}
-          selectedZonesArr.forEach(z => {
+          selectedZonesArr.forEach((z) => {
             let found = null
             if (camera === z.camera) {
-              ;(entry.zones || []).forEach(zoneObj => {
+              ;(entry.zones || []).forEach((zoneObj) => {
                 if (Object.keys(zoneObj)[0] === z.name) found = zoneObj[z.name]
               })
             }
@@ -98,18 +150,16 @@ export default function App() {
           })
 
           const entryTime =
-            entry.timestamp && entry.timestamp.$date
-              ? new Date(entry.timestamp.$date)
-              : new Date(NaN)
+            entry.timestamp && entry.timestamp.$date ? new Date(entry.timestamp.$date) : new Date(NaN)
 
           return {
             time: entryTime,
-            readings
+            readings,
           }
         })
         setHistory(fullHistory)
 
-        const curZones = selectedZonesArr.map(z => {
+        const curZones = selectedZonesArr.map((z) => {
           let value = null
           for (let i = recent.length - 1; i >= 0; i--) {
             const entry = recent[i]
@@ -125,17 +175,15 @@ export default function App() {
             }
           }
           return {
-            name: z.name,
-            camera: z.camera,
+            ...z,
             temperature: typeof value === 'number' ? Math.round(value) : null,
             threshold: 75,
-            lastTriggered: new Date().toLocaleString()
+            lastTriggered: new Date().toLocaleString(),
           }
         })
         setZones(curZones)
       })
-      .catch(err => {
-        console.error('Fetch or parsing error:', err) // Log errors for debugging
+      .catch(() => {
         setZones([])
         setAllZones([])
         setHistory([])
@@ -167,22 +215,22 @@ export default function App() {
     const endDateObj = new Date(endDate + 'T23:59:59.999')
 
     const filtered = history
-      .filter(entry => {
+      .filter((entry) => {
         if (!(entry.time instanceof Date) || isNaN(entry.time)) return false
         return (
           entry.time >= startDateObj &&
           entry.time <= endDateObj &&
-          visibleZones.some(zoneName => entry.readings[zoneName] != null)
+          visibleZones.some((zoneName) => entry.readings[zoneName] != null)
         )
       })
-      .map(entry => {
+      .map((entry) => {
         const messageZones = visibleZones
-          .filter(zoneName => entry.readings[zoneName] != null)
-          .map(zoneName => `${zoneName}: ${entry.readings[zoneName]}`)
+          .filter((zoneName) => entry.readings[zoneName] != null)
+          .map((zoneName) => `${zoneName}: ${entry.readings[zoneName]}`)
           .join('; ')
         return {
           timestamp: entry.time.toLocaleString(),
-          message: messageZones || 'No data'
+          message: messageZones || 'No data',
         }
       })
 
@@ -191,26 +239,15 @@ export default function App() {
 
   function addZone() {}
 
-  const camera1Zones = zones.filter(z => z.camera?.trim().toLowerCase() === 'planck_1')
-  const camera2Zones = zones.filter(z => z.camera?.trim().toLowerCase() === 'planck_2')
+  const camera1Zones = zones.filter((z) => z.camera?.trim().toLowerCase() === 'planck_1')
+  const camera2Zones = zones.filter((z) => z.camera?.trim().toLowerCase() === 'planck_2')
 
-  if (zones.length === 0) {
-    return <div>Loading zones...</div>
-  }
+  const filterZonesByCamera = (cameraName) => zones.filter((z) => z.camera?.trim().toLowerCase() === cameraName)
 
   return (
     <>
-      <Header
-        isDarkMode={isDarkMode}
-        setIsDarkMode={setIsDarkMode}
-        tempUnit={tempUnit}
-        setTempUnit={setTempUnit}
-      />
-      <Navigation
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        isDarkMode={isDarkMode}
-      />
+      <Header isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} tempUnit={tempUnit} setTempUnit={setTempUnit} />
+      <Navigation activeTab={activeTab} setActiveTab={setActiveTab} isDarkMode={isDarkMode} />
       <div className="app-layout">
         <div className="main-content">
           {activeTab === 'dashboard' && (
@@ -260,9 +297,195 @@ export default function App() {
                 <SurveillanceStreams
                   camera1Zones={camera1Zones}
                   camera2Zones={camera2Zones}
+                  isDarkMode={isDarkMode} // <-- only change!
                 />
               )}
             </div>
+
+            {activeTab === 'dashboard' && (
+              <div
+                className="camera-streams-panel"
+                style={{ margin: '40px auto 200px auto', display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start' }}
+              >
+                {/* 360 Stream */}
+                <div className="stream-group" style={{ textAlign: 'center' }}>
+                  <h3>360° Stream</h3>
+                  <img
+                    src="/assets/cam-360.png"
+                    alt="360 Stream"
+                    style={{ width: '180px', borderRadius: '50%', marginBottom: '12px', background: '#e7ffe7' }}
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', gap: '8px', padding: 0, margin: 0 }}>
+                    <button
+                      className="camera-btn"
+                      onClick={() => setShow360Popup(true)}
+                    >
+                      Camera 1
+                    </button>
+                  </div>
+                  {show360Popup && (
+                    <FixedPopup
+                      style={{
+                        position: 'fixed',
+                        top: '100px',
+                        right: '20px',
+                        width: '700px',
+                        maxHeight: '80vh',
+                        backgroundColor: isDarkMode ? '#0f172a' : '#fff',
+                        border: '2px solid',
+                        borderColor: isDarkMode ? '#23375b' : '#333',
+                        boxShadow: isDarkMode ? '0 4px 12px rgba(0,0,0,0.7)' : '0 4px 12px rgba(0,0,0,0.3)',
+                        padding: '16px',
+                        overflowY: 'auto',
+                        zIndex: 1000,
+                        borderRadius: '8px',
+                        color: isDarkMode ? '#f9fafb' : '#000',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
+                        <button
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            fontSize: '1.3rem',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            color: isDarkMode ? '#f9fafb' : '#333',
+                          }}
+                          onClick={() => setShow360Popup(false)}
+                          aria-label="Close"
+                        >
+                          ×
+                        </button>
+                      </div>
+                      {/* 360 Stream content */}
+                      <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontWeight: 'bold', marginBottom: 4 }}>360° Camera 1</div>
+                        <video
+                          src="https://www.w3schools.com/html/mov_bbb.mp4"
+                          controls
+                          width="650"
+                          height="350"
+                          style={{ borderRadius: 6, background: '#000' }}
+                          autoPlay
+                          muted
+                          loop
+                        >
+                          Your browser does not support the video tag.
+                        </video>
+                      </div>
+                    </FixedPopup>
+                  )}
+                </div>
+
+                {/* Thermal Stream */}
+                <div
+                  className="stream-group"
+                  style={{ textAlign: 'center', position: 'relative' }}
+                  onMouseEnter={() => setIsHoveringThermal(true)}
+                  onMouseLeave={() => setIsHoveringThermal(false)}
+                >
+                  <h3>Thermal Stream</h3>
+                  <img
+                    src={Thermal}
+                    alt="Thermal Stream"
+                    style={{ width: '180px', borderRadius: '50%', marginBottom: '12px', background: '#e7ffe7' }}
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', gap: '8px', padding: 0, margin: 0 }}>
+                    <button
+                      className="camera-btn"
+                      onClick={() => setSelectedThermalCamera((prev) => (prev === 'planck_1' ? null : 'planck_1'))}
+                    >
+                      Left Camera
+                    </button>
+                    <button
+                      className="camera-btn"
+                      onClick={() => setSelectedThermalCamera((prev) => (prev === 'planck_2' ? null : 'planck_2'))}
+                    >
+                      Right Camera
+                    </button>
+                  </div>
+                  {(selectedThermalCamera || isHoveringThermal) && (
+                    <FixedPopup
+                      style={{
+                        position: 'fixed',
+                        top: '100px',
+                        right: '20px',
+                        width: '700px',
+                        maxHeight: '80vh',
+                        backgroundColor: isDarkMode ? '#0f172a' : '#fff',
+                        border: '2px solid',
+                        borderColor: isDarkMode ? '#23375b' : '#333',
+                        boxShadow: isDarkMode ? '0 4px 12px rgba(0,0,0,0.7)' : '0 4px 12px rgba(0,0,0,0.3)',
+                        padding: '16px',
+                        overflowY: 'auto',
+                        zIndex: 1000,
+                        borderRadius: '8px',
+                        color: isDarkMode ? '#f9fafb' : '#000',
+                      }}
+                    >
+                      {filterZonesByCamera(selectedThermalCamera || (isHoveringThermal ? selectedThermalCamera : null)).map((zone) => (
+                        <ZoneVideoFeed key={zone.name} zone={zone} />
+                      ))}
+                    </FixedPopup>
+                  )}
+                </div>
+
+                {/* Optical Stream */}
+                <div
+                  className="stream-group"
+                  style={{ textAlign: 'center', position: 'relative' }}
+                  onMouseEnter={() => setIsHoveringOptical(true)}
+                  onMouseLeave={() => setIsHoveringOptical(false)}
+                >
+                  <h3>Optical Stream</h3>
+                  <img
+                    src={Surveillance}
+                    alt="Optical Stream"
+                    style={{ width: '180px', borderRadius: '50%', marginBottom: '12px', background: '#e7ffe7' }}
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', gap: '8px', padding: 0, margin: 0 }}>
+                    <button
+                      className="camera-btn"
+                      onClick={() => setSelectedOpticalCamera((prev) => (prev === 'planck_1' ? null : 'planck_1'))}
+                    >
+                      Left Camera
+                    </button>
+                    <button
+                      className="camera-btn"
+                      onClick={() => setSelectedOpticalCamera((prev) => (prev === 'planck_2' ? null : 'planck_2'))}
+                    >
+                      Right Camera
+                    </button>
+                  </div>
+                  {(selectedOpticalCamera || isHoveringOptical) && (
+                    <FixedPopup
+                      style={{
+                        position: 'fixed',
+                        top: '100px',
+                        right: '20px',
+                        width: '700px',
+                        maxHeight: '80vh',
+                        backgroundColor: isDarkMode ? '#0f172a' : '#fff',
+                        border: '2px solid',
+                        borderColor: isDarkMode ? '#23375b' : '#333',
+                        boxShadow: isDarkMode ? '0 4px 12px rgba(0,0,0,0.7)' : '0 4px 12px rgba(0,0,0,0.3)',
+                        padding: '16px',
+                        overflowY: 'auto',
+                        zIndex: 1000,
+                        borderRadius: '8px',
+                        color: isDarkMode ? '#f9fafb' : '#000',
+                      }}
+                    >
+                      {filterZonesByCamera(selectedOpticalCamera || (isHoveringOptical ? selectedOpticalCamera : null)).map((zone) => (
+                        <ZoneVideoFeed key={zone.name} zone={zone} />
+                      ))}
+                    </FixedPopup>
+                  )}
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
         <Footer />

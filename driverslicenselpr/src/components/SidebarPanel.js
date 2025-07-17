@@ -21,14 +21,6 @@ export default function SidebarPanel({ isDarkMode, onDatePick, logs = [], visibl
     if (onDatePick) onDatePick(startDate, endDate);
   }, [startDate, endDate, onDatePick]);
 
-  const resetDates = () => {
-    setStartDate(today);
-    setEndDate(today);
-    localStorage.removeItem('logStartDate');
-    localStorage.removeItem('logEndDate');
-    if (onDatePick) onDatePick(today, today);
-  };
-
   const downloadLogs = () => {
     if (!startDate || !endDate) {
       alert('Please select both start and end dates.');

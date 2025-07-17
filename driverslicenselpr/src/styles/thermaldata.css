@@ -21,9 +21,10 @@
 /* === CAMERA BUTTON BAR (centered above chart) === */
 .camera-switcher-bar {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start !important;
   align-items: center;
   gap: 14px;
+  transform: translateX(500px); /* Shift right by 500px */
   margin-bottom: 10px;
   margin-top: 4px;
 }
@@ -51,12 +52,13 @@
 /* === BUTTON BAR FOR CHART === */
 .chart-button-container {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start; /* Left align inside shifted container */
   align-items: center;
   gap: 10px;
   margin-top: 18px;
   padding-bottom: 12px;
   flex-wrap: wrap;
+  transform: translateX(350px); /* Shift right by 500px to align vertically */
 }
 
 .chart-button {

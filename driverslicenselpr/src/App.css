@@ -20,8 +20,39 @@ body.light-mode {
 
 /* Dark mode override */
 body.dark-mode {
-  background-color:  #0f172a !important;
+  background-color: #0f172a !important;
   color: #f9fafb;
+}
+
+/* Dark mode text color for camera panel and buttons */
+body.dark-mode .camera-streams-panel,
+body.dark-mode .camera-streams-panel .stream-group,
+body.dark-mode .camera-streams-panel .stream-group h3,
+body.dark-mode .camera-btn {
+  color: #f9fafb;
+}
+
+/* Dark mode background for page wrapper */
+body.dark-mode .page-wrapper {
+  background-color: #0f172a !important;
+}
+
+/* Base fixed popup style (light mode) */
+.fixed-popup {
+  position: fixed;
+  top: 100px;
+  right: 20px;
+  width: 700px;
+  max-height: 80vh;
+  padding: 16px;
+  overflow-y: auto;
+  border: 2px solid #333;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  border-radius: 8px;
+
+  background-color: #fff;  /* Light mode background */
+  color: #000;             /* Light mode text */
+  z-index: 1000;
 }
 
 /* Apply border-box to all elements */
@@ -36,40 +67,33 @@ body.dark-mode {
   flex-grow: 1;
   height: 100%;
   min-height: 100vh;
+  background: transparent !important;  /* Removed extra bg */
+  margin: 0; /* Remove default margin */
+  padding: 0; /* Remove default padding */
 }
 
-/* Content expands to fill space above footer */
+/* Main flex layout for sidebar + content */
 .main-content {
   flex: 1;
   position: relative;
-  display: grid;
-  grid-template-columns: 1fr 200px;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-start;
+  gap: 0.1px !important; /* Minimal horizontal gap */
   box-sizing: border-box;
   width: 100%;
-  height: 100%;
   min-height: 100vh;
-  overflow-y: visible;
-  overflow-x: hidden;
+  background: transparent !important; /* Removed extra bg */
+  margin: 0; /* Remove margin */
+  padding: 0; /* Remove padding */
 }
 
-/* Dark mode override for main content */
 body.dark-mode .main-content {
-  background-color: #0f172a;
+  background-color: #0f172a !important;
 }
 
-/* Centered container - updated to allow full width */
-.content-box {
-  max-width: none;
-  margin: 0;
-  width: 100%;
-  position: relative;
-  height: 100%;
-  flex-grow: 1;
-}
-
-/* Left feed column */
+/* Main content area */
 .content-area {
-  grid-column: 1;
   display: flex;
   flex-direction: column;
   padding-left: 0 !important;
@@ -79,9 +103,144 @@ body.dark-mode .main-content {
   overflow: visible;
   height: 100%;
   flex-grow: 1;
+  min-width: 0;
+  background: transparent !important;  /* Removed extra bg */
+  margin: 0; /* Remove margin */
+  padding: 0; /* Remove padding */
 }
 
-/* Optional dark mode override for .content-area if needed */
-body.dark-mode .content-area {
-  background-color: #0f172a;
+/* CAMERA STREAMS PANEL */
+.camera-streams-panel {
+  margin: -20px auto 0 auto;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  gap: 48px;
+  background: transparent !important; /* Ensure no bg */
+}
+
+/* REMOVE dark mode container look */
+body.dark-mode .camera-streams-panel {
+  /* background: #13203b; */
+  /* border-color: #23375b; */
+  /* color: #f9fafb; */
+}
+
+/* Each camera group */
+.camera-streams-panel .stream-group {
+  text-align: center;
+  flex: 1 1 0;
+  min-width: 350px;
+}
+
+.camera-streams-panel .stream-group h3 {
+  margin-top: 0;
+  margin-bottom: 32px;
+  font-weight: 700;
+  font-size: 1.9rem;
+}
+
+/* Camera images */
+.camera-streams-panel img {
+  width: 280px;
+  height: 280px;
+  object-fit: contain;
+  border-radius: 50%;
+  margin-bottom: 32px;
+  background: #e7ffe7;
+  box-shadow: 0 4px 12px 0 rgba(0,0,0,0.1);
+}
+
+/* Camera buttons */
+.camera-btn {
+  margin: 0 20px 0 0;
+  padding: 14px 32px;
+  font-size: 1.25rem;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  border-radius: 7px;
+  background: #e6f3ec;
+  color: #135d3b;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  transition: background 0.17s, color 0.17s;
+  box-shadow: 0 2px 6px 0 rgba(18,70,37,0.1);
+}
+
+.camera-btn:last-child {
+  margin-right: 0;
+}
+
+.camera-btn:hover,
+.camera-btn:focus {
+  background: #b2ebd5;
+  color: #0c3521;
+}
+
+body.dark-mode .camera-btn {
+  background: #1a273b;
+  color: #73d2b5;
+  border: 1px solid #23375b;
+}
+
+body.dark-mode .camera-btn:hover,
+body.dark-mode .camera-btn:focus {
+  background: #18355b;
+  color: #a6f8dc;
+}
+
+/* Override light backgrounds with forced light bg but fix dark mode */
+body, html, .page-wrapper, .main-content, .content-area {
+  background-color: #f8f9fa !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+}
+
+/* Dark mode background overrides */
+body.dark-mode, 
+body.dark-mode html, 
+body.dark-mode .page-wrapper, 
+body.dark-mode .main-content, 
+body.dark-mode .content-area,
+body.dark-mode .fixed-popup {  /* added fixed-popup here */
+  background-color: #0f172a !important;
+  color: #f9fafb !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+/* Dark mode fixed-popup border and shadow override */
+body.dark-mode .fixed-popup {
+  border-color: #23375b !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.7) !important;
+}
+
+/* Hover effect on archive-card only in dark mode */
+.page.dark-mode .archive-card:hover {
+  box-shadow: 0 0 15px 3px rgba(92, 255, 203, 0.7);
+  border-color: #5cffcb;
+  transform: translateY(-3px);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+/* Responsive for mobile */
+@media (max-width: 1024px) {
+  .camera-streams-panel {
+    flex-direction: column;
+    align-items: center;
+    gap: 36px;
+  }
+  .camera-streams-panel .stream-group {
+    min-width: 0;
+  }
+  .camera-btn {
+    margin-bottom: 12px;
+  }
 }
