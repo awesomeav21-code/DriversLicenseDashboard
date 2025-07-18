@@ -8,6 +8,7 @@ function parseLocalDate(dateString) {
   const [year, month, day] = dateString.split('-');
   return new Date(Number(year), Number(month) - 1, Number(day));
 }
+
 function formatYYYYMMDD(dateObj) {
   if (!dateObj) return '';
   const y = dateObj.getFullYear();
@@ -52,16 +53,11 @@ const ArchiveCard = ({ event, index }) => {
   return (
     <div className="archive-card">
       <div className="archive-card-img">
-        <img src={THUMBNAIL_PLACEHOLDER} alt="Camera frame 1" />
-        <img src={THUMBNAIL_PLACEHOLDER} alt="Camera frame 2" />
-        <img src={THUMBNAIL_PLACEHOLDER} alt="Camera frame 3" />
-        <img src={THUMBNAIL_PLACEHOLDER} alt="Camera frame 4" />
+        <img src={THUMBNAIL_PLACEHOLDER} alt="Camera frame" />
       </div>
       <div className="archive-card-caption">
         <span className="archive-card-time">
-          {event.time
-            ? formatEventTime(event.time)
-            : currentTimeStr}
+          {event.time ? formatEventTime(event.time) : currentTimeStr}
         </span>
         <span className={getStatusClass(status)}>{status}</span>
       </div>
@@ -141,6 +137,7 @@ function getPrevMonth(date) {
   d.setMonth(d.getMonth() - 1);
   return d;
 }
+
 function getNextMonth(date) {
   const d = new Date(date);
   d.setMonth(d.getMonth() + 1);
@@ -520,5 +517,3 @@ const SurveillanceStreams = ({
 };
 
 export default SurveillanceStreams;
-
-
