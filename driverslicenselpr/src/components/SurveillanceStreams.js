@@ -16,19 +16,20 @@ function getStatus(zone) {
 const ArchiveCard = ({ event, index }) => {
   const status = getStatus(event);
 
+  // NEW: format only time (without date)
   function formatEventTime(timeStr) {
     if (!timeStr) return '';
     const d = new Date(timeStr);
     if (isNaN(d)) return timeStr;
-    return d.toLocaleString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return d.toLocaleTimeString(undefined, {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
     });
   }
+
+  // Get current time formatted as fallback if event.time missing
+  const currentTimeStr = formatEventTime(new Date().toISOString());
 
   function getStatusClass(status) {
     if (status === 'ACTIVE') return 'card-badge active';
@@ -53,7 +54,7 @@ const ArchiveCard = ({ event, index }) => {
         <span className="archive-card-time">
           {event.time
             ? formatEventTime(event.time)
-            : (event.name || `360 Camera - 12:0${index} PM`)}
+            : currentTimeStr /* dynamically show current time fallback */}
         </span>
         <span className={getStatusClass(status)}>{status}</span>
       </div>
@@ -170,14 +171,6 @@ const SidebarDates = ({
   return (
     <aside
       className="sidebar-event-dates"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        flex: '0 0 220px',
-        height: '100%',
-        boxSizing: 'border-box',
-        overflowY: 'auto',
-      }}
       onMouseEnter={() => onHoverChange(true)}
       onMouseLeave={() => onHoverChange(false)}
     >
@@ -231,20 +224,15 @@ const SidebarDates = ({
         >&gt;</button>
       </div>
 
-      <div className="inner-container date-list-container" style={{ flex: 1, minHeight: 0 }}>
+      <div className="inner-container date-list-container">
         <div className="sidebar-date-list">
           {eventDates && eventDates.length > 0 ? (
             eventDates.map(dateObj => (
-              <div key={dateObj.date} style={{ marginBottom: 3 }}>
+              <div key={dateObj.date}>
                 <div
                   className={`sidebar-date-item${dateObj.date === selectedDate ? ' selected' : ''}`}
                   style={{
                     cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    borderRadius: 5,
-                    transition: 'background 0.13s'
                   }}
                   onClick={() => {
                     if (selectedDate === dateObj.date) {
@@ -254,10 +242,9 @@ const SidebarDates = ({
                     }
                   }}
                 >
-                  <div>
-                    <span className="sidebar-date-text">{dateObj.date}</span>
-                    <span className="sidebar-date-badge">{dateObj.count}</span>
-                  </div>
+                  {/* FIX: Removed inner div so flex works as expected */}
+                  <span className="sidebar-date-text">{dateObj.date}</span>
+                  <span className="sidebar-date-badge">{dateObj.count}</span>
                 </div>
               </div>
             ))
@@ -377,11 +364,11 @@ const SurveillanceStreams = ({
   };
 
   return (
-    <div className={`page${isDarkMode ? ' dark-mode' : ''}`}>
-      {/* Mini-navbar */}
+    <>
+      {/* Mini-navbar OUTSIDE of .page! */}
       <div className="mini-navbar-outer">
         <div className="mini-navbar">
-          <div>Surveillance Camera Recordings</div>
+          <div className="mini-navbar-title">Surveillance Camera Recordings</div>
           <button
             className="archive-temp-event-btn"
             onClick={handleDownloadTempEvents}
@@ -392,73 +379,82 @@ const SurveillanceStreams = ({
         </div>
       </div>
 
-      <div className="archive-main-row">
-        {/* Sidebar */}
-        <SidebarDates
-          allEvents={allEvents}
-          selectedDate={selectedDate}
-          selectedMonth={selectedMonth}
-          onMonthChange={(month) => {
-            setSelectedMonth(month);
-            setSelectedDate('');
-          }}
-          onDateSelect={setSelectedDate}
-          onHoverChange={setIsSidebarHover}
-        />
+      <div className={`page${isDarkMode ? ' dark-mode' : ''}`}>
+        <div className="archive-main-row">
+          {/* Sidebar */}
+          <SidebarDates
+            allEvents={allEvents}
+            selectedDate={selectedDate}
+            selectedMonth={selectedMonth}
+            onMonthChange={(month) => {
+              setSelectedMonth(month);
+              setSelectedDate('');
+            }}
+            onDateSelect={setSelectedDate}
+            onHoverChange={setIsSidebarHover}
+          />
 
-        {/* Main surveillance content */}
-        <div className="archive-content-column">
-          <div className="surveillance-container">
-            {/* Header row */}
-            <div className="surveillance-header-row">
-              <div className="showing-entries-text">
-                {selectedDate && (
-                  <span>
-                    Showing entries for <b>{selectedDate}</b>
+          {/* Main surveillance content */}
+          <div className="archive-content-column">
+            <div className="surveillance-container">
+              {/* Header row */}
+              <div className="surveillance-header-row">
+                <div className="showing-entries-text">
+                  {selectedDate && (
+                    <span className = "formatted-date">
+                      {new Date(selectedDate).toLocaleDateString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: '2-digit',
+                      })}
+                    </span>
+                  )}
+                </div>
+                <button
+                  className="archive-download-btn"
+                  onClick={handleDownloadAll}
+                >
+                  <span className="download-icon" aria-hidden="true">
+                    <svg
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M10 3v9m0 0l-4-4m4 4l4-4m-9 7h10"
+                        stroke="#fff"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
                   </span>
+                  Download All
+                </button>
+              </div>
+
+              {/* Horizontal divider only if events exist */}
+              {filteredEvents.length > 0 && <hr className="archive-divider" />}
+
+              {/* Cards Grid */}
+              <div className="archive-cards-grid" ref={cardsGridRef}>
+                {filteredEvents.length === 0 ? (
+                  <div className="archive-no-events">
+                    {selectedDate
+                      ? 'No events for this date.'
+                      : 'Please select a date to see events.'}
+                  </div>
+                ) : (
+                  filteredEvents.map((event, i) => (
+                    <ArchiveCard event={event} key={i} index={i} />
+                  ))
                 )}
               </div>
-              <button
-                className="archive-download-btn"
-                onClick={handleDownloadAll}
-              >
-                <span className="download-icon" aria-hidden="true">
-                  <svg
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M10 3v9m0 0l-4-4m4 4l4-4m-9 7h10"
-                      stroke="#fff"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </span>
-                Download All
-              </button>
-            </div>
-
-            {/* Cards Grid */}
-            <div className="archive-cards-grid" ref={cardsGridRef}>
-              {filteredEvents.length === 0 ? (
-                <div className="archive-no-events">
-                  {selectedDate
-                    ? 'No events for this date.'
-                    : 'Please select a date to see events.'}
-                </div>
-              ) : (
-                filteredEvents.map((event, i) => (
-                  <ArchiveCard event={event} key={i} index={i} />
-                ))
-              )}
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

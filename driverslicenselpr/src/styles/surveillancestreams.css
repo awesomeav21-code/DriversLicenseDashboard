@@ -1,12 +1,16 @@
-/* MAIN PAGE */
 .page,
 .archive-page {
   background-color: #f9fafb;
   color: #1f2937;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  padding: 32px 8px 0 18px;
-  max-width: 1700px;
+  padding: 24px 48px 0 48px; /* no bottom padding */
+  max-width: 3000px !important;
   margin: 0 auto;
+  height: 100vh; /* Full viewport height */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .month-nav-text {
@@ -33,8 +37,13 @@
 .year-text {
   margin-left: 6px;
 }
-
-/* EDITED: More spacing and width for month nav */
+.mini-navbar-title {
+  margin-left: 12px;
+  margin-right: auto;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #233046;
+}
 .inner-container.month-nav {
   display: flex;
   flex-direction: row;
@@ -42,19 +51,12 @@
   justify-content: center;
   gap: 0;
   height: 38px;
-  padding: 0;                   /* remove horizontal padding */
-  border-radius: 12px;
-  border: 1.5px solid #e2e7f3;
-  box-shadow: 0 2px 12px rgba(80,120,180,0.07);
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid #ececec;
+  box-shadow: 0 1px 3px rgba(30,40,60,0.04);
   background: transparent;
-  width: 92%;                   /* match Event Dates list width */
-  max-width: 240px;             /* keep container tidy */
-  min-width: 200px;
-  box-sizing: border-box;
-  overflow: visible;
-  margin-bottom: 8px;
-  margin-left: auto;
-  margin-right: auto;
+  margin-bottom: 2px;
 }
 
 .inner-container.month-nav > button {
@@ -88,26 +90,35 @@
   justify-content: center;
 }
 
-/* EDITED: less space below event dates title */
 .inner-container.title-container {
   margin-bottom: 4px;
 }
-
 .inner-container {
   background: transparent;
   border: 1.5px solid #e2e7f3;
-  border-radius: 12px;
+  border-radius: 4px;
   box-shadow: 0 2px 12px rgba(80,120,180,0.07);
   padding: 8px 8px 10px 8px;
   width: 100%;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 6px;
+  gap: 1px;
+}
+.inner-container.date-list-container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid #ececec;
+  box-shadow: 0 1px 3px rgba(30,40,60,0.04);
+  background: transparent;
+  margin-bottom: 0;
+  box-sizing: border-box;
 }
 
-/* Dark mode for the inner container */
 .page.dark-mode .inner-container {
   background: transparent;
   border-color: #273d5e;
@@ -128,6 +139,24 @@
   align-items: center;
   margin-bottom: 18px;
 }
+
+.surveillance-header-row .showing-entries-text {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #233046;
+  min-width: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.surveillance-header-row .formatted-date {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #233046;
+  white-space: nowrap;
+}
+
 .sidebar-month-arrow {
   background: none;
   border: none;
@@ -149,251 +178,113 @@
   color: #233046;
 }
 
-/* DARK MODE OVERRIDES: force all containers dark! */
 .page.dark-mode .mini-navbar-outer,
 .page.dark-mode .mini-navbar {
   background: #0f172a !important;
   color: #e5e7eb !important;
   box-shadow: 0 2px 6px rgba(5,8,19,0.33);
 }
-.page.dark-mode .archive-main-row {
-  background: none !important;
-  gap: 14px !important;
-}
-.page.dark-mode .sidebar-event-dates {
+
+.archive-main-row {
+  flex: 1;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: transparent !important;
-  border-color: #ffffff !important;
-  color: #e5e7eb !important;
-  box-shadow: none !important;
-  margin-top: -1px !important;
-  margin-left: 0 !important;
-  margin-bottom: 40px !important;
-  padding: 12px 10px 18px 10px !important;
-  width: 100% !important;
-  max-width: 260px !important;
-  box-sizing: border-box !important;
-  font-size: 1.01rem !important;
-  gap: 8px !important;
-}
-.page.dark-mode .sidebar-title {
-  color: #e5e7eb !important;
-  width: 100%;
-  text-align: center;
-  margin-bottom: 10px;
-}
-.page.dark-mode .sidebar-date-list {
-  list-style: none;
-  margin: 0 auto !important;
-  padding: 0;
-  width: 100% !important;
-  max-width: 260px !important;
-  max-height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center !important;
-  overflow-y: auto;
-}
-.page.dark-mode .sidebar-date-item {
-  width: 100% !important;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  cursor: pointer;
-  border-radius: 8px;
-  margin-bottom: 4px;
-  transition: background-color 0.2s ease;
-  background: none !important;
-  color: #e5e7eb !important;
-}
-.page.dark-mode .sidebar-date-item.selected,
-.page.dark-mode .sidebar-date-item:hover {
-  background: #394a7a !important;
-  color: #ffffff !important;
-  font-weight: 700;
-}
-.page.dark-mode .sidebar-date-text {
-  text-align: center;
-  flex-shrink: 0;
-}
-.page.dark-mode .sidebar-date-badge {
-  background-color: #5cffcb !important;
-  color: #2e3857 !important;
-  border-radius: 9999px;
-  padding: 2px 10px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  min-width: 24px;
-  text-align: center;
-}
-.page.dark-mode .sidebar-date-item.empty {
-  color: #8a97b5 !important;
-  font-weight: 400;
-  background: none;
-  cursor: default;
+  align-items: stretch;
+  gap: 24px;
 }
 
-.page.dark-mode .archive-content-column {
-  background: none !important;
-}
-.page.dark-mode .surveillance-container {
-  background: transparent !important;
-  border-color: #ffffff !important;
-  color: #e5e7eb !important;
-  margin-right: 0;
-  margin-left: 0;
-  margin-top: 28px;
-  padding: 18px 20px 24px 20px;
-  box-shadow: none !important;
-  border-radius: 16px !important;
-  max-width: 900px;
-}
-.page.dark-mode .archive-card {
-  background: transparent !important;
-  border-color: #ffffff !important;
-  color: #e5e7eb !important;
-  border-radius: 16px !important;
-  box-shadow: none !important;
-  max-width: 170px;
-  height: 320px;
-  margin-bottom: 12px;
-}
-.page.dark-mode .archive-card-caption {
-  background: #2a3a5a !important;
-  color: #fff !important;
-}
-.page.dark-mode .archive-card-time {
-  color: #fff !important;
-}
-.page.dark-mode .card-badge.active {
-  background: #fd5e5e !important;
-}
-.page.dark-mode .card-badge.cleared {
-  background: #42e2b8 !important;
-  color: #112027 !important;
-}
-.page.dark-mode .card-badge.no-data {
-  background: #555 !important;
-}
-.page.dark-mode .archive-card-meta {
-  color: #99d0f7 !important;
-}
-.page.dark-mode .meta-label {
-  color: #99d0f7 !important;
-}
-.page.dark-mode .meta-value {
-  color: #e5e7eb !important;
-}
-.page.dark-mode .archive-no-video-btn {
-  background: #26345a !important;
-  color: #bbb !important;
-}
-.page.dark-mode .archive-footer {
-  background: #1c2337 !important;
-  color: #c7e3fc !important;
-}
-.archive-page-header {
-  display: flex;
-  align-items: center;
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #233046;
-  gap: 14px;
-  margin-bottom: 10px;
-  margin-top: 16px;
-}
-.archive-header-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: #e7ecef;
-  border-radius: 8px;
-  padding: 7px;
-  margin-right: 8px;
-}
-.archive-date-title {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #3a4861;
-  margin-bottom: 16px;
-  margin-top: 8px;
-}
 .mini-navbar-outer {
-  position: relative !important;
-  left: 0 !important;
-  margin-left: 0 !important;
-  width: calc(100vw + 140px) !important;
+  position: relative;
+  width: 100vw;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 0;
+  padding-right: 0;
+  box-sizing: border-box;
+  overflow-x: visible !important;
   background: #fff !important;
-  border-radius: 16px !important;
+  border-radius: 4px !important;
   border: 1px solid #d1d5db !important;
   box-shadow: none !important;
   z-index: 2 !important;
-  margin-bottom: 28px !important;
-  margin-top: 0 !important;
-  box-sizing: border-box !important;
-  overflow-x: visible !important;
-  padding-right: 0 !important;
-  transform: translateX(70px);
-  margin-left: -70px !important;
+  margin-bottom: 8px !important;
+  margin-top: 6px !important;
+  left: 0;
+  right: 0;
 }
+
 .mini-navbar {
+  position: relative !important;
   background: transparent;
-  border-radius: 16px !important;
+  border-radius: 4px !important;
   border: none;
   box-shadow: none;
-  width: 100%;
-  margin: 0;
-  padding: 9px 28px 9px 100px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  width: 100% !important;
+  padding: 9px 0 9px 0 !important;
+  display: flex !important;
+  align-items: center !important;
   font-weight: 700;
   font-size: 1.22rem;
   color: #222;
   min-height: 52px;
   box-sizing: border-box;
+  padding-left: 12px;
 }
-/* Dark mode mini-navbar */
+
 .page.dark-mode .mini-navbar-outer {
   background: #0f172a !important;
   border-color: #ffffff !important;
   box-shadow: none !important;
 }
 .page.dark-mode .mini-navbar {
-  color: #e5e7eb !important;
+  color: #0f172a !important;
 }
-/* SIDEBAR */
+
 .sidebar-event-dates {
-  background: transparent;
-  border-radius: 16px !important;
-  border: 1px solid #d1d5db !important;
-  box-shadow: none !important;
-  padding: 12px 10px 18px 10px;
+  background: #ffffff;
+  border-radius: 16px !important; /* made more rounded */
+  border: 1px solid #d1d5db !important; /* match surveillance container */
+  box-shadow: none !important; /* match surveillance container */
+  padding: 8px 10px 14px 10px;
   width: 100%;
   max-width: 320px;
   box-sizing: border-box;
   font-size: 1.01rem;
   color: #111827;
+
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  margin-top: -1px;
-  margin-left: 0;
-  margin-bottom: 40px;
+
+  margin-top: -8px;
+  margin-left: -20px;
+  margin-bottom: 0;
+
+  flex-grow: 1;
+  min-height: 0;
+  height: 100%;
+  overflow-y: auto;
+
+  max-height: none;
 }
+
+.sidebar-event-dates > .inner-container {
+  margin-left: 14px !important;
+  margin-right: 14px !important;
+  width: calc(100% - 28px) !important;
+}
+
 .sidebar-title {
   font-size: 1.14rem;
-  font-weight: 700;
+  font-weight: 550;
   color: #233046;
   width: 100%;
   text-align: center;
-  margin-bottom: 6px;
+  margin-bottom: 2px;
+  margin-top: 8px;
 }
+
 .sidebar-date-list {
   list-style: none;
   margin: 0 auto;
@@ -403,55 +294,94 @@
   max-height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch; /* <-- changed from center to stretch */
   overflow-y: auto;
+  margin-top: 0;
+
+  gap: 4px; /* Added gap here instead of margin on items */
 }
+
+/* --- Adjusted event dates text: Compact date left, badge right --- */
 .sidebar-date-item {
   width: 100%;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   gap: 8px;
-  padding: 8px 10px;
+  padding: 6px 10px;
   cursor: pointer;
-  border-radius: 8px;
-  margin-bottom: 4px;
+  border-radius: 4px;
+  margin-bottom: 0; /* Removed margin-bottom */
   transition: background-color 0.2s ease;
   background: none;
   color: inherit;
+
+  font-weight: 200 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 1.03rem;
+
+  box-sizing: border-box;
 }
+
 .sidebar-date-item.selected,
 .sidebar-date-item:hover {
-  background-color: #d6f0d6;
-  color: #0ac676;
-  font-weight: 700;
+  background-color: #6ca956; /* matching --primary-color */
+  font-weight: 200 !important;
+  letter-spacing: 0.03em;
+  width: 100%;
+  display: flex;
 }
+
+.sidebar-date-item.selected .sidebar-date-text,
+.sidebar-date-item:hover .sidebar-date-text {
+  color: #ffffff !important; /* white on hover */
+  font-weight: 200 !important;
+  letter-spacing: 0.03em;
+}
+
 .sidebar-date-text {
-  text-align: center;
-  flex-shrink: 0;
+  flex: 0 1 auto;
+  text-align: left;
+  white-space: nowrap;
+
+  font-weight: 300 !important; /* always thin */
+  color: #000 !important; /* always black */
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 1rem;
 }
+
+/* Badge styling */
 .sidebar-date-badge {
-  background-color: #0ac676;
-  color: #fff;
+  flex: 0 0 auto;
+  background-color: #d9f0d8;
+  color: #000 !important; /* black text */
   border-radius: 9999px;
-  padding: 2px 10px;
+  padding: 2px 8px;
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 300 !important; /* thin */
   min-width: 24px;
   text-align: center;
+  margin-left: auto;
+  align-self: center;
+  margin-top: 2px;
 }
+
+.sidebar-date-item.selected .sidebar-date-badge,
+.sidebar-date-item:hover .sidebar-date-badge {
+  background-color: #ffffff !important; /* white badge bg on hover */
+  color: #6ca956 !important; /* apple green badge text on hover */
+  font-weight: 700 !important;
+}
+
 .sidebar-date-item.empty {
   color: #bbb;
-  font-weight: 400;
+  font-weight: 300;
   background: none;
   cursor: default;
 }
-/* LAYOUT */
-.archive-main-row {
-  display: flex;
-  align-items: stretch;
-  gap: 14px ;
-}
+
 .archive-content-column {
   max-width: 2000px;
   min-width: 600px;
@@ -461,40 +391,45 @@
   margin-bottom: 0;
   padding-bottom: 0;
 }
-/* SURVEILLANCE CONTAINER */
+
 .surveillance-container {
   background: transparent;
-  border-radius: 16px !important;
+  border-radius: 16px !important; /* increased roundness */
   box-shadow: none;
   border: 1px solid #d1d5db;
-  padding: 28px 26px 32px 26px;
+  padding: 22px 26px 26px 26px;
   margin-bottom: 0;
-  margin-top: 0;
+  margin-top: -8px;
   margin-right: 0;
   width: 100%;
   box-sizing: border-box;
 }
-/* ACTION BUTTONS */
+
+/* Changed background-color here to --success-color (#10b981) */
 .archive-temp-event-btn {
-  background-color: #0ac676;
-  color: #fff;
-  border: none;
-  border-radius: 0;
-  padding: 12px 22px;
-  font-weight: 700;
-  font-size: 1rem;
-  cursor: pointer;
-  box-shadow: 0 1px 6px rgba(10, 198, 118, 0.4);
-  transition: background-color 0.15s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  margin-left: 0 !important;
+  margin-right: 12px !important;
+  flex-shrink: 0 !important;
+  min-width: 140px !important;
+  padding: 8px 22px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  background-color: #10b981 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: 0 1px 6px rgba(16, 185, 129, 0.4) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
 }
 .archive-temp-event-btn:hover {
-  background-color: #0aa35b;
+  background-color: #0e9a6f !important;
 }
+
+/* Updated archive-download-btn to apple green */
 .archive-download-btn {
-  background: #87D300;
+  background: #6ca956; /* apple green */
   color: #fff;
   border: none;
   border-radius: 0;
@@ -511,8 +446,9 @@
   height: 26px;
 }
 .archive-download-btn:hover {
-  background: #5ea700;
+  background: #578641; /* slightly darker apple green */
 }
+
 .archive-download-btn .download-icon {
   width: 16px;
   height: 16px;
@@ -529,24 +465,30 @@
 .page.dark-mode .archive-no-events {
   color: #e5e7eb !important;
 }
-/* CARDS GRID */
+
 .archive-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 10px 0;
+  gap: 20px 0;
   width: 100%;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   margin-bottom: 0;
   padding-bottom: 0;
+  margin-top: 20px;
 }
 .archive-no-events {
   padding: 24px;
   text-align: center;
   color: #999;
 }
-/* CARD */
+.archive-divider {
+  border: none;
+  border-top: 1px solid #d1d5db;
+  margin: 16px -26px;
+  width: auto;
+}
 .archive-card {
   background: transparent;
   border-radius: 16px !important;
@@ -560,7 +502,7 @@
   margin: 0 0 12px 0;
   width: 100%;
   max-width: 170px;
-  height: 320px;
+  height: 330px;
   box-sizing: border-box;
 }
 .page.dark-mode .archive-card {
@@ -575,19 +517,26 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 14px;
+  padding: 6px 10px;
   border-radius: 0;
+  height: 30px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.2;
 }
+
 .page.dark-mode .archive-card-caption {
   background: #2a3a5a !important;
   color: #fff !important;
 }
+
 .archive-card-time {
   font-size: 1.05rem;
   font-weight: 700;
   color: #fff;
   margin: 0;
   text-align: left;
+  line-height: 1.2;
 }
 .card-badge {
   border-radius: 7px;
@@ -609,15 +558,17 @@
 }
 .archive-card-img {
   width: 100%;
-  height: 210px;
+  height: 260px;
   background: #e6e6e6;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(2, 1fr);
-  gap: 2px;
+  gap: 8px;
   overflow: hidden;
   border-bottom: 1px solid #e1e6ea;
   border-radius: 6px;
+  position: relative;
+  z-index: 10;
 }
 .archive-card-img img {
   width: 100%;
@@ -695,7 +646,6 @@
   margin-right: 4px;
   line-height: 1;
 }
-/* FOOTER */
 .archive-footer {
   width: 100%;
   background: #233046;
@@ -709,7 +659,7 @@
   border-radius: 0 0 14px 14px;
   box-shadow: 0 -2px 8px rgba(34,34,44,0.03);
 }
-/* RESPONSIVE */
+
 @media (max-width: 900px) {
   .mini-navbar-outer,
   .archive-content-column {
@@ -724,14 +674,33 @@
     max-width: 100% !important;
   }
   .sidebar-event-dates {
+    background: #fff;
+    border-radius: 4px !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 8px 10px 14px 10px;
     width: 100%;
-    min-height: 320px;
-    height: auto;
-    padding: 8px 4px 10px 4px;
-    font-size: 0.95rem;
-    margin-left: 0 !important;
-    max-width: none !important;
-    background: transparent !important;
+    max-width: 320px;
+    box-sizing: border-box;
+    font-size: 1.01rem;
+    color: #111827;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-top: -8px;
+    margin-left: -20px;
+    margin-bottom: 0;
+    flex-grow: 1;
+    min-height: 0;
+    height: 100%;
+    overflow-y: auto;
+    max-height: none;
+  }
+  .formatted-date {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: inherit;
   }
   .sidebar-date-list {
     max-height: 220px;
@@ -743,6 +712,10 @@
   .sidebar-date-item {
     width: 100%;
     justify-content: flex-start;
+    font-weight: 200 !important;
+    text-transform: uppercase;
+    margin-bottom: 0;
+    letter-spacing: 0.1em;
   }
   .archive-cards-grid {
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -760,7 +733,7 @@
     gap: 1px;
   }
   .archive-no-video-btn {
-    margin: 10px 8px 12px 8px;
+    margin: 10px 8pfx 12px 8px;
     padding: 6px 0;
     font-size: 0.9rem;
   }

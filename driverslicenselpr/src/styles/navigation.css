@@ -1,7 +1,7 @@
 .navigation {
   width: 100% !important;
   max-width: 100% !important;
-  margin: 8px 0 0 0 !important; /* smaller top margin */
+  margin: 0 0 16px 0 !important; /* Reduced bottom margin to 16px */
   padding: 8px 12px; /* Reduced left/right padding */
   background-color: #fff !important;
   display: flex !important;
