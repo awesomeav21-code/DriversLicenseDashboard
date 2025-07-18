@@ -186,7 +186,8 @@
 }
 
 .archive-main-row {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   align-items: stretch;
   gap: 24px;
@@ -390,6 +391,10 @@
   margin-left: 0;
   margin-bottom: 0;
   padding-bottom: 0;
+  display: flex;          /* ADD THIS */
+  flex-direction: column; /* ADD THIS */
+  flex: 1 1 auto;         /* ADD THIS */
+  min-height: 0;          /* ADD THIS */
 }
 
 .surveillance-container {
@@ -403,6 +408,10 @@
   margin-right: 0;
   width: 100%;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 /* Changed background-color here to --success-color (#10b981) */
@@ -468,8 +477,8 @@
 
 .archive-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 20px 0;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); /* wider columns */
+  gap: 26px 18px; /* more space between cards */
   width: 100%;
   margin: 0;
   padding: 0;
@@ -499,12 +508,43 @@
   min-width: 0;
   overflow: hidden;
   padding: 0;
-  margin: 0 0 12px 0;
+  margin: 0 0 18px 0;
   width: 100%;
-  max-width: 170px;
-  height: 330px;
+  max-width: 350px; /* <<--- WIDER! (Try 350px, 400px, etc. as you want) */
+  height: 400px;    /* Keep original height */
   box-sizing: border-box;
 }
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-content {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  padding: 32px 32px 24px 32px;
+  max-width: 760px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+.modal-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #233046;
+  cursor: pointer;
+  z-index: 10;
+}
+
+
 .page.dark-mode .archive-card {
   background: transparent !important;
   border-color: #ffffff !important;
@@ -558,10 +598,10 @@
 }
 .archive-card-img {
   width: 100%;
-  height: 260px;
+  height: 170px;   /* ↓ LESS TALL (try 150–180px as you like) */
   background: #e6e6e6;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, 1fr); 
   grid-template-rows: repeat(2, 1fr);
   gap: 8px;
   overflow: hidden;
@@ -738,3 +778,14 @@
     font-size: 0.9rem;
   }
 }
+
+/* --------- ADDED THIS SECTION --------- */
+.surveillance-cards-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: auto;
+  width: 100%;
+}
+/* --------- END OF NEW SECTION --------- */

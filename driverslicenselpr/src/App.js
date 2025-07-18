@@ -103,6 +103,9 @@ export default function App() {
   const [endDate, setEndDate] = useState(() => localStorage.getItem('logEndDate') || todayStr)
   const [filteredLogs, setFilteredLogs] = useState([])
 
+  // New state: store streamEvents with triggers added
+  const [streamEvents, setStreamEvents] = useState([])
+
   useEffect(() => {
     let mounted = true
 
@@ -182,12 +185,25 @@ export default function App() {
           }
         })
         setZones(curZones)
+
+        // Initialize streamEvents here with zones as events
+        const nowISOString = new Date().toISOString()
+        const initialEvents = [
+          ...curZones.map(zone => ({
+            ...zone,
+            camera: '360 Camera',
+            eventType: 'VMD',
+            time: zone.time || nowISOString,
+          })),
+        ]
+        setStreamEvents(initialEvents)
       })
       .catch(() => {
         setZones([])
         setAllZones([])
         setHistory([])
         setVisibleZones([])
+        setStreamEvents([])
       })
 
     return () => {
@@ -279,7 +295,7 @@ export default function App() {
               {activeTab === 'thermal' && (
                 <ThermalPlot
                   zones={zones}
-                  visibleZones={visibleZones}
+                  visibleZones={visibleZones}   // <-- this name, exactly!
                   setVisibleZones={setVisibleZones}
                   allZones={allZones}
                   tempUnit={tempUnit}
@@ -297,6 +313,8 @@ export default function App() {
                 <SurveillanceStreams
                   camera1Zones={camera1Zones}
                   camera2Zones={camera2Zones}
+                  streamEvents={streamEvents}
+                  setStreamEvents={setStreamEvents}
                   isDarkMode={isDarkMode} // <-- only change!
                 />
               )}
