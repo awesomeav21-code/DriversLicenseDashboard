@@ -8,7 +8,6 @@ function parseLocalDate(dateString) {
   const [year, month, day] = dateString.split('-');
   return new Date(Number(year), Number(month) - 1, Number(day));
 }
-
 function formatYYYYMMDD(dateObj) {
   if (!dateObj) return '';
   const y = dateObj.getFullYear();
@@ -53,11 +52,16 @@ const ArchiveCard = ({ event, index }) => {
   return (
     <div className="archive-card">
       <div className="archive-card-img">
-        <img src={THUMBNAIL_PLACEHOLDER} alt="Camera frame" />
+        <img src={THUMBNAIL_PLACEHOLDER} alt="Camera frame 1" />
+        <img src={THUMBNAIL_PLACEHOLDER} alt="Camera frame 2" />
+        <img src={THUMBNAIL_PLACEHOLDER} alt="Camera frame 3" />
+        <img src={THUMBNAIL_PLACEHOLDER} alt="Camera frame 4" />
       </div>
       <div className="archive-card-caption">
         <span className="archive-card-time">
-          {event.time ? formatEventTime(event.time) : currentTimeStr}
+          {event.time
+            ? formatEventTime(event.time)
+            : currentTimeStr}
         </span>
         <span className={getStatusClass(status)}>{status}</span>
       </div>
@@ -137,7 +141,6 @@ function getPrevMonth(date) {
   d.setMonth(d.getMonth() - 1);
   return d;
 }
-
 function getNextMonth(date) {
   const d = new Date(date);
   d.setMonth(d.getMonth() + 1);
@@ -155,7 +158,7 @@ function getLatestEventDateInMonth(events, month) {
       new Date(date).getFullYear() === year
     );
   if (dates.length === 0) return '';
-  return dates.sort((a, b) => b.localeCompare(a))[0];
+  return dates.sort((a, b) => b.localeCompare(a.date))[0];
 }
 
 function Modal({ isOpen, onClose, children }) {
@@ -172,6 +175,7 @@ function Modal({ isOpen, onClose, children }) {
   );
 }
 
+// ------- CHANGE IS HERE -------
 const SidebarDates = ({
   allEvents,
   selectedDate,
@@ -180,10 +184,21 @@ const SidebarDates = ({
   onDateSelect,
   onHoverChange,
 }) => {
-  const eventDates = useMemo(
+  let eventDates = useMemo(
     () => aggregateEventDatesWithTimes(allEvents, selectedMonth),
     [allEvents, selectedMonth]
   );
+
+  // Always include today if it's in this month
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10);
+  if (
+    today.getFullYear() === selectedMonth.getFullYear() &&
+    today.getMonth() === selectedMonth.getMonth() &&
+    !eventDates.some(ed => ed.date === todayStr)
+  ) {
+    eventDates = [{ date: todayStr, times: [], count: 0 }, ...eventDates];
+  }
 
   return (
     <aside
@@ -211,10 +226,12 @@ const SidebarDates = ({
             fontSize: 22,
             cursor: 'pointer',
             color: '#233046',
-            padding: '2px 6px'
+            padding: '2px 1.5px'  // <-- SIGNIFICANTLY less horizontal padding, arrows move inward
           }}
           onClick={() => onMonthChange(getPrevMonth(selectedMonth))}
-        >&lt;</button>
+        >
+          ‹
+        </button>
         <span
           style={{
             fontWeight: 400,
@@ -232,10 +249,12 @@ const SidebarDates = ({
             fontSize: 22,
             cursor: 'pointer',
             color: '#233046',
-            padding: '2px 6px'
+            padding: '2px 1.5px'  // <-- SIGNIFICANTLY less horizontal padding, arrows move inward
           }}
           onClick={() => onMonthChange(getNextMonth(selectedMonth))}
-        >&gt;</button>
+        >
+          ›
+        </button>
       </div>
       <div className="inner-container date-list-container">
         <div className="sidebar-date-list">
@@ -270,6 +289,7 @@ const SidebarDates = ({
     </aside>
   );
 };
+// ------- END CHANGE -------
 
 const SurveillanceStreams = ({
   camera1Zones = [],
@@ -277,15 +297,6 @@ const SurveillanceStreams = ({
   isDarkMode = false,
 }) => {
   const nowISOString = new Date().toISOString();
-
-  // For adding custom events to the main timeline
-  const [customEvents, setCustomEvents] = useState([]);
-  const [newEvent, setNewEvent] = useState({
-    time: '',
-    temperature: '',
-    threshold: '',
-    duration: '',
-  });
 
   const allEvents = useMemo(() => [
     ...camera1Zones.map((zone) => ({
@@ -300,28 +311,23 @@ const SurveillanceStreams = ({
       eventType: 'VMD',
       time: zone.time || nowISOString,
     })),
-    ...customEvents, // <<<<<< Include custom events in main event list
-  ], [camera1Zones, camera2Zones, nowISOString, customEvents]);
+  ], [camera1Zones, camera2Zones, nowISOString]);
 
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(() =>
-    getLatestEventDateInMonth([
-      ...camera1Zones.map((zone) => ({
-        ...zone,
-        camera: '360 Camera',
-        eventType: 'VMD',
-        time: zone.time || nowISOString,
-      })),
-      ...camera2Zones.map((zone) => ({
-        ...zone,
-        camera: '360 Camera',
-        eventType: 'VMD',
-        time: zone.time || nowISOString,
-      })),
-    ], new Date())
+    getLatestEventDateInMonth(allEvents, new Date())
   );
   const [isSidebarHover, setIsSidebarHover] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Popup state for new event (not part of main zones)
+  const [customEvents, setCustomEvents] = useState([]);
+  const [newEvent, setNewEvent] = useState({
+    time: '',
+    temperature: '',
+    threshold: '',
+    duration: '',
+  });
 
   const cardsGridRef = useRef(null);
 
@@ -347,17 +353,20 @@ const SurveillanceStreams = ({
     URL.revokeObjectURL(url);
   };
 
-  const handleDownloadTempEvents = () => setIsModalOpen(true);
+  // CHANGE HERE: No-op for Temperature Event Recordings button
+  const handleDownloadTempEvents = () => {
+    // Intentionally do nothing
+  };
 
-  // Handle adding new custom event to the main timeline/grid!
+  // Handle adding new custom event
   const handleAddCustomEvent = (e) => {
     e.preventDefault();
     if (!newEvent.time || !newEvent.temperature || !newEvent.threshold) {
       alert("Fill time, temperature, and threshold!");
       return;
     }
-    setCustomEvents(prev => [
-      ...prev,
+    setCustomEvents([
+      ...customEvents,
       {
         ...newEvent,
         temperature: parseFloat(newEvent.temperature),
@@ -373,7 +382,6 @@ const SurveillanceStreams = ({
       threshold: '',
       duration: '',
     });
-    setIsModalOpen(false); // auto-close after add
   };
 
   return (
@@ -383,7 +391,7 @@ const SurveillanceStreams = ({
           <div className="mini-navbar-title">Surveillance Camera Recordings</div>
           <button
             className="archive-temp-event-btn"
-            onClick={handleDownloadTempEvents}
+            onClick={handleDownloadTempEvents} // now does nothing
             style={{ minWidth: 200, fontWeight: 700 }}
           >
             Temperature Event Recordings
@@ -511,6 +519,22 @@ const SurveillanceStreams = ({
           </div>
           <button type="submit" style={{ fontWeight: 600 }}>Add Event</button>
         </form>
+        <div>
+          {customEvents.length === 0 ? (
+            <div>No custom thermal events added.</div>
+          ) : (
+            <div>
+              <h3>Added Events:</h3>
+              <div className="surveillance-cards-scroll">
+                <div className="archive-cards-grid">
+                  {customEvents.map((event, i) => (
+                    <ArchiveCard event={event} key={i} index={i} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </Modal>
     </>
   );

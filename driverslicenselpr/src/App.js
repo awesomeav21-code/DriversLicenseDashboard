@@ -103,9 +103,6 @@ export default function App() {
   const [endDate, setEndDate] = useState(() => localStorage.getItem('logEndDate') || todayStr)
   const [filteredLogs, setFilteredLogs] = useState([])
 
-  // New state: store streamEvents with triggers added
-  const [streamEvents, setStreamEvents] = useState([])
-
   useEffect(() => {
     let mounted = true
 
@@ -185,25 +182,12 @@ export default function App() {
           }
         })
         setZones(curZones)
-
-        // Initialize streamEvents here with zones as events
-        const nowISOString = new Date().toISOString()
-        const initialEvents = [
-          ...curZones.map(zone => ({
-            ...zone,
-            camera: '360 Camera',
-            eventType: 'VMD',
-            time: zone.time || nowISOString,
-          })),
-        ]
-        setStreamEvents(initialEvents)
       })
       .catch(() => {
         setZones([])
         setAllZones([])
         setHistory([])
         setVisibleZones([])
-        setStreamEvents([])
       })
 
     return () => {
@@ -295,7 +279,7 @@ export default function App() {
               {activeTab === 'thermal' && (
                 <ThermalPlot
                   zones={zones}
-                  visibleZones={visibleZones}   // <-- this name, exactly!
+                  visibleZones={visibleZones}
                   setVisibleZones={setVisibleZones}
                   allZones={allZones}
                   tempUnit={tempUnit}
@@ -309,17 +293,10 @@ export default function App() {
                   history={history}
                 />
               )}
-              {activeTab === 'streams' && (
-                <SurveillanceStreams
-                  camera1Zones={camera1Zones}
-                  camera2Zones={camera2Zones}
-                  streamEvents={streamEvents}
-                  setStreamEvents={setStreamEvents}
-                  isDarkMode={isDarkMode} // <-- only change!
-                />
-              )}
+              {activeTab === 'streams' && <SurveillanceStreams camera1Zones={camera1Zones} camera2Zones={camera2Zones} />}
             </div>
 
+            {/* Only show camera streams panel on dashboard */}
             {activeTab === 'dashboard' && (
               <div
                 className="camera-streams-panel"
@@ -349,15 +326,13 @@ export default function App() {
                         right: '20px',
                         width: '700px',
                         maxHeight: '80vh',
-                        backgroundColor: isDarkMode ? '#0f172a' : '#fff',
-                        border: '2px solid',
-                        borderColor: isDarkMode ? '#23375b' : '#333',
-                        boxShadow: isDarkMode ? '0 4px 12px rgba(0,0,0,0.7)' : '0 4px 12px rgba(0,0,0,0.3)',
+                        backgroundColor: '#fff',
+                        border: '2px solid #333',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
                         padding: '16px',
                         overflowY: 'auto',
                         zIndex: 1000,
                         borderRadius: '8px',
-                        color: isDarkMode ? '#f9fafb' : '#000',
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
@@ -368,7 +343,7 @@ export default function App() {
                             fontSize: '1.3rem',
                             fontWeight: 'bold',
                             cursor: 'pointer',
-                            color: isDarkMode ? '#f9fafb' : '#333',
+                            color: '#333',
                           }}
                           onClick={() => setShow360Popup(false)}
                           aria-label="Close"
@@ -431,15 +406,13 @@ export default function App() {
                         right: '20px',
                         width: '700px',
                         maxHeight: '80vh',
-                        backgroundColor: isDarkMode ? '#0f172a' : '#fff',
-                        border: '2px solid',
-                        borderColor: isDarkMode ? '#23375b' : '#333',
-                        boxShadow: isDarkMode ? '0 4px 12px rgba(0,0,0,0.7)' : '0 4px 12px rgba(0,0,0,0.3)',
+                        backgroundColor: '#fff',
+                        border: '2px solid #333',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
                         padding: '16px',
                         overflowY: 'auto',
                         zIndex: 1000,
                         borderRadius: '8px',
-                        color: isDarkMode ? '#f9fafb' : '#000',
                       }}
                     >
                       {filterZonesByCamera(selectedThermalCamera || (isHoveringThermal ? selectedThermalCamera : null)).map((zone) => (
@@ -484,15 +457,13 @@ export default function App() {
                         right: '20px',
                         width: '700px',
                         maxHeight: '80vh',
-                        backgroundColor: isDarkMode ? '#0f172a' : '#fff',
-                        border: '2px solid',
-                        borderColor: isDarkMode ? '#23375b' : '#333',
-                        boxShadow: isDarkMode ? '0 4px 12px rgba(0,0,0,0.7)' : '0 4px 12px rgba(0,0,0,0.3)',
+                        backgroundColor: '#fff',
+                        border: '2px solid #333',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
                         padding: '16px',
                         overflowY: 'auto',
                         zIndex: 1000,
                         borderRadius: '8px',
-                        color: isDarkMode ? '#f9fafb' : '#000',
                       }}
                     >
                       {filterZonesByCamera(selectedOpticalCamera || (isHoveringOptical ? selectedOpticalCamera : null)).map((zone) => (
@@ -503,7 +474,6 @@ export default function App() {
                 </div>
               </div>
             )}
-
           </div>
         </div>
         <Footer />

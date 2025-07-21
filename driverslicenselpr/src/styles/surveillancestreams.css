@@ -3,7 +3,7 @@
   background-color: #f9fafb;
   color: #1f2937;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  padding: 12px 48px 0 48px;  /* <<-- Slightly more top gap */
+  padding: 18px 56px 0 56px;  /* increased top padding from 12px to 18px, left/right from 48px to 56px */
   max-width: 3000px !important;
   margin: 0 auto;
   height: 100vh;
@@ -16,10 +16,10 @@
 .month-nav-text {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.02em !important; /* tightened spacing between month and year */
   font-weight: 400;
   font-size: 1.05rem;
-  color: #233046;
+  color: #111111 !important; /* darker black */
   min-width: 90px;
   flex: 1 1 auto;
   justify-content: center;
@@ -29,13 +29,17 @@
 
 .month-text,
 .year-text {
-  font-weight: 400;
+  font-weight: 500; /* slightly bolder */
   font-size: 0.92rem;
-  color: #233046;
+  color: #000000 !important; /* pure black for stronger contrast */
+  font-family: Arial, Helvetica, sans-serif !important; /* normal font */
+  margin: 0 !important; /* remove extra spacing */
+  padding: 0 !important;
 }
 
 .year-text {
-  margin-left: 6px;
+  margin-left: 0 !important; /* ensure no margin */
+  margin-left: -3px !important; 
 }
 
 .mini-navbar-title {
@@ -52,13 +56,16 @@
   align-items: center;
   justify-content: center;
   gap: 0;
-  height: 38px;
+  height: 28px; /* decreased height by 10px */
   padding: 0;
   border-radius: 6px; /* reduced from 10px */
   border: 1px solid #ececec;
   box-shadow: 0 1px 3px rgba(30,40,60,0.04);
   background: transparent;
   margin-bottom: 2px;
+
+  max-width: 400px; /* Slightly increased width */
+  width: 100%;
 }
 
 .inner-container.month-nav > button {
@@ -66,6 +73,7 @@
   min-width: 34px;
   max-width: 34px;
   display: flex;
+  transform: translateY(-2px);
   align-items: center;
   justify-content: center;
   z-index: 2;
@@ -93,21 +101,124 @@
 }
 
 .inner-container.title-container {
-  margin-bottom: 4px;
+  margin-bottom: 0px;
 }
 
+/* Adjusted .inner-container for less height and more horizontal */
+/* Moved up by 3px (transform translateY from 8px to 5px) */
 .inner-container {
   background: transparent;
   border: 1.5px solid #e2e7f3;
-  border-radius: 6px; /* reduced from 4px, but keeping same (4px is small, I chose 6px for consistency) */
+  border-radius: 6px;
   box-shadow: 0 2px 12px rgba(80,120,180,0.07);
-  padding: 8px 8px 10px 8px;
-  width: 100%;
+  padding: 3px 18px;      /* reduced vertical padding from 5px to 3px; horizontal from 21px to 18px */
+  width: calc(100% - 7px); /* increased width by subtracting less (was 10px) */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  transform: translateY(2px);
+  gap: 4px;               /* reduced gap from 6px to 4px for less height */
+  margin-top: 20px;
+  max-height: none;
 }
+/* EDITED inside .inner-container for bigger, left-aligned sidebar dates */
+.inner-container .sidebar-date-list {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center; /* add this to vertically center */
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 360px;
+  max-height: 100%;
+  overflow-y: auto;
+  margin-top: 0;
+  gap: 6px;
+}
+
+.inner-container .sidebar-date-item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between; /* left text, right badge */
+  align-items: center;
+  gap: 10px; /* slightly reduced gap */
+  padding: 4px 10px; /* smaller vertical padding */
+  cursor: pointer;
+  border-radius: 6px;
+  margin-bottom: 0;
+  transition: background-color 0.2s ease;
+  background: none;
+  color: inherit;
+  font-weight: 200 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 1.08rem; /* Increased from 1.03rem */
+  box-sizing: border-box;
+}
+
+.inner-container .sidebar-date-item.selected,
+.inner-container .sidebar-date-item:hover {
+  background-color: #6ca956;
+  font-weight: 200 !important;
+  letter-spacing: 0.03em;
+  width: 100%;
+  display: flex;
+}
+
+.inner-container .sidebar-date-item.selected .sidebar-date-text,
+.inner-container .sidebar-date-item:hover .sidebar-date-text {
+  color: #ffffff !important;
+  font-weight: 200 !important;
+  letter-spacing: 0.03em;
+}
+
+/* Sidebar date text: slightly increased font-size to 0.7rem for bigger display and moved text up by reducing vertical padding */
+.inner-container .sidebar-date-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+  white-space: nowrap;
+  overflow: visible;
+  font-weight: 100 !important;
+  color: #000 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.005em;
+  font-size: 0.7rem !important; /* increased from 0.62rem */
+  padding-top: 4px;      /* moved text up by reducing padding */
+  padding-bottom: 4px;   /* moved text up by reducing padding */
+  margin-left: 0;
+  line-height: 1.8;      /* comfortable line-height */
+  box-sizing: border-box;
+}
+
+.inner-container .sidebar-date-badge {
+  flex: 0 0 auto;
+  background-color: #d9f0d8;
+  color: #000 !important;
+  border-radius: 50%;      /* Perfect circle */
+  padding: 0;
+  font-size: 0.55rem !important;  /* Slightly smaller font */
+  font-weight: 400 !important;
+  width: 20px;             /* Increased width from 18px to 20px */
+  height: 20px;            /* Increased height from 18px to 20px */
+  min-width: 20px;         /* Prevent stretching */
+  max-width: 20px;         /* Prevent stretching */
+  line-height: 20px;       /* Vertically center text */
+  text-align: center;
+  align-self: center;
+  margin-top: 0;
+  margin-left: 2px; /* Added: moves badge 2px right */
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;        /* Hide overflow */
+  white-space: nowrap;     /* Prevent wrapping */
+  text-overflow: ellipsis; /* Show ellipsis if overflow */
+}
+/* End edit */
 
 .inner-container.date-list-container {
   display: flex;
@@ -115,12 +226,14 @@
   align-items: stretch;
   justify-content: flex-start;
   padding: 0;
-  border-radius: 6px; /* reduced from 10px */
+  border-radius: 6px;
   border: 1px solid #ececec;
   box-shadow: 0 1px 3px rgba(30,40,60,0.04);
   background: transparent;
   margin-bottom: 0;
   box-sizing: border-box;
+  font-size: 0.65rem;
+  height: 28px;
 }
 
 .page.dark-mode .inner-container {
@@ -204,7 +317,6 @@
 }
 
 /* Reduced mini-navbar vertical margin */
-/* Reduced mini-navbar vertical margin */
 .mini-navbar-outer {
   position: relative;
   width: 100vw;
@@ -216,15 +328,15 @@
   box-sizing: border-box;
   overflow-x: visible !important;
   background: #fff !important;
-  border-radius: 6px !important; /* reduced from 4px to 6px for slight curve */
-  border-top: none !important;                /* Removed top border */
-  border-bottom: 1px solid #d1d5db !important; /* Kept bottom border */
-  border-left: 1px solid #d1d5db !important;  /* Kept left border */
-  border-right: 1px solid #d1d5db !important; /* Kept right border */
+  border-radius: 6px !important;
+  border-top: none !important;
+  border-bottom: 1px solid #d1d5db !important;
+  border-left: 1px solid #d1d5db !important;
+  border-right: 1px solid #d1d5db !important;
   box-shadow: none !important;
   z-index: 2 !important;
   margin-bottom: 3px !important;
-  margin-top: -2px !important;
+  margin-top: 3px !important;  /* reduced gap for more balanced spacing */
   left: 0;
   right: 0;
 }
@@ -232,7 +344,7 @@
 .mini-navbar {
   position: relative !important;
   background: transparent;
-  border-radius: 6px !important; /* reduced from 4px */
+  border-radius: 6px !important;
   border: none;
   box-shadow: none;
   width: 100% !important;
@@ -257,10 +369,9 @@
   color: #0f172a !important;
 }
 
-/* Remove negative margin for tighter layout */
 .sidebar-event-dates {
   background: #ffffff;
-  border-radius: 8px !important; /* reduced from 16px */
+  border-radius: 8px !important;
   border: 1px solid #d1d5db !important;
   box-shadow: none !important;
   padding: 8px 10px 14px 10px;
@@ -274,7 +385,7 @@
   align-items: center;
   gap: 8px;
   margin-top: 0;
-  margin-left: -38px;  /* Push entire box to the left */
+  margin-left: -38px;
   margin-bottom: 0;
   flex-grow: 1;
   min-height: 0;
@@ -283,21 +394,25 @@
   max-height: none;
 }
 
+/* ---- SLIGHT ADJUSTMENTS BELOW ---- */
 .sidebar-event-dates > .inner-container {
   margin-left: 14px !important;
   margin-right: 14px !important;
   width: calc(100% - 28px) !important;
+  margin-top: 0px !important; /* was 8px */
 }
 
 .sidebar-title {
   font-size: 1.14rem;
   font-weight: 550;
   color: #233046;
+  padding-left: 10px;    /* Only move right by 10px */
   width: 100%;
   text-align: center;
   margin-bottom: 2px;
-  margin-top: 8px;
+  margin-top: 15px;      /* slightly up from 24px */
 }
+/* ---- END OF SLIGHT ADJUSTMENTS ---- */
 
 .sidebar-date-list {
   list-style: none;
@@ -322,7 +437,7 @@
   gap: 8px;
   padding: 6px 10px;
   cursor: pointer;
-  border-radius: 6px; /* reduced from 4px */
+  border-radius: 6px;
   margin-bottom: 0;
   transition: background-color 0.2s ease;
   background: none;
@@ -330,7 +445,7 @@
   font-weight: 200 !important;
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  font-size: 1.03rem;
+  font-size: 1.08rem; /* Increased from 1.03rem */
   box-sizing: border-box;
 }
 
@@ -358,22 +473,23 @@
   color: #000 !important;
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  font-size: 1rem;
+  font-size: 0.75rem !important; /* Increased from 0.65rem */
+  line-height: 2.5; /* BIG increase: much more vertical spacing */
 }
 
 .sidebar-date-badge {
   flex: 0 0 auto;
   background-color: #d9f0d8;
   color: #000 !important;
-  border-radius: 12px; /* reduced from 9999px, but keeping pill shape */
-  padding: 2px 8px;
-  font-size: 0.85rem;
-  font-weight: 300 !important;
-  min-width: 24px;
+  border-radius: 10px; /* smaller radius */
+  padding: 2px 6px;
+  font-size: 0.75rem !important;
+  font-weight: 400 !important;
+  min-width: 28px;
   text-align: center;
   margin-left: auto;
   align-self: center;
-  margin-top: 2px;
+  margin-top: 0;
 }
 
 .sidebar-date-item.selected .sidebar-date-badge,
@@ -407,17 +523,17 @@
 /* Remove margin-top for tighter vertical stacking */
 .surveillance-container {
   background: transparent;
-  border-radius: 8px !important; /* increased from 6px */
+  border-radius: 8px !important;
   box-shadow: none;
   border: 1px solid #d1d5db;
   padding: 22px 26px 26px 26px;
   margin-bottom: 0;
   margin-top: 0;
-  margin-left: 30px;          /* slightly increased margin-left from 27px */
+  margin-left: 30px;
   margin-right: 0;
   position: relative;
-  left: -25px;                /* moved further left from -17px */
-  width: calc(100% + 25px);   /* adjusted width to match left shift */
+  left: -25px;
+  width: calc(100% + 25px);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -428,20 +544,20 @@
   margin-left: 0 !important;
   margin-right: 12px !important;
   flex-shrink: 0 !important;
-  min-width: 80px !important;      /* reduced width */
-  padding: 4px 12px !important;    /* reduced padding */
+  min-width: 80px !important;
+  padding: 4px 12px !important;
   font-weight: 700 !important;
-  font-size: 0.75rem !important;   /* smaller font */
+  font-size: 0.75rem !important;
   cursor: pointer !important;
   background-color: #10b981 !important;
   color: #fff !important;
   border: none !important;
-  border-radius: 4px !important;   /* subtle curve */
+  border-radius: 4px !important;
   box-shadow: 0 1px 6px rgba(16, 185, 129, 0.4) !important;
   display: inline-flex !important;
   align-items: center !important;
-  gap: 4px !important;             /* reduced gap */
-  height: 28px !important;         /* smaller height */
+  gap: 4px !important;
+  height: 28px !important;
 }
 
 .archive-temp-event-btn:hover {
@@ -485,6 +601,14 @@
   display: block;
 }
 
+/* *** ADDED: reduce font size for month and year inside .inner-container.month-nav by 1-2px *** */
+.inner-container.month-nav .month-text,
+.inner-container.month-nav .year-text {
+  font-size: 0.82rem !important;
+  color: #111111 !important; /* darker black-ish color */
+  font-family: Arial, Helvetica, sans-serif !important;
+}
+
 .page.dark-mode .archive-no-events {
   color: #e5e7eb !important;
 }
@@ -526,7 +650,7 @@
   padding: 0;
   margin: 0 0 18px 0;
   width: 100%;
-  max-width: 420px;  /* increased width from 380px to 420px */
+  max-width: 420px;
   height: 450px;
   box-sizing: border-box;
 }
@@ -545,7 +669,7 @@
 
 .modal-content {
   background: #fff;
-  border-radius: 6px; /* reduced from 8px */
+  border-radius: 6px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.18);
   padding: 32px 32px 24px 32px;
   max-width: 760px;
@@ -580,7 +704,7 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px; /* horizontal padding */
+  padding: 8px 12px;
   border-radius: 0;
   height: 35px;
   font-weight: 700;
@@ -590,7 +714,7 @@
   z-index: 2;
   margin-top: -6px;
   width: 100%;
-  box-sizing: border-box; /* ensures padding included in width */
+  box-sizing: border-box;
 }
 .page.dark-mode .archive-card-caption {
   background: #2a3a5a !important;
@@ -607,7 +731,7 @@
 }
 
 .card-badge {
-  border-radius: 4px; /* reduced from 7px */
+  border-radius: 4px;
   font-size: 0.92rem;
   padding: 3px 14px;
   font-weight: 700;
@@ -628,17 +752,16 @@
   background: #bbb;
 }
 
-/* UPDATED .archive-card-img and .archive-card-img img */
 .archive-card-img {
   width: 100%;
   margin-bottom: -2px; 
-  height: 150px;  /* increased from 140px to 150px */
+  height: 150px;
   background: #e6e6e6;
   overflow: hidden;
   border-bottom: 1px solid #e1e6ea;
   border-radius: 6px;
   position: relative;
-  z-index: 1;  /* lowered from 10 so blue bar can overlap */
+  z-index: 1;
   display: block;
 }
 
@@ -739,7 +862,7 @@
   font-weight: 400;
   letter-spacing: 0.01em;
   margin-top: 26px;
-  border-radius: 0 0 6px 6px; /* reduced from 14px */
+  border-radius: 0 0 6px 6px;
   box-shadow: 0 -2px 8px rgba(34,34,44,0.03);
 }
 
@@ -758,7 +881,7 @@
   }
   .sidebar-event-dates {
     background: #fff;
-    border-radius: 6px !important; /* reduced from 4px but close */
+    border-radius: 6px !important;
     border: none !important;
     box-shadow: none !important;
     padding: 8px 10px 14px 10px;
@@ -770,10 +893,10 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 2px;
     margin-top: 0;
     margin-left: 0;
-    margin-right: 40px; /* bigger gap by moving box more left */
+    margin-right: 40px;
     margin-bottom: 0;
     flex-grow: 1;
     min-height: 0;
@@ -781,7 +904,7 @@
     overflow-y: auto;
     max-height: none;
   }
-    .formatted-date {
+  .formatted-date {
     font-weight: 700;
     font-size: 1.25rem;
     color: inherit;
