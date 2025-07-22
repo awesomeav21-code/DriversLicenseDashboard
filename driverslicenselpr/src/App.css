@@ -195,7 +195,7 @@ body.dark-mode .camera-btn:focus {
 
 /* Override light backgrounds with forced light bg but fix dark mode */
 body, html, .page-wrapper, .main-content, .content-area {
-  background-color: #f8f9fa !important;
+  background-color: #f6fcf8  !important;
   padding: 0 !important;
   margin: 0 !important;
   border: none !important;

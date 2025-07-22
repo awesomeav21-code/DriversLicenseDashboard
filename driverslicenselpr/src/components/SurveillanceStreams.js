@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import '../styles/surveillancestreams.css';
+import CameraIcon from '../components/images/Camera-icon.png';
 
 const THUMBNAIL_PLACEHOLDER = 'https://dummyimage.com/600x340/cccccc/222222&text=Camera+Frame';
 
@@ -24,6 +25,22 @@ function getStatus(zone) {
   return 'CLEARED';
 }
 
+function getRandomVideoSize() {
+  const size = (0.5 + Math.random() * 2.5).toFixed(1);
+  return `${size} GB`;
+}
+
+function getRandomDuration() {
+  const isMinutes = Math.random() > 0.5;
+  if (isMinutes) {
+    const minutes = Math.floor(Math.random() * 10) + 1;
+    return `${minutes} minute${minutes > 1 ? 's' : ''}`;
+  } else {
+    const seconds = Math.floor(Math.random() * 59) + 1;
+    return `${seconds} second${seconds > 1 ? 's' : ''}`;
+  }
+}
+
 const ArchiveCard = ({ event, index }) => {
   const status = getStatus(event);
 
@@ -46,8 +63,16 @@ const ArchiveCard = ({ event, index }) => {
   }
   function getDuration(zone) {
     if (zone.duration) return zone.duration;
-    return '';
+    return getRandomDuration();
   }
+
+  const cameraName = event.camera || '360 Camera';
+  const formattedTime = event.time ? formatEventTime(event.time) : currentTimeStr;
+
+  const objects = event.objects || 'Person';
+  const videoSize = event.videoSize || getRandomVideoSize();
+
+  const hasVideo = !!event.videoUrl;
 
   return (
     <div className="archive-card">
@@ -59,44 +84,81 @@ const ArchiveCard = ({ event, index }) => {
       </div>
       <div className="archive-card-caption">
         <span className="archive-card-time">
-          {event.time
-            ? formatEventTime(event.time)
-            : currentTimeStr}
+          {cameraName} <span className="dash-separator">-</span> {formattedTime}
         </span>
         <span className={getStatusClass(status)}>{status}</span>
       </div>
       <div className="archive-card-meta">
         <div>
           <span className="meta-label">Event Type:</span>
-          <span className="meta-value">{event.eventType || 'VMD'}</span>
+          <span className="meta-value">{event.eventType}</span>
         </div>
+        <hr className="meta-divider" />
+        <div>
+          <span className="meta-label">Objects:</span>
+          <span className="meta-value">{objects}</span>
+        </div>
+        <hr className="meta-divider" />
         <div>
           <span className="meta-label">Camera:</span>
-          <span className="meta-value">{event.camera || '360 Camera'}</span>
+          <span className="meta-value">{cameraName}</span>
         </div>
+        <hr className="meta-divider" />
         <div>
           <span className="meta-label">Duration:</span>
           <span className="meta-value">{getDuration(event)}</span>
         </div>
+        <hr className="meta-divider" />
+        <div>
+          <span className="meta-label">Video Size:</span>
+          <span className="meta-value">{videoSize}</span>
+        </div>
       </div>
-      <button className="archive-no-video-btn" disabled>
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-          focusable="false"
-          style={{ marginRight: 6 }}
+
+      {hasVideo ? (
+        <button
+          className="archive-download-btn"
+          onClick={() => {
+            alert(`Downloading video for event at ${formattedTime}`);
+          }}
         >
-          <path
-            d="M17 7l5 4-5 4V7zM3 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"
-            fill="#767d88"
-          />
-        </svg>
-        No Video
-      </button>
+          <span className="download-icon" aria-hidden="true">
+            <svg
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10 3v9m0 0l-4-4m4 4l4-4m-9 7h10"
+                stroke="#fff"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          Download Video
+        </button>
+      ) : (
+        <button className="archive-no-video-btn" disabled>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+            focusable="false"
+            style={{ marginRight: 6 }}
+          >
+            <path
+              d="M17 7l5 4-5 4V7zM3 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"
+              fill="#767d88"
+            />
+          </svg>
+          No Video
+        </button>
+      )}
     </div>
   );
 };
@@ -141,6 +203,7 @@ function getPrevMonth(date) {
   d.setMonth(d.getMonth() - 1);
   return d;
 }
+
 function getNextMonth(date) {
   const d = new Date(date);
   d.setMonth(d.getMonth() + 1);
@@ -158,7 +221,7 @@ function getLatestEventDateInMonth(events, month) {
       new Date(date).getFullYear() === year
     );
   if (dates.length === 0) return '';
-  return dates.sort((a, b) => b.localeCompare(a.date))[0];
+  return dates.sort((a, b) => b.localeCompare(a))[0];
 }
 
 function Modal({ isOpen, onClose, children }) {
@@ -175,7 +238,6 @@ function Modal({ isOpen, onClose, children }) {
   );
 }
 
-// ------- CHANGE IS HERE -------
 const SidebarDates = ({
   allEvents,
   selectedDate,
@@ -189,7 +251,6 @@ const SidebarDates = ({
     [allEvents, selectedMonth]
   );
 
-  // Always include today if it's in this month
   const today = new Date();
   const todayStr = today.toISOString().slice(0, 10);
   if (
@@ -226,7 +287,7 @@ const SidebarDates = ({
             fontSize: 22,
             cursor: 'pointer',
             color: '#233046',
-            padding: '2px 1.5px'  // <-- SIGNIFICANTLY less horizontal padding, arrows move inward
+            padding: '2px 1.5px',
           }}
           onClick={() => onMonthChange(getPrevMonth(selectedMonth))}
         >
@@ -236,7 +297,7 @@ const SidebarDates = ({
           style={{
             fontWeight: 400,
             fontSize: '1.09rem',
-            color: '#233046'
+            color: '#233046',
           }}
         >
           {formatMonth(selectedMonth)}
@@ -249,7 +310,7 @@ const SidebarDates = ({
             fontSize: 22,
             cursor: 'pointer',
             color: '#233046',
-            padding: '2px 1.5px'  // <-- SIGNIFICANTLY less horizontal padding, arrows move inward
+            padding: '2px 1.5px',
           }}
           onClick={() => onMonthChange(getNextMonth(selectedMonth))}
         >
@@ -263,9 +324,7 @@ const SidebarDates = ({
               <div key={dateObj.date}>
                 <div
                   className={`sidebar-date-item${dateObj.date === selectedDate ? ' selected' : ''}`}
-                  style={{
-                    cursor: 'pointer',
-                  }}
+                  style={{ cursor: 'pointer' }}
                   onClick={() => {
                     if (selectedDate === dateObj.date) {
                       onDateSelect('');
@@ -289,7 +348,6 @@ const SidebarDates = ({
     </aside>
   );
 };
-// ------- END CHANGE -------
 
 const SurveillanceStreams = ({
   camera1Zones = [],
@@ -299,17 +357,25 @@ const SurveillanceStreams = ({
   const nowISOString = new Date().toISOString();
 
   const allEvents = useMemo(() => [
-    ...camera1Zones.map((zone) => ({
+    ...camera1Zones.map(zone => ({
       ...zone,
       camera: '360 Camera',
-      eventType: 'VMD',
+      eventType: 'Detection',
       time: zone.time || nowISOString,
+      objects: zone.objects || 'Person',
+      videoSize: zone.videoSize || getRandomVideoSize(),
+      videoUrl: zone.videoUrl || null,
+      duration: zone.duration || getRandomDuration(),
     })),
-    ...camera2Zones.map((zone) => ({
+    ...camera2Zones.map(zone => ({
       ...zone,
       camera: '360 Camera',
-      eventType: 'VMD',
+      eventType: 'Detection',
       time: zone.time || nowISOString,
+      objects: zone.objects || 'Person',
+      videoSize: zone.videoSize || getRandomVideoSize(),
+      videoUrl: zone.videoUrl || null,
+      duration: zone.duration || getRandomDuration(),
     })),
   ], [camera1Zones, camera2Zones, nowISOString]);
 
@@ -320,7 +386,6 @@ const SurveillanceStreams = ({
   const [isSidebarHover, setIsSidebarHover] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Popup state for new event (not part of main zones)
   const [customEvents, setCustomEvents] = useState([]);
   const [newEvent, setNewEvent] = useState({
     time: '',
@@ -353,16 +418,13 @@ const SurveillanceStreams = ({
     URL.revokeObjectURL(url);
   };
 
-  // CHANGE HERE: No-op for Temperature Event Recordings button
   const handleDownloadTempEvents = () => {
-    // Intentionally do nothing
   };
 
-  // Handle adding new custom event
-  const handleAddCustomEvent = (e) => {
+  const handleAddCustomEvent = e => {
     e.preventDefault();
     if (!newEvent.time || !newEvent.temperature || !newEvent.threshold) {
-      alert("Fill time, temperature, and threshold!");
+      alert('Fill time, temperature, and threshold!');
       return;
     }
     setCustomEvents([
@@ -371,10 +433,13 @@ const SurveillanceStreams = ({
         ...newEvent,
         temperature: parseFloat(newEvent.temperature),
         threshold: parseFloat(newEvent.threshold),
-        duration: newEvent.duration,
+        duration: newEvent.duration || getRandomDuration(),
         camera: 'Extra Camera',
-        eventType: 'Thermal',
-      }
+        eventType: 'Detection',
+        objects: 'Person',
+        videoSize: getRandomVideoSize(),
+        videoUrl: null,
+      },
     ]);
     setNewEvent({
       time: '',
@@ -388,14 +453,30 @@ const SurveillanceStreams = ({
     <>
       <div className="mini-navbar-outer">
         <div className="mini-navbar">
-          <div className="mini-navbar-title">Surveillance Camera Recordings</div>
-          <button
-            className="archive-temp-event-btn"
-            onClick={handleDownloadTempEvents} // now does nothing
-            style={{ minWidth: 200, fontWeight: 700 }}
-          >
+          <div className="mini-navbar-title">
+            <div className="mini-navbar-icon-container">
+              <img
+                src={CameraIcon}
+                alt="Camera Icon"
+                style={{      width: 32,
+                  height: 24,
+                  border: 'none',
+                  outline: 'none',
+                  boxShadow: 'none',
+                  display: 'block',
+                  margin: 0,
+                  padding: 0,
+                  background: 'transparent',
+              }}
+              />
+              <span>Surveillance Camera Recordings</span>
+            </div>
+          </div>
+          <button className="archive-temp-event-btn" onClick={handleDownloadTempEvents}>
+            <span className="thermo-icon">🌡️</span>
             Temperature Event Recordings
           </button>
+
         </div>
       </div>
 
@@ -405,7 +486,7 @@ const SurveillanceStreams = ({
             allEvents={allEvents}
             selectedDate={selectedDate}
             selectedMonth={selectedMonth}
-            onMonthChange={(month) => {
+            onMonthChange={month => {
               setSelectedMonth(month);
               setSelectedDate(getLatestEventDateInMonth(allEvents, month));
             }}
@@ -419,11 +500,32 @@ const SurveillanceStreams = ({
                 <div className="showing-entries-text">
                   {selectedDate && (
                     <span className="formatted-date">
-                      {parseLocalDate(selectedDate).toLocaleDateString(undefined, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: '2-digit',
-                      })}
+                      {(() => {
+                        const d = parseLocalDate(selectedDate);
+                        if (!d) return '';
+                        const month = d.toLocaleString('default', { month: 'long' });
+                        const day = d.getDate();
+                        const year = d.getFullYear();
+                        return (
+                          <>
+                            {month} {day}
+                            <span
+  className="comma-normal"
+  style={{
+    textDecoration: 'none',
+    border: 'none',
+    textShadow: 'none',
+    background: 'none',
+    color: 'inherit',
+    cursor: 'default',
+  }}
+>
+  ,
+</span>{' '}
+{year}
+                          </>
+                        );
+                      })()}
                     </span>
                   )}
                 </div>

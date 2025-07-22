@@ -1,17 +1,28 @@
 .page,
 .archive-page {
-  background-color: #f9fafb;
+  --border-color: #e5e7eb; /* Added CSS variable for border color */
+  background-color: #f6fcf8;  /* 👈 Use your chosen green! */
   color: #1f2937;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  padding: 18px 56px 0 56px;  /* increased top padding from 12px to 18px, left/right from 48px to 56px */
+  font-family: 'Poppins', sans-serif;  /* Updated font */
+  padding: 12px 56px 0 56px;  /* top padding set to 15px */
   max-width: 3000px !important;
   margin: 0 auto;
   height: 100vh;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
+  
 }
+
+.inner-container .sidebar-date-list:hover {
+  background-color: rgba(108, 169, 86, 0.1);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  background-clip: padding-box;
+}
+
 
 .month-nav-text {
   display: flex;
@@ -35,20 +46,26 @@
   font-family: Arial, Helvetica, sans-serif !important; /* normal font */
   margin: 0 !important; /* remove extra spacing */
   padding: 0 !important;
+  text-shadow: 0 1px 1.5px rgba(0, 0, 0, 0.3); /* subtle dark shadow */
 }
-
 .year-text {
   margin-left: 0 !important; /* ensure no margin */
   margin-left: -3px !important; 
 }
 
 .mini-navbar-title {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+
   margin-left: 12px;
   margin-right: auto;
   font-size: 1.15rem;
   font-weight: 600;
   color: #233046;
 }
+
 
 .inner-container.month-nav {
   display: flex;
@@ -60,12 +77,22 @@
   padding: 0;
   border-radius: 6px; /* reduced from 10px */
   border: 1px solid #ececec;
-  box-shadow: 0 1px 3px rgba(30,40,60,0.04);
+  box-shadow: 0 2px 2px rgba(80, 120, 180, 0.07); /* a bit stronger shadow */
   background: transparent;
   margin-bottom: 2px;
 
   max-width: 400px; /* Slightly increased width */
   width: 100%;
+}
+
+/* Added hover effect for month-nav container */
+.inner-container.month-nav:hover {
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(80, 120, 180, 0.1);
+  border-color: #a0aec0;
+  background-color: rgba(80, 120, 180, 0.05);
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .inner-container.month-nav > button {
@@ -84,11 +111,14 @@
   color: #a0aec0;
   cursor: pointer;
   padding: 2px 8px;
-  transition: color 0.16s;
+  transition: color 0.16s, background-color 0.3s, border-radius 0.3s;
+  border-radius: 6px; /* added radius for button */
 }
 
 .inner-container.month-nav > button:hover {
   color: #233046;
+  background-color: rgba(80, 120, 180, 0.12); /* added hover background */
+  border-radius: 6px; /* keep radius on hover */
 }
 
 .inner-container.month-nav > span,
@@ -108,17 +138,18 @@
 /* Moved up by 3px (transform translateY from 8px to 5px) */
 .inner-container {
   background: transparent;
-  border: 1.5px solid #e2e7f3;
+  border: 1.5px solid #ededed;
   border-radius: 6px;
   box-shadow: 0 2px 12px rgba(80,120,180,0.07);
   padding: 3px 18px;      /* reduced vertical padding from 5px to 3px; horizontal from 21px to 18px */
-  width: calc(100% - 7px); /* increased width by subtracting less (was 10px) */
+  width: 250px !important;       /* Force fixed width */
+  max-width: 250px !important;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  transform: translateY(2px);
+  transform: translateY(4px);
   gap: 4px;               /* reduced gap from 6px to 4px for less height */
-  margin-top: 20px;
+  margin-top: 18px;
   max-height: none;
 }
 /* EDITED inside .inner-container for bigger, left-aligned sidebar dates */
@@ -126,51 +157,58 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  justify-content: center; /* add this to vertically center */
+  justify-content: center; /* vertically center */
   list-style: none;
   margin: 0;
   padding: 0;
+  border-radius: 6px !important;
   width: 100%;
   max-width: 360px;
   max-height: 100%;
   overflow-y: auto;
   margin-top: 0;
   gap: 6px;
-}
 
-.inner-container .sidebar-date-item {
-  width: 100%;
-  display: flex;
-  justify-content: space-between; /* left text, right badge */
-  align-items: center;
-  gap: 10px; /* slightly reduced gap */
-  padding: 4px 10px; /* smaller vertical padding */
-  cursor: pointer;
-  border-radius: 6px;
-  margin-bottom: 0;
-  transition: background-color 0.2s ease;
-  background: none;
-  color: inherit;
-  font-weight: 200 !important;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  font-size: 1.08rem; /* Increased from 1.03rem */
+  /* Added to prevent internal spacing */
   box-sizing: border-box;
 }
 
+.inner-container .sidebar-date-list {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center; /* vertically center */
+  list-style: none;
+  margin: 0; /* remove auto centering */
+  padding: 0;
+  border-radius: 6px !important;
+  width: 100%;
+  max-width: 360px;
+  max-height: 100%;
+  overflow-y: auto;
+  margin-top: 0;
+  gap: 6px;
+  box-sizing: border-box;
+  background-clip: padding-box; /* respect border radius for backgrounds */
+}
 .inner-container .sidebar-date-item.selected,
 .inner-container .sidebar-date-item:hover {
-  background-color: #6ca956;
+  background-color: #6ca956 !important;
   font-weight: 200 !important;
-  letter-spacing: 0.03em;
-  width: 100%;
-  display: flex;
+  letter-spacing: 0.03em !important;
+  width: 100% !important;
+  display: flex !important;
+  border-radius: 6px !important;  /* Force rounded corners */
+  transition: background-color 0.3s ease, border-radius 0.3s ease !important;
+  overflow: hidden !important; /* to avoid any rectangular overflow */
+  background-clip: padding-box !important; /* added to respect border-radius on background */
 }
 
 .inner-container .sidebar-date-item.selected .sidebar-date-text,
 .inner-container .sidebar-date-item:hover .sidebar-date-text {
   color: #ffffff !important;
   font-weight: 200 !important;
+  border-radius: 6px;  /* <-- add this */
   letter-spacing: 0.03em;
 }
 
@@ -233,7 +271,7 @@
   margin-bottom: 0;
   box-sizing: border-box;
   font-size: 0.65rem;
-  height: 28px;
+  height: 35px;
 }
 
 .page.dark-mode .inner-container {
@@ -269,12 +307,38 @@
   align-items: center;
   justify-content: flex-start;
 }
+.surveillance-header-row .formatted-date .comma-normal {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #000 !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-variant-ligatures: none !important;
+  -webkit-font-feature-settings: "liga" 0, "dlig" 0 !important;
+  font-feature-settings: "liga" 0, "dlig" 0 !important;
+
+  text-shadow: none !important;
+  user-select: none;
+  /* explicitly set normal character */
+
+}
+
 
 .surveillance-header-row .formatted-date {
   font-weight: 700;
-  font-size: 1.1rem;
-  color: #233046;
+  margin-top: 5px; 
+  font-family: 'Poppins', sans-serif;  /* Updated font */
+  font-size: 1.20rem;  /* unchanged */
+  color: #000;         /* pure black */
   white-space: nowrap;
+  font-family: Arial, Helvetica, sans-serif !important;
+  margin-right: -1px;
+  transform: translateX(5px);
+  transform: translateY(-6px) translateX(2px);
+  text-shadow:
+    0 1px 2px rgba(0,0,0,0.09),   /* lighter, smaller shadow */
+    0.1px 0 0 #000,               /* thinner black edge */
+   -0.1px 0 0 #000;
 }
 
 .sidebar-month-arrow {
@@ -289,6 +353,14 @@
   align-items: center;
   transition: color 0.16s;
 }
+
+.mini-navbar-icon-container {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px;
+}
+
 
 .sidebar-month-arrow:hover {
   color: #233046;
@@ -328,7 +400,7 @@
   box-sizing: border-box;
   overflow-x: visible !important;
   background: #fff !important;
-  border-radius: 6px !important;
+  border-radius: 0 !important;
   border-top: none !important;
   border-bottom: 1px solid #d1d5db !important;
   border-left: 1px solid #d1d5db !important;
@@ -336,7 +408,7 @@
   box-shadow: none !important;
   z-index: 2 !important;
   margin-bottom: 3px !important;
-  margin-top: 3px !important;  /* reduced gap for more balanced spacing */
+  margin-top: -3px !important;  /* reduced gap for more balanced spacing */
   left: 0;
   right: 0;
 }
@@ -344,17 +416,18 @@
 .mini-navbar {
   position: relative !important;
   background: transparent;
-  border-radius: 6px !important;
+  border-radius: 0 !important;
   border: none;
   box-shadow: none;
   width: 100% !important;
-  padding: 9px 0 9px 0 !important;
+  font-family: 'Poppins', sans-serif;  /* Updated font */
+  padding: 12.5px 0 12.5px 0 !important;   /* increased top & bottom padding for extra height */
   display: flex !important;
   align-items: center !important;
   font-weight: 700;
   font-size: 1.22rem;
   color: #222;
-  min-height: 52px;
+  min-height: 59px;                       /* original was 52px */
   box-sizing: border-box;
   padding-left: 12px;
 }
@@ -369,15 +442,18 @@
   color: #0f172a !important;
 }
 
+/* Make sidebar-event-dates a fixed width, not stretching! */
 .sidebar-event-dates {
-  background: #ffffff;
-  border-radius: 8px !important;
-  border: 1px solid #d1d5db !important;
+  width: 220px !important;
+  max-width: 220px !important;
+  min-width: 0 !important;
+  flex: 0 0 220px !important;
+  overflow-x: hidden !important; 
+  background: #fff;
+  border-radius: 7px !important; /* reduced from 10px to 7px */
+  border: 1px solid var(--border-color) !important;
   box-shadow: none !important;
   padding: 8px 10px 14px 10px;
-  width: 100%;
-  max-width: 320px;
-  box-sizing: border-box;
   font-size: 1.01rem;
   color: #111827;
   display: flex;
@@ -385,15 +461,14 @@
   align-items: center;
   gap: 8px;
   margin-top: 0;
-  margin-left: -38px;
+  margin-left: -40px;
   margin-bottom: 0;
-  flex-grow: 1;
+  margin-right: 0;
   min-height: 0;
   height: 100%;
-  overflow-y: auto;
   max-height: none;
+  box-sizing: border-box;
 }
-
 /* ---- SLIGHT ADJUSTMENTS BELOW ---- */
 .sidebar-event-dates > .inner-container {
   margin-left: 14px !important;
@@ -404,13 +479,19 @@
 
 .sidebar-title {
   font-size: 1.14rem;
-  font-weight: 550;
-  color: #233046;
-  padding-left: 10px;    /* Only move right by 10px */
-  width: 100%;
-  text-align: center;
+  font-family: 'Inter', sans-serif;
+  font-weight: 550; /* Normal weight */
+  color: black;
+  padding-left: 12px;   /* small left padding to nudge right */
+  text-align: left;     /* keep left-aligned */
   margin-bottom: 2px;
-  margin-top: 15px;      /* slightly up from 24px */
+  margin-top: 15px;
+  letter-spacing: 0.09em; /* keep existing spacing */
+  text-shadow: none;
+  position: relative;
+  left: -4px;
+  transform: scaleY(1.0);
+           /* additional right shift if needed */
 }
 /* ---- END OF SLIGHT ADJUSTMENTS ---- */
 
@@ -439,7 +520,7 @@
   cursor: pointer;
   border-radius: 6px;
   margin-bottom: 0;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
   background: none;
   color: inherit;
   font-weight: 200 !important;
@@ -451,11 +532,12 @@
 
 .sidebar-date-item.selected,
 .sidebar-date-item:hover {
-  background-color: #6ca956;
+  background-color: #6ca956 !important;
   font-weight: 200 !important;
   letter-spacing: 0.03em;
   width: 100%;
   display: flex;
+  border-radius: 6px !important;
 }
 
 .sidebar-date-item.selected .sidebar-date-text,
@@ -463,6 +545,7 @@
   color: #ffffff !important;
   font-weight: 200 !important;
   letter-spacing: 0.03em;
+  border-radius: inherit; 
 }
 
 .sidebar-date-text {
@@ -522,21 +605,21 @@
 
 /* Remove margin-top for tighter vertical stacking */
 .surveillance-container {
-  background: transparent;
-  border-radius: 8px !important;
+  background-color: #fff;
+  border-radius: 7px !important; /* reduced from 10px to 7px */
   box-shadow: none;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-color);
   padding: 22px 26px 26px 26px;
   margin-bottom: 0;
   margin-top: 0;
-  margin-left: 30px;
-  margin-right: 0;
+  margin-left: 7px; /* Instead of 38px + left shift, reduce margin */
+  margin-right: -33px;
   position: relative;
-  left: -25px;
-  width: calc(100% + 25px);
+  /* remove left and width adjustment */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  padding-left: 17px; 
   flex: 1 1 auto;
   min-height: 0;
 }
@@ -549,7 +632,7 @@
   font-weight: 700 !important;
   font-size: 0.75rem !important;
   cursor: pointer !important;
-  background-color: #10b981 !important;
+  background-color: #5FCC6E !important;
   color: #fff !important;
   border: none !important;
   border-radius: 4px !important;
@@ -565,11 +648,12 @@
 }
 
 .archive-download-btn {
+  /* existing styles */
   background: #6ca956;
   color: #fff;
   border: none;
   border-radius: 0;
-  padding: 3px 10px;
+  padding: 5px 10px;
   font-weight: 700;
   font-size: 0.83rem;
   cursor: pointer;
@@ -580,6 +664,11 @@
   transition: background 0.13s;
   min-width: unset;
   height: 26px;
+  position: relative; 
+  left: -10px; 
+  /* Add this: */
+  transform: translateY(-3px);
+  
 }
 
 .archive-download-btn:hover {
@@ -612,14 +701,15 @@
 .page.dark-mode .archive-no-events {
   color: #e5e7eb !important;
 }
-
 .archive-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 26px 18px;
+  grid-template-columns: repeat(4, 1fr); /* exactly 4 columns */
+  gap: 22px 14px; /* vertical gap 22px, horizontal gap 14px */
   width: 100%;
+  justify-content: stretch;
+  padding-right: 20px;  /* keep this */
+  padding-left: 10px;   /* add some left padding to nudge left */
   margin: 0;
-  padding: 0;
   box-sizing: border-box;
   margin-bottom: 0;
   padding-bottom: 0;
@@ -632,10 +722,11 @@
   color: #999;
 }
 
+/* Updated archive-divider to lighter gray */
 .archive-divider {
   border: none;
-  border-top: 1px solid #d1d5db;
-  margin: 16px -26px;
+  border-top: 1px solid #f0f0f0; /* much lighter gray */
+  margin: -3px -26px 0 -17px; /* moved up by 5px: top margin now 7px */
   width: auto;
 }
 .archive-card {
@@ -646,13 +737,15 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   padding: 0;
-  margin: 0 0 18px 0;
   width: 100%;
-  max-width: 420px;
-  height: 450px;
+  max-width: 315px !important;
+  margin: 0 0 16px 0; /* Removed horizontal margin, kept bottom margin */
+  height: 460px;
   box-sizing: border-box;
+  transform: translateY(-);
+  transition: transform 0.2s ease; /* optional smooth effect */
 }
 .modal-overlay {
   position: fixed;
@@ -706,38 +799,52 @@
   align-items: center;
   padding: 8px 12px;
   border-radius: 0;
-  height: 35px;
+  height: 41px;
   font-weight: 700;
   font-size: 0.95rem;
-  line-height: 1.2;
+  line-height: 1.5;
   position: relative;
   z-index: 2;
   margin-top: -6px;
   width: 100%;
   box-sizing: border-box;
+  flex-wrap: nowrap; /* NEW - prevent wrapping */
+  gap: 8px;           /* NEW - spacing */
 }
 .page.dark-mode .archive-card-caption {
   background: #2a3a5a !important;
   color: #fff !important;
 }
 
+/* Reduced font size here for camera/time/dash */
 .archive-card-time {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: 0.70rem;                /* slightly larger for clarity */
+  font-weight: 700;                  /* much thicker/bolder */
+  color: #f4f4f4;                    /* soft white (not pure #fff, not neon) */
   margin: 0;
   text-align: left;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;           /* clip could cut letters in half, ellipsis is cleaner */
+  display: inline-block;
+  word-break: normal;
+  letter-spacing: 0.01em;            /* subtle tightness */
 }
 
+/* Slightly smaller font size for badge to balance */
 .card-badge {
-  border-radius: 4px;
-  font-size: 0.92rem;
-  padding: 3px 14px;
-  font-weight: 700;
-  line-height: 1.18;
+  border-radius: 12px;   /* increased from 4px to 12px for a more rounded look */
+  font-size: 0.65rem;       
+  padding: 2px 8px;         
+  font-weight: 600;         
+  line-height: 1.2;
   color: #fff;
   white-space: nowrap;
+  min-width: auto;
+  max-width: 80px;
+  display: inline-block;
+  text-align: center;
 }
 
 .card-badge.active {
@@ -794,11 +901,13 @@
 }
 
 .meta-label {
-  color: #666;
+  color: #444444; /* darker gray */
   font-weight: 600;
   min-width: 75px;
   flex-shrink: 0;
-  font-size: 0.96rem;
+  font-size: 0.85rem; /* smaller than 0.96rem */
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1); /* subtle shadow if you want */
+  transform: translateY(2px); /* move text 2px down */
 }
 
 .page.dark-mode .meta-label {
@@ -809,7 +918,7 @@
   font-weight: 400;
   margin-left: 8px;
   font-size: 0.96rem;
-  color: #294066;
+  color: black;
 }
 
 .page.dark-mode .meta-value {
@@ -852,6 +961,11 @@
   line-height: 1;
 }
 
+.meta-divider {
+  border: none;
+  border-top: 1px dashed #e0e0e0; /* light gray, dashed (larger dashes) */
+  margin: 2px 0;
+}
 .archive-footer {
   width: 100%;
   background: #233046;
@@ -881,7 +995,7 @@
   }
   .sidebar-event-dates {
     background: #fff;
-    border-radius: 6px !important;
+    border-radius: 4px !important;
     border: none !important;
     box-shadow: none !important;
     padding: 8px 10px 14px 10px;
@@ -906,7 +1020,7 @@
   }
   .formatted-date {
     font-weight: 700;
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     color: inherit;
   }
   .sidebar-date-list {
@@ -953,6 +1067,7 @@
   max-height: 100%;
   overflow-y: auto;
   overflow-x: auto;
-  width: 100%;
+  width: calc(100% + 26px); /* expand width by right padding amount */
+  margin-right: -26px;       /* pull it right to edge */
 }
 /* END OF SECTION */
