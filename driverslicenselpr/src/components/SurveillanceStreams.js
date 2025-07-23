@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import '../styles/surveillancestreams.css';
 import CameraIcon from '../components/images/Camera-icon.png';
 
@@ -9,6 +9,7 @@ function parseLocalDate(dateString) {
   const [year, month, day] = dateString.split('-');
   return new Date(Number(year), Number(month) - 1, Number(day));
 }
+
 function formatYYYYMMDD(dateObj) {
   if (!dateObj) return '';
   const y = dateObj.getFullYear();
@@ -39,6 +40,14 @@ function getRandomDuration() {
     const seconds = Math.floor(Math.random() * 59) + 1;
     return `${seconds} second${seconds > 1 ? 's' : ''}`;
   }
+}
+
+function getRandomTemperature(min = 60, max = 85) {
+  return +(min + Math.random() * (max - min)).toFixed(1);
+}
+
+function getRandomThreshold(min = 60, max = 80) {
+  return +(min + Math.random() * (max - min)).toFixed(1);
 }
 
 const ArchiveCard = ({ event, index }) => {
@@ -177,13 +186,20 @@ function aggregateEventDatesWithTimes(events, selectedMonth) {
     dateMap[dayStr].push(event.time);
   });
 
+  // Add explicit no data day May 15, 2025
+  if (year === 2025 && month === 4) {
+    if (!dateMap['2025-05-15']) {
+      dateMap['2025-05-15'] = [];
+    }
+  }
+
   return Object.entries(dateMap)
     .map(([date, times]) => ({
       date,
       times: times.sort(),
       count: times.length,
     }))
-    .sort((a, b) => b.date.localeCompare(a.date));
+    .sort((a, b) => a.date.localeCompare(b.date));
 }
 
 function formatMonth(date) {
@@ -236,7 +252,7 @@ function Modal({ isOpen, onClose, children }) {
       </div>
     </div>
   );
-}
+};
 
 const SidebarDates = ({
   allEvents,
@@ -260,6 +276,9 @@ const SidebarDates = ({
   ) {
     eventDates = [{ date: todayStr, times: [], count: 0 }, ...eventDates];
   }
+
+  // Sort ascending for chronological display
+  eventDates.sort((a, b) => a.date.localeCompare(b.date));
 
   return (
     <aside
@@ -316,6 +335,23 @@ const SidebarDates = ({
         >
           ›
         </button>
+        {/* Today button with toggle logic */}
+        <button
+          aria-label="Today"
+          className="today-button"
+          onClick={() => {
+            const todayDate = new Date();
+            const todayStrISO = todayDate.toISOString().slice(0, 10);
+            if (selectedDate === todayStrISO) {
+              onDateSelect('');
+            } else {
+              onMonthChange(todayDate);
+              onDateSelect(todayStrISO);
+            }
+          }}
+        >
+          Today
+        </button>
       </div>
       <div className="inner-container date-list-container">
         <div className="sidebar-date-list">
@@ -336,7 +372,9 @@ const SidebarDates = ({
                   <span className="sidebar-date-text">
                     {formatYYYYMMDD(parseLocalDate(dateObj.date))}
                   </span>
-                  <span className="sidebar-date-badge">{dateObj.count}</span>
+                  <span className="sidebar-date-badge">
+                    {dateObj.count === 0 ? 'No Data' : dateObj.count}
+                  </span>
                 </div>
               </div>
             ))
@@ -356,28 +394,56 @@ const SurveillanceStreams = ({
 }) => {
   const nowISOString = new Date().toISOString();
 
-  const allEvents = useMemo(() => [
-    ...camera1Zones.map(zone => ({
-      ...zone,
+  // Generate dynamic May events with fixed dates but randomized details
+  const generateDynamicMayEvents = () => {
+    const fixedDates = [
+      '2025-05-03T08:15:00Z',
+      // '2025-05-15T14:45:00Z', // no event this day (simulate no data)
+      '2025-05-22T19:30:00Z',
+      '2025-05-30T12:00:00Z',
+    ];
+
+    return fixedDates.map(dateISO => ({
       camera: '360 Camera',
       eventType: 'Detection',
-      time: zone.time || nowISOString,
-      objects: zone.objects || 'Person',
-      videoSize: zone.videoSize || getRandomVideoSize(),
-      videoUrl: zone.videoUrl || null,
-      duration: zone.duration || getRandomDuration(),
-    })),
-    ...camera2Zones.map(zone => ({
-      ...zone,
-      camera: '360 Camera',
-      eventType: 'Detection',
-      time: zone.time || nowISOString,
-      objects: zone.objects || 'Person',
-      videoSize: zone.videoSize || getRandomVideoSize(),
-      videoUrl: zone.videoUrl || null,
-      duration: zone.duration || getRandomDuration(),
-    })),
-  ], [camera1Zones, camera2Zones, nowISOString]);
+      time: dateISO,
+      objects: ['Person', 'Car', 'Animal'][Math.floor(Math.random() * 3)],
+      videoSize: getRandomVideoSize(),
+      videoUrl: null,
+      duration: getRandomDuration(),
+      temperature: getRandomTemperature(),
+      threshold: getRandomThreshold(),
+    }));
+  };
+
+  const [may2025Events] = useState(generateDynamicMayEvents);
+
+  const allEvents = useMemo(() => {
+    const baseEvents = [
+      ...camera1Zones.map(zone => ({
+        ...zone,
+        camera: '360 Camera',
+        eventType: 'Detection',
+        time: zone.time || nowISOString,
+        objects: zone.objects || 'Person',
+        videoSize: zone.videoSize || getRandomVideoSize(),
+        videoUrl: zone.videoUrl || null,
+        duration: zone.duration || getRandomDuration(),
+      })),
+      ...camera2Zones.map(zone => ({
+        ...zone,
+        camera: '360 Camera',
+        eventType: 'Detection',
+        time: zone.time || nowISOString,
+        objects: zone.objects || 'Person',
+        videoSize: zone.videoSize || getRandomVideoSize(),
+        videoUrl: zone.videoUrl || null,
+        duration: zone.duration || getRandomDuration(),
+      })),
+    ];
+
+    return [...baseEvents, ...may2025Events];
+  }, [camera1Zones, camera2Zones, nowISOString, may2025Events]);
 
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(() =>
@@ -396,10 +462,38 @@ const SurveillanceStreams = ({
 
   const cardsGridRef = useRef(null);
 
+  // filteredEvents for selectedDate
   const filteredEvents = useMemo(() => {
     if (!selectedDate) return [];
     return allEvents.filter(ev => ev.time && ev.time.slice(0, 10) === selectedDate);
   }, [allEvents, selectedDate]);
+
+  // Effect: If selectedDate has no events, auto move to next date with events
+  useEffect(() => {
+    if (!selectedDate) return;
+    const hasEvents = filteredEvents.length > 0;
+    if (!hasEvents) {
+      const allDatesSorted = aggregateEventDatesWithTimes(allEvents, selectedMonth)
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .map(d => d.date);
+      const currentIndex = allDatesSorted.indexOf(selectedDate);
+      let nextDate = null;
+      for (let i = currentIndex + 1; i < allDatesSorted.length; i++) {
+        const next = allDatesSorted[i];
+        const eventsOnNext = allEvents.filter(ev => ev.time && ev.time.slice(0, 10) === next);
+        if (eventsOnNext.length > 0) {
+          nextDate = next;
+          break;
+        }
+      }
+      if (nextDate) {
+        setTimeout(() => {
+          alert(`No events for ${selectedDate}. Moving to next date with data: ${nextDate}`);
+          setSelectedDate(nextDate);
+        }, 200);
+      }
+    }
+  }, [selectedDate, filteredEvents, allEvents, selectedMonth]);
 
   const handleDownloadAll = () => {
     if (filteredEvents.length === 0) {
@@ -419,6 +513,7 @@ const SurveillanceStreams = ({
   };
 
   const handleDownloadTempEvents = () => {
+    // Intentionally left blank or implement as needed
   };
 
   const handleAddCustomEvent = e => {
@@ -458,7 +553,8 @@ const SurveillanceStreams = ({
               <img
                 src={CameraIcon}
                 alt="Camera Icon"
-                style={{      width: 32,
+                style={{
+                  width: 32,
                   height: 24,
                   border: 'none',
                   outline: 'none',
@@ -467,7 +563,7 @@ const SurveillanceStreams = ({
                   margin: 0,
                   padding: 0,
                   background: 'transparent',
-              }}
+                }}
               />
               <span>Surveillance Camera Recordings</span>
             </div>
@@ -476,7 +572,6 @@ const SurveillanceStreams = ({
             <span className="thermo-icon">🌡️</span>
             Temperature Event Recordings
           </button>
-
         </div>
       </div>
 
@@ -510,19 +605,19 @@ const SurveillanceStreams = ({
                           <>
                             {month} {day}
                             <span
-  className="comma-normal"
-  style={{
-    textDecoration: 'none',
-    border: 'none',
-    textShadow: 'none',
-    background: 'none',
-    color: 'inherit',
-    cursor: 'default',
-  }}
->
-  ,
-</span>{' '}
-{year}
+                              className="comma-normal"
+                              style={{
+                                textDecoration: 'none',
+                                border: 'none',
+                                textShadow: 'none',
+                                background: 'none',
+                                color: 'inherit',
+                                cursor: 'default',
+                              }}
+                            >
+                              ,
+                            </span>{' '}
+                            {year}
                           </>
                         );
                       })()}
@@ -556,7 +651,7 @@ const SurveillanceStreams = ({
                   {filteredEvents.length === 0 ? (
                     <div className="archive-no-events">
                       {selectedDate
-                        ? 'No events for this date.'
+                        ? `No events for this date. Moving to next date...`
                         : 'Please select a date to see events.'}
                     </div>
                   ) : (
@@ -643,3 +738,4 @@ const SurveillanceStreams = ({
 };
 
 export default SurveillanceStreams;
+
