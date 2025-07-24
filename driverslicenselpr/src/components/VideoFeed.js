@@ -3,7 +3,13 @@ import ZoneCard from './ZoneCard';
 import '../styles/zonecards.css';
 import '../styles/videofeed.css';
 
-export default function VideoFeed({ isDarkMode, tempUnit, camera1Zones = [], camera2Zones = [] }) {
+export default function VideoFeed({
+  isDarkMode,
+  tempUnit,
+  camera1Zones = [],
+  camera2Zones = [],
+  center = false, // <-- NEW
+}) {
   const [isAlertOn, setIsAlertOn] = useState(() => {
     const saved = localStorage.getItem('isAlertOn');
     return saved === 'true';
@@ -28,7 +34,7 @@ export default function VideoFeed({ isDarkMode, tempUnit, camera1Zones = [], cam
           />
         </div>
 
-        <div className="cameras-row">
+        <div className={`cameras-row${center ? ' center' : ''}`}> {/* Only line changed! */}
           <div className="camera-section">
             <div className="camera-header">
               <span className="section-title">Left Camera</span>

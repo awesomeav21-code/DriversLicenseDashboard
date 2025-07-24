@@ -12,13 +12,104 @@ html, body {
   font-family: 'Poppins', sans-serif;
 }
 
-/* Light mode override */
+.big-dashboard-container {
+  position: relative; 
+  top: -32px; 
+  max-width: 1150px;
+  margin: 36px auto 0 auto;
+  padding: 30px 36px 36px 36px;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 24px 0 rgba(30, 40, 60, 0.10);
+  border: 1.5px solid #e3e3e8;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 42px;
+  min-height: 350px;
+  transition: background 0.25s, box-shadow 0.25s;
+  overflow-x: auto;
+}
+body.dark-mode .big-dashboard-container {
+  background: #101b2b;
+  border-color: #253152;
+  color: #e0e8f0;
+  box-shadow: 0 4px 24px 0 rgba(10, 18, 28, 0.45);
+}
+
+/* Hide hamburger by default, show a small sliver on the right */
+.sidebarpanel-hamburger-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  position: relative;
+  z-index: 5;
+}
+
+.hamburger-area {
+  margin-left: auto;
+  align-self: flex-start;
+  position: relative;
+  transform: translateX(50%);
+  opacity: 0.6;
+  width: 34px;
+  height: 48px;
+  overflow: visible;
+  cursor: pointer;
+  transition: 
+    transform 0.25s cubic-bezier(.43,.27,.23,1.07),
+    opacity 0.15s;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.hamburger-area::before {
+  content: "";
+  position: absolute;
+  left: -24px;
+  top: 0;
+  width: 28px;
+  height: 100%;
+  z-index: 2;
+}
+
+.hamburger-area:hover,
+.hamburger-area:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.hamburger-menu {
+  transition: background 0.2s, box-shadow 0.2s, border 0.2s;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 2px 14px rgba(20,30,50,0.11);
+  border: 1px solid #eee;
+  min-width: 34px;
+  min-height: 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.hamburger-menu.open,
+.hamburger-menu.locked {
+  background: #fff;
+  box-shadow: 0 2px 14px rgba(20,30,50,0.11);
+  border: 1px solid #eee;
+}
+
+.sidebarpanel-hamburger-row > .hamburger-area {
+  margin-left: auto;
+  align-self: flex-start;
+}
+
 body.light-mode {
   background-color: #f8f9fa;
   color: #111827;
 }
 
-/* Dark mode override */
 body.dark-mode {
   background-color: #0f172a !important;
   color: #f9fafb;
@@ -37,7 +128,6 @@ body.dark-mode .page-wrapper {
   background-color: #0f172a !important;
 }
 
-/* Base fixed popup style (light mode) */
 .fixed-popup {
   position: fixed;
   top: 100px;
@@ -49,9 +139,8 @@ body.dark-mode .page-wrapper {
   border: 2px solid #333;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   border-radius: 8px;
-
-  background-color: #fff;  /* Light mode background */
-  color: #000;             /* Light mode text */
+  background-color: #fff;
+  color: #000;
   z-index: 1000;
 }
 
@@ -60,39 +149,36 @@ body.dark-mode .page-wrapper {
   box-sizing: inherit;
 }
 
-/* Full-page layout wrapper */
 .page-wrapper {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
   height: 100%;
   min-height: 100vh;
-  background: transparent !important;  /* Removed extra bg */
-  margin: 0; /* Remove default margin */
-  padding: 0; /* Remove default padding */
+  background: transparent !important;
+  margin: 0;
+  padding: 0;
 }
 
-/* Main flex layout for sidebar + content */
 .main-content {
   flex: 1;
   position: relative;
   display: flex;
   flex-direction: row-reverse;
   align-items: flex-start;
-  gap: 0.1px !important; /* Minimal horizontal gap */
+  gap: 0.1px !important;
   box-sizing: border-box;
   width: 100%;
   min-height: 100vh;
-  background: transparent !important; /* Removed extra bg */
-  margin: 0; /* Remove margin */
-  padding: 0; /* Remove padding */
+  background: transparent !important;
+  margin: 0;
+  padding: 0;
 }
 
 body.dark-mode .main-content {
   background-color: #0f172a !important;
 }
 
-/* Main content area */
 .content-area {
   display: flex;
   flex-direction: column;
@@ -104,9 +190,9 @@ body.dark-mode .main-content {
   height: 100%;
   flex-grow: 1;
   min-width: 0;
-  background: transparent !important;  /* Removed extra bg */
-  margin: 0; /* Remove margin */
-  padding: 0; /* Remove padding */
+  background: transparent !important;
+  margin: 0;
+  padding: 0;
 }
 
 /* CAMERA STREAMS PANEL */
@@ -116,46 +202,81 @@ body.dark-mode .main-content {
   justify-content: space-around;
   align-items: flex-start;
   gap: 48px;
-  background: transparent !important; /* Ensure no bg */
+  background: transparent !important;
+  position: relative;
+  left: -76px;
 }
 
-/* REMOVE dark mode container look */
-body.dark-mode .camera-streams-panel {
-  /* background: #13203b; */
-  /* border-color: #23375b; */
-  /* color: #f9fafb; */
+/* --- ONLY ONE BORDER: .camera-panels-wrapper --- */
+.camera-panels-wrapper {
+  background: #fff;
+  border: 1px solid #d1d5db;  /* light mode border */
+  border-radius: 16px;
+  padding: 132px 30px 30px 30px;    /* 32px + 100px = 132px */
+  margin: -100px auto 36px auto;    /* Move top border up by 100px */
+  max-width: 1100px;
+  width: 100%;
+  box-shadow: 0 4px 24px 0 rgba(30, 40, 60, 0.07);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+body.dark-mode .camera-panels-wrapper {
+  background: #16243b;
+  border-color: #385490;
+}
+.camera-panels-wrapper h3 {
+  margin-top: 0.75em;
+  margin-bottom: 0.5em;
+  font-weight: 700;
+  font-size: 1.22rem;
+  color: #233046;
+}
+body.dark-mode .camera-panels-wrapper h3 {
+  color: #c4e7fc;
 }
 
-/* Each camera group */
+/* --- NO BORDERS/BOX FOR INDIVIDUAL PANELS --- */
 .camera-streams-panel .stream-group {
   text-align: center;
   flex: 1 1 0;
   min-width: 350px;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 10px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-
 .camera-streams-panel .stream-group h3 {
   margin-top: 0;
-  margin-bottom: 32px;
+  margin-bottom: 18px;
   font-weight: 700;
-  font-size: 1.9rem;
+  font-size: 1.25rem;
+  color: #233046;
+}
+body.dark-mode .camera-streams-panel .stream-group h3 {
+  color: #c4e7fc;
 }
 
 /* Camera images */
 .camera-streams-panel img {
-  width: 280px;
-  height: 280px;
+  width: 180px;
+  height: 180px;
   object-fit: contain;
   border-radius: 50%;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
   background: #e7ffe7;
   box-shadow: 0 4px 12px 0 rgba(0,0,0,0.1);
 }
 
 /* Camera buttons */
 .camera-btn {
-  margin: 0 20px 0 0;
-  padding: 14px 32px;
-  font-size: 1.25rem;
+  margin: 0 10px 0 0;
+  padding: 8px 18px;
+  font-size: 0.98rem;
   white-space: nowrap;
   overflow: visible;
   text-overflow: clip;
@@ -193,7 +314,6 @@ body.dark-mode .camera-btn:focus {
   color: #a6f8dc;
 }
 
-/* Override light backgrounds with forced light bg but fix dark mode */
 body, html, .page-wrapper, .main-content, .content-area {
   background-color: #f6fcf8  !important;
   padding: 0 !important;
@@ -201,13 +321,12 @@ body, html, .page-wrapper, .main-content, .content-area {
   border: none !important;
 }
 
-/* Dark mode background overrides */
 body.dark-mode, 
 body.dark-mode html, 
 body.dark-mode .page-wrapper, 
 body.dark-mode .main-content, 
-body.dark-mode .content-area,
-body.dark-mode .fixed-popup {  /* added fixed-popup here */
+body-dark-mode .content-area,
+body.dark-mode .fixed-popup {
   background-color: #0f172a !important;
   color: #f9fafb !important;
   margin: 0 !important;
@@ -215,13 +334,11 @@ body.dark-mode .fixed-popup {  /* added fixed-popup here */
   border: none !important;
 }
 
-/* Dark mode fixed-popup border and shadow override */
 body.dark-mode .fixed-popup {
   border-color: #23375b !important;
   box-shadow: 0 4px 12px rgba(0,0,0,0.7) !important;
 }
 
-/* Hover effect on archive-card only in dark mode */
 .page.dark-mode .archive-card:hover {
   box-shadow: 0 0 15px 3px rgba(92, 255, 203, 0.7);
   border-color: #5cffcb;
@@ -230,7 +347,6 @@ body.dark-mode .fixed-popup {
   cursor: pointer;
 }
 
-/* Responsive for mobile */
 @media (max-width: 1024px) {
   .camera-streams-panel {
     flex-direction: column;

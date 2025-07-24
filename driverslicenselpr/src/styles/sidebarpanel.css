@@ -10,6 +10,8 @@
   overflow-y: auto; 
   padding: 12px;
   box-sizing: border-box;
+  position: relative; 
+  top: -17px; 
   display: flex;
   margin-left: -4px; 
   flex-direction: column;

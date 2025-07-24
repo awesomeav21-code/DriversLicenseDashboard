@@ -186,19 +186,13 @@ function aggregateEventDatesWithTimes(events, selectedMonth) {
     dateMap[dayStr].push(event.time);
   });
 
-  // Add explicit no data day May 15, 2025
-  if (year === 2025 && month === 4) {
-    if (!dateMap['2025-05-15']) {
-      dateMap['2025-05-15'] = [];
-    }
-  }
-
   return Object.entries(dateMap)
     .map(([date, times]) => ({
       date,
       times: times.sort(),
       count: times.length,
     }))
+    .filter(obj => obj.count > 0)
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
@@ -240,6 +234,21 @@ function getLatestEventDateInMonth(events, month) {
   return dates.sort((a, b) => b.localeCompare(a))[0];
 }
 
+// helper to get earliest event date in a month
+function getEarliestEventDateInMonth(events, month) {
+  const year = month.getFullYear();
+  const m = month.getMonth();
+  const dates = events
+    .map(ev => ev.time && ev.time.slice(0, 10))
+    .filter(date =>
+      !!date &&
+      new Date(date).getMonth() === m &&
+      new Date(date).getFullYear() === year
+    );
+  if (dates.length === 0) return '';
+  return dates.sort((a, b) => a.localeCompare(b))[0];
+}
+
 function Modal({ isOpen, onClose, children }) {
   if (!isOpen) return null;
   return (
@@ -252,7 +261,41 @@ function Modal({ isOpen, onClose, children }) {
       </div>
     </div>
   );
-};
+}
+
+const LeftArrowIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    version="1.1"
+    width="24"
+    height="24"
+    viewBox="0 0 256 256"
+    xmlSpace="preserve"
+  >
+    <g
+      style={{
+        stroke: '#6ca956',
+        strokeWidth: 2,
+        strokeLinecap: 'round',
+        strokeLinejoin: 'round',
+        fill: '#6ca956',
+        fillRule: 'nonzero',
+        opacity: 1,
+      }}
+      transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)"
+    >
+      <path
+        d="M 24.25 90 c -0.896 0 -1.792 -0.342 -2.475 -1.025 c -1.367 -1.366 -1.367 -3.583 0 -4.949 L 60.8 45 L 21.775 5.975 c -1.367 -1.367 -1.367 -3.583 0 -4.95 c 1.367 -1.366 3.583 -1.366 4.95 0 l 41.5 41.5 c 1.367 1.366 1.367 3.583 0 4.949 l -41.5 41.5 C 26.042 89.658 25.146 90 24.25 90 z"
+      />
+    </g>
+  </svg>
+);
+
+const RightArrowIcon = () => (
+  <div style={{ transform: 'scaleX(-1)', display: 'inline-block' }}>
+    <LeftArrowIcon />
+  </div>
+);
 
 const SidebarDates = ({
   allEvents,
@@ -267,24 +310,31 @@ const SidebarDates = ({
     [allEvents, selectedMonth]
   );
 
-  const today = new Date();
-  const todayStr = today.toISOString().slice(0, 10);
-  if (
-    today.getFullYear() === selectedMonth.getFullYear() &&
-    today.getMonth() === selectedMonth.getMonth() &&
-    !eventDates.some(ed => ed.date === todayStr)
-  ) {
-    eventDates = [{ date: todayStr, times: [], count: 0 }, ...eventDates];
-  }
-
-  // Sort ascending for chronological display
   eventDates.sort((a, b) => a.date.localeCompare(b.date));
+
+  const [isActive, setIsActive] = useState(false);
+
+  const toggleActive = () => {
+    setIsActive(prev => !prev);
+  };
+
+  const hasEventsThisMonth = eventDates.length > 0;
+
+  const now = new Date();
+  const isNextMonthAllowed = () => {
+    const nextMonth = getNextMonth(selectedMonth);
+    // Can't select a month after current month/year
+    if (nextMonth.getFullYear() > now.getFullYear()) return false;
+    if (nextMonth.getFullYear() === now.getFullYear() && nextMonth.getMonth() > now.getMonth()) return false;
+    return true;
+  };
 
   return (
     <aside
-      className="sidebar-event-dates"
+      className={`sidebar-event-dates${isActive ? ' active' : ''}`}
       onMouseEnter={() => onHoverChange(true)}
       onMouseLeave={() => onHoverChange(false)}
+      onClick={toggleActive}
     >
       <div
         className="sidebar-title"
@@ -303,19 +353,21 @@ const SidebarDates = ({
           style={{
             background: 'none',
             border: 'none',
-            fontSize: 22,
+            fontSize: 16,
             cursor: 'pointer',
             color: '#233046',
             padding: '2px 1.5px',
           }}
           onClick={() => onMonthChange(getPrevMonth(selectedMonth))}
         >
-          ‹
+          <span className="right-arrow">
+            <RightArrowIcon />
+          </span>
         </button>
         <span
           style={{
             fontWeight: 400,
-            fontSize: '1.09rem',
+            fontSize: 16,
             color: '#233046',
           }}
         >
@@ -326,45 +378,47 @@ const SidebarDates = ({
           style={{
             background: 'none',
             border: 'none',
-            fontSize: 22,
-            cursor: 'pointer',
-            color: '#233046',
+            fontSize: 16,
+            cursor: isNextMonthAllowed() ? 'pointer' : 'not-allowed',
             padding: '2px 1.5px',
+            opacity: isNextMonthAllowed() ? 1 : 0.5,
           }}
-          onClick={() => onMonthChange(getNextMonth(selectedMonth))}
+          onClick={() => {
+            if (isNextMonthAllowed()) {
+              onMonthChange(getNextMonth(selectedMonth));
+            }
+          }}
+          disabled={!isNextMonthAllowed()}
         >
-          ›
+          <span className="left-arrow">
+            <LeftArrowIcon />
+          </span>
         </button>
-        {/* Today button with toggle logic */}
         <button
           aria-label="Today"
           className="today-button"
           onClick={() => {
             const todayDate = new Date();
             const todayStrISO = todayDate.toISOString().slice(0, 10);
-            if (selectedDate === todayStrISO) {
-              onDateSelect('');
-            } else {
-              onMonthChange(todayDate);
-              onDateSelect(todayStrISO);
-            }
+            // Always set today's month and date (no toggle off)
+            onMonthChange(todayDate);
+            onDateSelect(todayStrISO);
           }}
         >
           Today
         </button>
       </div>
-      <div className="inner-container date-list-container">
-        <div className="sidebar-date-list">
-          {eventDates && eventDates.length > 0 ? (
-            eventDates.map(dateObj => (
+
+      {hasEventsThisMonth ? (
+        <div className="inner-container date-list-container">
+          <div className="sidebar-date-list">
+            {eventDates.map(dateObj => (
               <div key={dateObj.date}>
                 <div
                   className={`sidebar-date-item${dateObj.date === selectedDate ? ' selected' : ''}`}
                   style={{ cursor: 'pointer' }}
                   onClick={() => {
-                    if (selectedDate === dateObj.date) {
-                      onDateSelect('');
-                    } else {
+                    if (selectedDate !== dateObj.date) {
                       onDateSelect(dateObj.date);
                     }
                   }}
@@ -373,16 +427,35 @@ const SidebarDates = ({
                     {formatYYYYMMDD(parseLocalDate(dateObj.date))}
                   </span>
                   <span className="sidebar-date-badge">
-                    {dateObj.count === 0 ? 'No Data' : dateObj.count}
+                    {dateObj.count}
                   </span>
                 </div>
               </div>
-            ))
-          ) : (
-            <div className="sidebar-date-item empty">No Dates</div>
-          )}
+            ))}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div
+          style={{
+            marginTop: 16,
+            padding: 20,
+            marginLeft: 9,
+            marginRight: 8,
+            border: 'none',
+            borderRadius: 8,
+            backgroundColor: '#e6f4ea',
+            textAlign: 'center',
+            color: '#666',
+            fontStyle: 'italic',
+            fontSize: '0.77rem',
+            position: 'relative',
+            top: '-14px',
+            userSelect: 'none',
+          }}
+        >
+          No events for this month
+        </div>
+      )}
     </aside>
   );
 };
@@ -394,7 +467,6 @@ const SurveillanceStreams = ({
 }) => {
   const nowISOString = new Date().toISOString();
 
-  // Generate dynamic May events with fixed dates but randomized details
   const generateDynamicMayEvents = () => {
     const fixedDates = [
       '2025-05-03T08:15:00Z',
@@ -445,12 +517,56 @@ const SurveillanceStreams = ({
     return [...baseEvents, ...may2025Events];
   }, [camera1Zones, camera2Zones, nowISOString, may2025Events]);
 
-  const [selectedMonth, setSelectedMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(() =>
-    getLatestEventDateInMonth(allEvents, new Date())
-  );
+  const currentDate = new Date();
+  const currentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+
+  // Helper to check if localStorage date is valid and in current month
+  const isValidStoredDate = (dateStr) => {
+    if (!dateStr) return false;
+    const d = parseLocalDate(dateStr);
+    if (!d) return false;
+    return d.getFullYear() === currentMonth.getFullYear() && d.getMonth() === currentMonth.getMonth();
+  };
+
+  // Try load from localStorage if valid
+  const storedDate = typeof window !== 'undefined' ? localStorage.getItem('selectedDate') : null;
+
+  // UPDATED initialSelectedDate logic to select earliest event date automatically in current month
+  const initialSelectedDate = (() => {
+    if (isValidStoredDate(storedDate)) {
+      return storedDate;
+    }
+
+    // Check if there are any events in the current month
+    const hasEventsInCurrentMonth = allEvents.some(ev => {
+      if (!ev.time) return false;
+      const d = new Date(ev.time);
+      return d.getFullYear() === currentMonth.getFullYear() && d.getMonth() === currentMonth.getMonth();
+    });
+
+    if (!hasEventsInCurrentMonth) {
+      return '';
+    }
+
+    // If events in current month, try today first
+    const todayISO = formatYYYYMMDD(currentDate);
+    const hasEventsToday = allEvents.some(ev => ev.time && ev.time.slice(0, 10) === todayISO);
+    if (hasEventsToday) {
+      return todayISO;
+    }
+
+    // Otherwise, return earliest event date in month
+    const earliest = getEarliestEventDateInMonth(allEvents, currentMonth);
+    return earliest || '';
+  })();
+
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+  const [selectedDate, setSelectedDate] = useState(initialSelectedDate);
   const [isSidebarHover, setIsSidebarHover] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // NEW: state to control initial rendering after initialization
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const [customEvents, setCustomEvents] = useState([]);
   const [newEvent, setNewEvent] = useState({
@@ -462,13 +578,58 @@ const SurveillanceStreams = ({
 
   const cardsGridRef = useRef(null);
 
-  // filteredEvents for selectedDate
+  // Sync selectedDate to localStorage when changed
+  useEffect(() => {
+    if (selectedDate) {
+      localStorage.setItem('selectedDate', selectedDate);
+    } else {
+      localStorage.removeItem('selectedDate');
+    }
+  }, [selectedDate]);
+
+  // Set initialized to true immediately after mount so UI renders only after initial date is set
+  useEffect(() => {
+    setIsInitialized(true);
+  }, []);
+
+  // ---------- START: AUTO SELECT EARLIEST EVENT DATE ON MONTH SWITCH ---------
+  useEffect(() => {
+    // if selectedDate is not in selectedMonth or no events that day, set to earliest in month
+    if (!selectedDate) {
+      const earliest = getEarliestEventDateInMonth(allEvents, selectedMonth);
+      if (earliest) setSelectedDate(earliest);
+      return;
+    }
+    // check if selectedDate is in selectedMonth and has events
+    const d = parseLocalDate(selectedDate);
+    if (
+      !d ||
+      d.getFullYear() !== selectedMonth.getFullYear() ||
+      d.getMonth() !== selectedMonth.getMonth() ||
+      !allEvents.some(ev => ev.time && ev.time.slice(0, 10) === selectedDate)
+    ) {
+      const earliest = getEarliestEventDateInMonth(allEvents, selectedMonth);
+      if (earliest) setSelectedDate(earliest);
+      else setSelectedDate('');
+    }
+  }, [selectedMonth, allEvents]);
+  // ---------- END: AUTO SELECT EARLIEST EVENT DATE ON MONTH SWITCH ---------
+
   const filteredEvents = useMemo(() => {
     if (!selectedDate) return [];
     return allEvents.filter(ev => ev.time && ev.time.slice(0, 10) === selectedDate);
   }, [allEvents, selectedDate]);
 
-  // Effect: If selectedDate has no events, auto move to next date with events
+  const hasEventsInMonth = useMemo(() => {
+    const year = selectedMonth.getFullYear();
+    const month = selectedMonth.getMonth();
+    return allEvents.some(ev => {
+      if (!ev.time) return false;
+      const d = new Date(ev.time);
+      return d.getFullYear() === year && d.getMonth() === month;
+    });
+  }, [allEvents, selectedMonth]);
+
   useEffect(() => {
     if (!selectedDate) return;
     const hasEvents = filteredEvents.length > 0;
@@ -544,6 +705,11 @@ const SurveillanceStreams = ({
     });
   };
 
+  if (!isInitialized) {
+    // Prevent flicker by not rendering before initialization
+    return null;
+  }
+
   return (
     <>
       <div className="mini-navbar-outer">
@@ -583,7 +749,7 @@ const SurveillanceStreams = ({
             selectedMonth={selectedMonth}
             onMonthChange={month => {
               setSelectedMonth(month);
-              setSelectedDate(getLatestEventDateInMonth(allEvents, month));
+              // the useEffect will auto-select earliest event date if needed
             }}
             onDateSelect={setSelectedDate}
             onHoverChange={setIsSidebarHover}
@@ -593,11 +759,10 @@ const SurveillanceStreams = ({
             <div className="surveillance-container">
               <div className="surveillance-header-row">
                 <div className="showing-entries-text">
-                  {selectedDate && (
-                    <span className="formatted-date">
-                      {(() => {
+                  <span className="formatted-date">
+                    {(() => {
+                      if (selectedDate) {
                         const d = parseLocalDate(selectedDate);
-                        if (!d) return '';
                         const month = d.toLocaleString('default', { month: 'long' });
                         const day = d.getDate();
                         const year = d.getFullYear();
@@ -615,14 +780,22 @@ const SurveillanceStreams = ({
                                 cursor: 'default',
                               }}
                             >
-                              ,
-                            </span>{' '}
+                              ,{' '}
+                            </span>
                             {year}
                           </>
                         );
-                      })()}
-                    </span>
-                  )}
+                      } else {
+                        const month = selectedMonth.toLocaleString('default', { month: 'long' });
+                        const year = selectedMonth.getFullYear();
+                        return (
+                          <>
+                            {month} {year}
+                          </>
+                        );
+                      }
+                    })()}
+                  </span>
                 </div>
                 <button className="archive-download-btn" onClick={handleDownloadAll}>
                   <span className="download-icon" aria-hidden="true">
@@ -644,16 +817,70 @@ const SurveillanceStreams = ({
                 </button>
               </div>
 
-              {filteredEvents.length > 0 && <hr className="archive-divider" />}
+              <hr className="archive-divider" />
 
               <div className="surveillance-cards-scroll">
                 <div className="archive-cards-grid" ref={cardsGridRef}>
                   {filteredEvents.length === 0 ? (
-                    <div className="archive-no-events">
-                      {selectedDate
-                        ? `No events for this date. Moving to next date...`
-                        : 'Please select a date to see events.'}
-                    </div>
+                    hasEventsInMonth ? (
+                      <div className="archive-no-events">
+                        {selectedDate
+                          ? `No events for this date. Moving to next date...`
+                          : 'Please select a date to see events.'}
+                      </div>
+                    ) : (
+                      <div
+                        className="archive-no-events"
+                        style={{
+                          marginTop: 16,
+                          padding: 20,
+                          marginLeft: 8,
+                          marginRight: 8,
+                          border: '1px solid #ccc',
+                          borderRadius: 8,
+                          backgroundColor: 'transparent',
+                          textAlign: 'center',
+                          color: '#666',
+                          fontStyle: 'italic',
+                          userSelect: 'none',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 12,
+                        }}
+                      >
+                        <svg
+                          width="64"
+                          height="64"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          aria-hidden="true"
+                        >
+                          <rect
+                            x="3"
+                            y="7"
+                            width="14"
+                            height="10"
+                            rx="2"
+                            ry="2"
+                            stroke="#666"
+                            strokeWidth="2"
+                          />
+                          <polygon points="17 10 21 7 21 17 17 14" fill="#666" />
+                          <line
+                            x1="1"
+                            y1="1"
+                            x2="23"
+                            y2="23"
+                            stroke="#666"
+                            strokeWidth="2"
+                          />
+                        </svg>
+                        <span>No camera events found</span>
+                      </div>
+                    )
                   ) : (
                     filteredEvents.map((event, i) => (
                       <ArchiveCard event={event} key={i} index={i} />
@@ -738,4 +965,3 @@ const SurveillanceStreams = ({
 };
 
 export default SurveillanceStreams;
-

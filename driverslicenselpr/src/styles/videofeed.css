@@ -13,19 +13,23 @@
 .video-feed-wrapper {
   position: relative;
   width: 100%;
+  max-width: 1400px;    /* Increased max width */
   left: 0;
-  height: 100%;
-  min-height: 100vh;
+  height: calc(100% + 10px);
+  min-height: calc(100vh + 10px);
   box-sizing: border-box;
-  padding: 8px 8px 8px 0;
-  background-color: #f8f9fa;
+  padding: 8px 8px 90px 0;
+  margin-top: 10px;
+  margin-left: auto;    /* Center horizontally */
+  margin-right: auto;
+  background-color: none;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  border-radius: 16px;
-  max-width: 100%;
+  overflow: visible;
+  border-radius: 10px;
   flex-grow: 1;
   flex-shrink: 0;
+  top: -19px;
 }
 
 .video-feed-wrapper.dark-video {
@@ -35,23 +39,27 @@
 
 .live-data-wrapper {
   width: 100%;
+  max-width: 1400px;   /* Increased max width */
   background-color: #ffffff;
-  margin: 0 2px 0 0;  /* 2px gap on right */
-  border: 1px solid #d1d5db;  /* light mode border */
-  border-radius: 16px !important;
-  padding: 24px 24px 24px 16px;
+  margin: 0 2px 0 0;
+  border: none;
+  border-radius: 10px !important;
+  padding: 34px 24px 65px 16px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  padding-left: 8px;
   gap: 16px;
   z-index: 10;
   box-shadow: none;
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  top: -19px;
 }
 
 .dark-video .live-data-wrapper {
-  background-color: #0f172a;   /* darkest navy blue */
-  border-color: #ffffff;       /* changed to white */
+  background-color: #0f172a;
+  border-color: #ffffff;
   box-shadow: none;
 }
 
@@ -90,27 +98,33 @@
   position: relative;
   overflow: visible;
   flex-grow: 1;
+  position: relative; 
+  top: -8px; 
 }
 
+/* ---- Only this part is changed below ---- */
+
 .camera-section {
-  flex: 1 1 48%;
-  min-width: 280px;
-  max-width: 600px;
+  flex: 1 1 45%;            /* was 1 1 48%: makes each panel take up more width */
+  min-width: 550px;         /* CHANGED: +10px wider */
+  max-width: 1010px;        /* CHANGED: +10px wider */
   background-color: #ffffff;
-  border: 1px solid #d1d5db;  /* light mode border */
-  border-radius: 16px !important;
+  border: 1px solid #d1d5db;
+  border-radius: 10px !important;
   padding: 12px;
   box-sizing: border-box;
   position: relative;
   display: flex;
   flex-direction: column;
   overflow: visible;
+  transform: translateX(-34px); 
   height: auto;
 }
+/* ---- End of change ---- */
 
 .dark-video .camera-section {
-  background-color: #0f172a;   /* darkest navy blue */
-  border-color: #ffffff;        /* changed to white */
+  background-color: #0f172a;
+  border-color: #ffffff;
 }
 
 .camera-header {
@@ -148,7 +162,7 @@
   box-sizing: border-box;
   padding: 0;
   background-color: transparent;
-  border-radius: 0;
+  border-radius: 10px;
   overflow: visible !important;
   flex-grow: 1;
 }
@@ -160,15 +174,20 @@
   justify-items: stretch;
   align-items: start;
   width: 100%;
+  max-width: 1400px;     /* Makes grid area wider but not the cards! */
+  margin-left: auto;     /* Center horizontally */
+  margin-right: auto;
   box-sizing: border-box;
   padding: 24px;
   background-color: #f3f4f6;
-  border-radius: 16px;
+  border-radius: 10px;
   overflow: hidden;
 }
 
-.dark-video .zone-grid {
-  background-color: #0f172a;  /* changed from #1e293b to #0f172a */
+.dark-mode .zone-grid {
+  background-color: #0f172a;
 }
 
-/* Add here any other inner borders inside video-feed-wrapper you want to change similarly */
+.cameras-row.center {
+  justify-content: center;
+}

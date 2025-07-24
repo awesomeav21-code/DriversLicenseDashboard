@@ -15,13 +15,59 @@
   overflow: visible;
   
 }
+@media (max-width: 1350px) {
+  .archive-cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
 
-.inner-container .sidebar-date-list:hover {
-  background-color: rgba(108, 169, 86, 0.1);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  background-clip: padding-box;
+/* Collapse to 2 columns */
+@media (max-width: 1024px) {
+  .archive-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px 0px;
+  }
+}
+
+/* Single column for mobile/super narrow */
+@media (max-width: 700px) {
+  .archive-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 10px 0px;
+  }
+}
+  .archive-card {
+    max-width: 98vw;
+    min-width: 0;
+    margin: 0 auto 14px auto;
+  }
+
+
+/* For further zoomed-in or even smaller screens */
+@media (max-width: 1100px) {
+  .archive-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px 0px;
+  }
+}
+
+/* For single column at high zoom or mobile */
+@media (max-width: 700px) {
+  .archive-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 10px 0px;
+  }
+}
+
+.inner-container.date-list-container.selected:hover {
+  background-color: #6ca956 !important; /* Apple green stays when selected and hovered */
+  color: #fff !important;
+  border-radius: 6px !important;
+}
+
+
+.inner-container .sidebar-date-list.selected{
+  background-color: green; 
 }
 
 
@@ -39,7 +85,6 @@
   overflow: visible !important;
   font-family: var(--font-family);
 }
-
 .month-text,
 .year-text {
   font-weight: 500; /* slightly bolder */
@@ -48,6 +93,9 @@
   font-family: var(--font-family) !important;
   margin: 0 !important; /* remove extra spacing */
   padding: 0 !important;
+  position: relative; 
+  top: -1px; 
+  transform: translateX(7px); 
   text-shadow: 0 1px 1.5px rgba(0, 0, 0, 0.3); /* subtle dark shadow */
 }
 .year-text {
@@ -68,24 +116,23 @@
   color: #233046;
   font-family: var(--font-family);
 }
-
-
 .inner-container.month-nav {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
   gap: 0;
-  height: 28px; /* decreased height by 10px */
+  height: 28px;
   padding: 0;
-  border-radius: 6px; /* reduced from 10px */
+  margin-left: 20px !important;
+  margin-right: 0 !important;
+  border-radius: 6px;
   border: 1px solid #ececec;
-  box-shadow: 0 2px 2px rgba(80, 120, 180, 0.07); /* a bit stronger shadow */
+  box-shadow: none; 
   background: transparent;
   margin-bottom: 2px;
-
-  max-width: 400px; /* Slightly increased width */
-  width: 100%;
+  width: calc(100% - 25px);  /* 20px left, 5px right */
+  box-sizing: border-box;
   font-family: var(--font-family);
 }
 
@@ -111,7 +158,7 @@
   z-index: 2;
   background: none;
   border: none;
-  font-size: 1.15rem;
+  font-size: 0.34rem;
   font-weight: 400;
   color: #a0aec0;
   cursor: pointer;
@@ -123,14 +170,38 @@
   margin-left: 0;
   margin-right: 0;
 }
+.left-arrow,
+.right-arrow {
+  display: inline-block;
+  width: 11px;   /* much smaller width */
+  height: 11px;  /* much smaller height */
+  position: relative;
+  top: -3px;     /* move up by 4px */
+  /* optional: to keep SVG scaling nicely */
+}
+.left-arrow{ /*this is for the riught arrow mistakenly, remember this */ 
+  position: relative; 
+  left: 25px !important; 
+  top: -3px; 
+}
+
+.left-arrow svg,
+.right-arrow svg {
+  width: 100%;
+  fill: lightgreen !important; 
+  height: 100%;
+}
+
+
 .inner-container.month-nav > button:first-child {
   transform: translateX(-7px) translateY(-2px); /* left arrow moves right */
-  color: green !important; 
+  color: lightgreen ; 
+  
 }
 
 .inner-container.month-nav > button:nth-last-child(2) {
   transform: translateX(-26px) translateY(-2px); /* right arrow moves left */
-  color: green !important; 
+  color: lightgreen !important; 
 }
 
 
@@ -150,6 +221,13 @@
   font-family: var(--font-family);
 }
 
+/* Hover effect for month-nav container */
+.inner-container.month-nav:hover {
+  background-color: rgba(108, 169, 86, 0.1) !important; /* light green hover */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
 .inner-container.title-container {
   margin-bottom: 0px;
 }
@@ -163,8 +241,6 @@
   border-radius: 6px;
   box-shadow: 0 2px 12px rgba(80,120,180,0.07);
   padding: 0;               /* Remove padding to avoid extra height */
-  width: 250px !important; /* Fixed width */
-  max-width: 250px !important;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -178,23 +254,23 @@
 }
 
 /* Sidebar date list fills container, scrolls if needed */
-.inner-container .sidebar-date-list {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: center;
-  list-style: none;
-  margin: 0;
+.inner-container .sidebar-date-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+  white-space: nowrap;
+  overflow: visible;
+  font-weight: 100 !important;
+  color: #000 !important;
+  text-transform: uppercase;
+  font-size: 0.8rem !important;  /* decreased by 4px from 0.85rem */
   padding: 0;
-  border-radius: 6px !important;
-  width: 100%;
-  max-width: 360px;
-  max-height: 28px;          /* Match container height */
-  overflow-y: auto;          /* Scroll if content exceeds */
-  gap: 0;
+  margin: 0;
+  line-height: normal;
   box-sizing: border-box;
-  background-clip: padding-box;
   font-family: var(--font-family);
+  position: relative;
+  left: -13px;
 }
 
 /* Normal sidebar-date-item - ensure same height and padding as hover */
@@ -217,12 +293,11 @@
   background-clip: padding-box;
 }
 
+
 /* Hover and selected items */
-.inner-container .sidebar-date-item.selected,
 .inner-container .sidebar-date-item:hover {
-  background-color: #6ca956 !important;
+  background-color: #5FCC6E !important;
   color: #ffffff !important;
-  /* same height, padding, margin, border-radius */
   width: 100% !important;
   margin: 0;
   padding: 0 18px;
@@ -235,9 +310,10 @@
   font-family: var(--font-family);
   font-weight: 200 !important;
   letter-spacing: 0.03em !important;
-  transition: background-color 0.3s ease, border-radius 0.3s ease !important;
+  transition: background-color 0.3s ease, border-radius 0.3s ease, box-shadow 0.2s !important;
   overflow: hidden !important;
   background-clip: padding-box !important;
+  box-shadow: 0 1px 3px rgba(30,40,60,0.04); /* Added soft shadow */
 }
 
 /* Text inside sidebar date item */
@@ -257,43 +333,28 @@
   margin: 0;
 }
 
-/* Sidebar date text */
-.inner-container .sidebar-date-text {
-  flex: 1 1 auto;
-  min-width: 0;
-  text-align: left;
-  white-space: nowrap;
-  overflow: visible;
-  font-weight: 100 !important;
-  color: #000 !important;
-  text-transform: uppercase;
-  letter-spacing: 0.005em;
-  font-size: 0.86rem !important;
-  padding: 0;
-  margin: 0;
-  line-height: normal;
-  box-sizing: border-box;
-  font-family: var(--font-family);
-}
 
 /* Sidebar date badge */
 .inner-container .sidebar-date-badge {
   flex: 0 0 auto;
   background-color: #d9f0d8;
-  color: #000 !important;
+  color: #fff !important;
   border-radius: 50%;
   padding: 0;
   font-size: 0.55rem !important;
   font-weight: 400 !important;
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  max-width: 20px;
+  width: 15px;
+  height: 15px;
+  top: -0.59px; 
+  min-width: 15px;
+  max-width: 15px;
   line-height: 20px;
   text-align: center;
   align-self: center;
   margin-top: 0;
   margin-left: 2px;
+  position: relative; 
+  left: 7px; 
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -302,6 +363,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   font-family: var(--font-family);
+  transform: translateX(3px); 
 }
 
 /* Date list container - no change needed */
@@ -380,7 +442,7 @@
   font-weight: 700;
   margin-top: 5px; 
   font-family: var(--font-family);
-  font-size: 1.20rem;  /* unchanged */
+  font-size: 1.25rem;  /* unchanged */
   color: #000;         /* pure black */
   white-space: nowrap;
   margin-right: -1px;
@@ -530,25 +592,31 @@
 .sidebar-event-dates > .inner-container {
   margin-left: 14px !important;
   margin-right: 14px !important;
-  width: calc(100% - 28px) !important;
+  width: calc(100% - 14px) !important; 
   margin-top: 0px !important; /* was 8px */
   font-family: var(--font-family);
-}
+  position: relative; 
+  top: -8px; 
+  border-radius: 6px !important;    /* <-- Add this line for all corners */
+  
+} 
 
 .sidebar-title {
-  font-size: 1.14rem;
+  font-size: 0.95rem;
   font-family: var(--font-family);
-  font-weight: 550; /* Normal weight */
+  font-weight: 600; /* Normal weight */
   color: black;
   padding-left: 12px;   /* small left padding to nudge right */
   text-align: left;     /* keep left-aligned */
   margin-bottom: 2px;
   margin-top: 15px;
-  letter-spacing: 0.09em; /* keep existing spacing */
+  letter-spacing: 0.07em; /* keep existing spacing */
   text-shadow: none;
   position: relative;
-  left: -4px;
-  transform: scaleY(1.0);
+  left: -9px; 
+  top: -5px; 
+
+  transform: scaleY(1.25);
            /* additional right shift if needed */
 }
 /* ---- END OF SLIGHT ADJUSTMENTS ---- */
@@ -556,14 +624,15 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: green !important;           /* Apple green text */
+  color: #6ca956 !important;           /* Apple green text */
   padding: 2px 6px;
   margin-left: 2px;         /* shifted more left */
   font-weight: 600;
-  font-size: 0.65rem!important;        /* smaller text */
+  font-size: 0.83rem!important;        /* smaller text */
   position: relative; 
   margin-top: 3px !important; 
-  left: -24px !important; 
+  left: -5px !important; 
+  top: 0.5px; 
   min-width: auto;          /* no forced width */
   line-height: 1.2;
   font-family: var(--font-family);
@@ -606,15 +675,11 @@
   font-family: var(--font-family);
 }
 
-.sidebar-date-item.selected,
-.sidebar-date-item:hover {
-  background-color: #6ca956 !important;
-  font-weight: 200 !important;
-  letter-spacing: 0.03em;
-  width: 100%;
-  display: flex;
-  border-radius: 6px !important;
-  font-family: var(--font-family);
+
+.inner-container.date-list-container.selected {
+  background-color: #6ca956 !important; /* Apple green when selected */
+  color: #fff !important;
+  transition: background-color 0.3s ease;
 }
 
 .sidebar-date-item.selected .sidebar-date-text,
@@ -626,23 +691,10 @@
   font-family: var(--font-family);
 }
 
-.sidebar-date-text {
-  flex: 0 1 auto;
-  text-align: left;
-  white-space: nowrap;
-  font-weight: 300 !important;
-  color: #000 !important;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  font-size: 0.85rem !important; /* Increased from 0.65rem */
-  line-height: 2.5; /* BIG increase: much more vertical spacing */
-  font-family: var(--font-family);
-}
-
 .sidebar-date-badge {
   flex: 0 0 auto;
-  background-color: #d9f0d8;
-  color: #000 !important;
+  background-color: #5FCC6E !important;
+  color: #fff ;
   border-radius: 10px; /* smaller radius */
   padding: 2px 6px;
   font-size: 0.75rem !important;
@@ -785,11 +837,12 @@
 /* *** ADDED: reduce font size for month and year inside .inner-container.month-nav by 1-2px *** */
 .inner-container.month-nav .month-text,
 .inner-container.month-nav .year-text {
-  font-size: 0.60rem !important; /* slightly smaller */
+  font-size: 0.83rem !important; /* slightly smaller */
   color: #111111 !important; /* darker black-ish color */
   font-family: var(--font-family) !important;
   position: relative; 
-  left: -17px; 
+  left: -11px; 
+  top: -0.5px; 
 }
 
 .page.dark-mode .archive-no-events {
@@ -798,12 +851,12 @@
 }
 .archive-cards-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* exactly 4 columns */
-  gap: 22px 14px; /* vertical gap 22px, horizontal gap 14px */
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 22px 14px;
   width: 100%;
   justify-content: stretch;
-  padding-right: 20px;  /* keep this */
-  padding-left: 10px;   /* add some left padding to nudge left */
+  padding-right: 20px;
+  padding-left: 10px;
   margin: 0;
   box-sizing: border-box;
   margin-bottom: 0;
@@ -811,12 +864,62 @@
   margin-top: 20px;
   font-family: var(--font-family);
 }
+@media (max-width: 900px) {
+  body {
+    transform: scale(1.2);
+    transform-origin: top left;
+    width: 120vw;
+    overflow-x: auto;
+  }
+}
+@media (max-width: 1200px) {
+  .archive-cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .archive-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .archive-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.archive-no-events > div:first-child {
+  margin-top: 65px; /* Or whatever value feels right */
+}
 
 .archive-no-events {
-  padding: 24px;
+  position: relative; 
+  top: 60px;                  /* moves box down by 60px */
+  right: -420px; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 340px;               /* wider */
+  height: 240px;              /* increased height */
+  min-height: 0;
+  max-width: 340px;
+  background: rgba(255,255,255,0.13);  /* subtle transparent white */
+  border: 1px solid #e5e7eb;     /* thin black border */
+  border-radius: 6px;         /* slight border radius */
+  box-shadow: 0 4px 24px 0 rgba(108,169,86,0.10);
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: #294066;
   text-align: center;
-  color: #999;
-  font-family: var(--font-family);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.dark-mode .archive-no-events {
+  background: rgba(30,40,60,0.74);
+  color: #d7ffd0;
+  box-shadow: 0 4px 24px 0 rgba(80,160,100,0.17);
+  border: 1.5px solid #24406e;
 }
 
 /* Updated archive-divider to lighter gray */
@@ -836,9 +939,10 @@
   flex-direction: column;
   min-width: 0;
   overflow: visible;
+  min-width: 260px;
   padding: 0;
   width: 100%;
-  max-width: 315px !important;
+  max-width: 315px; /* if you want max card width */
   margin: 0 0 16px 0; /* Removed horizontal margin, kept bottom margin */
   height: 460px;
   box-sizing: border-box;
@@ -1211,3 +1315,253 @@
   font-family: var(--font-family);
 }
 /* END OF SECTION */
+
+
+.sidebar-date-item.selected {
+  background-color: #6ca956 !important;
+  color: #fff !important;
+  font-weight: 500 !important;
+}
+
+
+.sidebar-date-item.selected .sidebar-date-badge {
+  background-color: #fff !important;
+  color: #6ca956 !important;
+  font-weight: 700 !important;
+}
+.sidebar-date-item.selected,
+.sidebar-date-item.selected:hover {
+  background-color: #6ca956 !important;
+  color: #fff !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+}
+.dark-mode .inner-container.month-nav .month-text,
+.dark-mode .inner-container.month-nav .year-text,
+.dark-mode .inner-container.month-nav .left-arrow,
+.dark-mode .inner-container.month-nav .right-arrow,
+.dark-mode .inner-container.month-nav .left-arrow svg,
+.dark-mode .inner-container.month-nav .right-arrow svg {
+  color: #fff !important;
+  fill: #fff !important;
+}
+
+/* Dark mode: Sidebar date text and items */
+.dark-mode .sidebar-date-text,
+.dark-mode .sidebar-date-item {
+  color: #fff !important;
+}
+
+/* Dark mode: Sidebar date badge (normal state) */
+.dark-mode .sidebar-date-badge {
+  background-color: #6ca956 !important;  /* Bright green */
+  color: #fff !important;
+  font-weight: 700 !important;
+}
+
+/* Dark mode: Sidebar date badge when selected or hovered */
+.dark-mode .sidebar-date-item.selected .sidebar-date-badge,
+.dark-mode .sidebar-date-item.selected:hover .sidebar-date-badge {
+  background-color: #fff !important;
+  color: #6ca956 !important;
+  font-weight: 700 !important;
+}
+
+
+.sidebar-date-item.selected .sidebar-date-badge {
+  background-color: #fff !important;
+  color: #6ca956 !important;
+  font-weight: 700 !important;
+}
+.dark-mode .inner-container.month-nav .month-text,
+.dark-mode .inner-container.month-nav .year-text,
+.dark-mode .inner-container.month-nav .left-arrow svg,
+.dark-mode .inner-container.month-nav .right-arrow svg {
+  color: #fff !important;
+  fill: #fff !important;
+}
+
+/* FORCE ALL TEXT WHITE IN DARK MODE */
+.dark-mode,
+.dark-mode * {
+  color: #fff !important;
+  border-color: #243456 !important;
+  font-family: var(--font-family) !important;
+}
+
+/* Global backgrounds for containers and key elements */
+.dark-mode,
+.dark-mode .page,
+.dark-mode .archive-page,
+.dark-mode .mini-navbar-outer,
+.dark-mode .mini-navbar,
+.dark-mode .inner-container,
+.dark-mode .sidebar-event-dates,
+.dark-mode .sidebar-date-list,
+.dark-mode .sidebar-date-item,
+.dark-mode .sidebar-title,
+.dark-mode .archive-content-column,
+.dark-mode .surveillance-container,
+.dark-mode .archive-card,
+.dark-mode .archive-card-meta,
+.dark-mode .archive-card-caption,
+.dark-mode .archive-card-time,
+.dark-mode .archive-no-events,
+.dark-mode .archive-no-video-btn,
+.dark-mode .archive-footer,
+.dark-mode .sidebar-month-arrow,
+.dark-mode .sidebar-month-text,
+.dark-mode .month-nav-text,
+.dark-mode .month-text,
+.dark-mode .year-text,
+.dark-mode .meta-label,
+.dark-mode .meta-value,
+.dark-mode .sidebar-date-text,
+.dark-mode .sidebar-date-badge,
+.dark-mode .archive-divider,
+.dark-mode .archive-temp-event-btn,
+.dark-mode .archive-download-btn,
+.dark-mode .card-badge {
+  background: #0f172a !important;
+  border-color: #1a2337 !important;
+  font-family: var(--font-family) !important;
+}
+
+/* Lighter or transparent backgrounds for important content sections */
+.dark-mode .inner-container,
+.dark-mode .archive-card,
+.dark-mode .sidebar-event-dates,
+.dark-mode .surveillance-container,
+.dark-mode .modal-content {
+  background: #101e34 !important;
+  border-color: #243456 !important;
+}
+
+/* Buttons and interactive elements */
+.dark-mode .archive-temp-event-btn,
+.dark-mode .archive-download-btn,
+.dark-mode .today-button {
+  background: #1d3557 !important;
+  border-color: #243456 !important;
+}
+
+.dark-mode .archive-temp-event-btn:hover,
+.dark-mode .archive-download-btn:hover,
+.dark-mode .today-button:hover {
+  background: #24406e !important;
+}
+
+/* Card captions: darker navy for contrast */
+.dark-mode .archive-card-caption {
+  background: #19243a !important;
+}
+
+/* Card meta info */
+.dark-mode .archive-card-meta,
+.dark-mode .meta-label,
+.dark-mode .meta-value {
+  color: #e0eaff !important;
+}
+
+/* Badge backgrounds */
+.dark-mode .card-badge {
+  background: #1d3557 !important;
+}
+
+.dark-mode .card-badge.active {
+  background: #e63946 !important;
+}
+
+.dark-mode .card-badge.cleared {
+  background: #06d6a0 !important;
+}
+
+/* Sidebar date badges */
+.dark-mode .sidebar-date-badge {
+  background: #24406e !important;
+}
+
+/* Selected sidebar date item */
+.dark-mode .sidebar-date-item.selected,
+.dark-mode .sidebar-date-item.selected:hover {
+  background: #274060 !important;
+}
+
+/* Modal overlays and content */
+.dark-mode .modal-overlay {
+  background: rgba(10, 17, 42, 0.94) !important;
+}
+
+.dark-mode .modal-content {
+  background: #17223c !important;
+  border-radius: 8px;
+}
+
+/* Archive divider lighter */
+.dark-mode .archive-divider,
+.dark-mode hr {
+  border-top: 1px solid #243456 !important;
+}
+
+/* Archive cards grid gap */
+.dark-mode .archive-cards-grid {
+  background: transparent !important;
+}
+
+/* Disable box-shadows in dark */
+.dark-mode .inner-container,
+.dark-mode .archive-card,
+.dark-mode .sidebar-event-dates,
+.dark-mode .surveillance-container {
+  box-shadow: none !important;
+}
+
+/* Hide light mode border when in dark */
+.dark-mode .archive-card,
+.dark-mode .inner-container,
+.dark-mode .sidebar-event-dates,
+.dark-mode .surveillance-container {
+  border-color: #243456 !important;
+}
+
+/* Fixes for contrast on buttons */
+.dark-mode .archive-temp-event-btn,
+.dark-mode .archive-download-btn,
+.dark-mode .today-button {
+  border: 1.5px solid #243456 !important;
+  box-shadow: none !important;
+}
+
+/* Remove background for selected hover to keep things clean */
+.dark-mode .inner-container.date-list-container.selected,
+.dark-mode .inner-container.date-list-container.selected:hover {
+  background: #193059 !important;
+  border-radius: 6px !important;
+}
+
+/* Misc fixes */
+.dark-mode .meta-divider {
+  border-top: 1px dashed #233046 !important;
+}
+
+.dark-mode .archive-no-video-btn {
+  background: #16203b !important;
+  color: #bbb !important;
+}
+
+.dark-mode .archive-footer {
+  background: #17213b !important;
+}
+
+/* --- END DARK MODE CSS --- */
+.dark-mode .month-nav-text,
+.dark-mode .month-text,
+.dark-mode .year-text,
+.dark-mode .sidebar-month-arrow,
+.dark-mode .inner-container.month-nav > button,
+.dark-mode .left-arrow svg,
+.dark-mode .right-arrow svg {
+  color: #fff !important;
+  fill: #fff !important;
+  /* If using SVG, fill sets the arrow color */
+}
