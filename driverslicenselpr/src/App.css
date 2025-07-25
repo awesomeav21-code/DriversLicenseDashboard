@@ -16,20 +16,25 @@ html, body {
   position: relative; 
   top: -32px; 
   max-width: 1150px;
+
   margin: 36px auto 0 auto;
   padding: 30px 36px 36px 36px;
   background: #ffffff;
+  margin-bottom: 150px !important; 
   border-radius: 10px;
   box-shadow: 0 4px 24px 0 rgba(30, 40, 60, 0.10);
   border: 1.5px solid #e3e3e8;
   display: flex;
+  
   flex-direction: column;
+
   align-items: stretch;
-  gap: 42px;
-  min-height: 350px;
+  gap: -32px;
+  min-height: 0;
   transition: background 0.25s, box-shadow 0.25s;
   overflow-x: auto;
 }
+
 body.dark-mode .big-dashboard-container {
   background: #101b2b;
   border-color: #253152;
@@ -141,12 +146,37 @@ body.dark-mode .page-wrapper {
   border-radius: 8px;
   background-color: #fff;
   color: #000;
-  z-index: 1000;
+  z-index: 100000 !important;
+  pointer-events: auto;
 }
-
 /* Apply border-box to all elements */
 *, *::before, *::after {
   box-sizing: inherit;
+}
+.big-dashboard-container--fullwidth {
+  max-width: 100% !important;
+  margin-left: 20px !important;
+  margin-right: 20px !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+  position: relative;
+}
+
+/* Force camera panels to move right by padding */
+.big-dashboard-container--fullwidth .camera-panels-wrapper {
+  padding-left: 60px !important; /* pushes contents right */
+  max-width: calc(100% - 60px) !important;
+  margin-right: 20px !important;
+
+  margin-top: 0 !important;  /* allow normal flow vertically */
+  transform: none !important; /* disable any transform */
+  position: relative; /* reset position */
+}
+
+/* Move live data title right by transform */
+.big-dashboard-container--fullwidth .section-livedata-title {
+  transform: translateX(60px);
+  margin-left: 0;
 }
 
 .page-wrapper {
@@ -210,21 +240,30 @@ body.dark-mode .main-content {
 /* --- ONLY ONE BORDER: .camera-panels-wrapper --- */
 .camera-panels-wrapper {
   background: #fff;
-  border: 1px solid #d1d5db;  /* light mode border */
-  border-radius: 16px;
-  padding: 132px 30px 30px 30px;    /* 32px + 100px = 132px */
-  margin: -100px auto 36px auto;    /* Move top border up by 100px */
-  max-width: 1100px;
-  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  padding: 30px 30px 30px 30px; /* reduced from 132px top padding */
+  margin-top: 0 !important; /* removed negative margin */
+  margin-bottom: 36px;
+  margin-right: -34px !important;
+  margin-left: -18px !important;
+  max-width: 2000px;
+  width: 1112px;
   box-shadow: 0 4px 24px 0 rgba(30, 40, 60, 0.07);
   display: flex;
+  position: relative;
+  z-index: 9999;
   flex-direction: column;
   align-items: stretch;
+  /* removed transform */
+  /* removed fixed positioning */
 }
+
 body.dark-mode .camera-panels-wrapper {
   background: #16243b;
   border-color: #385490;
 }
+
 .camera-panels-wrapper h3 {
   margin-top: 0.75em;
   margin-bottom: 0.5em;
@@ -232,6 +271,7 @@ body.dark-mode .camera-panels-wrapper {
   font-size: 1.22rem;
   color: #233046;
 }
+
 body.dark-mode .camera-panels-wrapper h3 {
   color: #c4e7fc;
 }
@@ -250,6 +290,7 @@ body.dark-mode .camera-panels-wrapper h3 {
   flex-direction: column;
   align-items: center;
 }
+
 .camera-streams-panel .stream-group h3 {
   margin-top: 0;
   margin-bottom: 18px;
@@ -257,6 +298,7 @@ body.dark-mode .camera-panels-wrapper h3 {
   font-size: 1.25rem;
   color: #233046;
 }
+
 body.dark-mode .camera-streams-panel .stream-group h3 {
   color: #c4e7fc;
 }
@@ -360,3 +402,4 @@ body.dark-mode .fixed-popup {
     margin-bottom: 12px;
   }
 }
+

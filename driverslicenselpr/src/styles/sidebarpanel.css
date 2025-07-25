@@ -11,14 +11,14 @@
   padding: 12px;
   box-sizing: border-box;
   position: relative; 
-  top: -17px; 
+  top: -21px; 
   display: flex;
   margin-left: -4px; 
   flex-direction: column;
   gap: 8px !important;
   z-index: 1;
   margin: 24px 0 0 0; /* CHANGED: Add margin-top to move down from navbar */
-  border-radius: 16px !important;
+  border-radius: 10px !important;
   background-color: #ffffff;
   border: 1px solid #d1d5db;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);

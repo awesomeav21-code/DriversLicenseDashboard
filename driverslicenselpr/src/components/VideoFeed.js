@@ -25,10 +25,10 @@ export default function VideoFeed({
     <div className={`video-feed-wrapper ${isDarkMode ? 'dark-video' : 'light-video'}`}>
       <div className="live-data-wrapper">
         <div className="live-data-header">
-          <span className="section-title">Live Data</span>
+          <span className="section-livedata-tite">Live Data</span>
           <span
-            className={`status-dot ${isAlertOn ? 'alert-on' : 'alert-off'}`}
-            onClick={toggleAlert}
+  className={`status-dot live-data-dot ${isAlertOn ? 'alert-on' : 'alert-off'}`}
+  onClick={toggleAlert}
             style={{ cursor: 'pointer' }}
             title="Toggle Alert"
           />

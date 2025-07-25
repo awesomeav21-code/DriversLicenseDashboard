@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Header from './components/Header'
 import Navigation from './components/Navigation'
 import VideoFeed from './components/VideoFeed'
@@ -78,7 +78,6 @@ function ZoneVideoFeed({ zone }) {
   )
 }
 
-// ----------------- HAMBURGER MENU COMPONENT -----------------
 function HamburgerIcon({ size = 32, color = "#233046" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
@@ -106,8 +105,8 @@ function HamburgerMenu({
       <div
         className={`hamburger-menu${visible ? ' open' : ''}${locked ? ' locked' : ''}`}
         onClick={e => {
-          e.stopPropagation();
-          onClick();
+          e.stopPropagation()
+          onClick()
         }}
         title="Show/Hide Event Logs"
       >
@@ -116,7 +115,6 @@ function HamburgerMenu({
     </div>
   )
 }
-// -------------------------------------------------------------
 
 export default function App() {
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('activeTab') || 'dashboard')
@@ -314,6 +312,17 @@ export default function App() {
     })
   }
 
+  // Create refs for measuring and moving
+  const contentAboveRef = useRef(null)
+  const cameraPanelsWrapperRef = useRef(null)
+
+  useEffect(() => {
+    if (contentAboveRef.current && cameraPanelsWrapperRef.current) {
+      const heightAbove = contentAboveRef.current.offsetHeight
+      cameraPanelsWrapperRef.current.style.marginTop = `-${heightAbove}px`
+    }
+  }, [zones]) // update when zones change, or add other deps as needed
+
   return (
     <>
       <Header isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} tempUnit={tempUnit} setTempUnit={setTempUnit} />
@@ -350,17 +359,19 @@ export default function App() {
           <div className="content-area">
             <div className="scroll-container">
               {activeTab === 'dashboard' && (
-                <div className="big-dashboard-container">
-                  <VideoFeed
-                    isDarkMode={isDarkMode}
-                    tempUnit={tempUnit}
-                    camera1Zones={camera1Zones}
-                    camera2Zones={camera2Zones}
-                  />
-                  {/* ---- ADDED WRAPPER HERE ---- */}
-                  <div className="camera-panels-wrapper">
+                <div className={`big-dashboard-container${!eventLogsVisible ? ' big-dashboard-container--fullwidth' : ''}`}>
+                  {/* Attach ref here */}
+                  <div ref={contentAboveRef}>
+                    <VideoFeed
+                      isDarkMode={isDarkMode}
+                      tempUnit={tempUnit}
+                      camera1Zones={camera1Zones}
+                      camera2Zones={camera2Zones}
+                    />
+                  </div>
+                  {/* Attach ref here */}
+                  <div ref={cameraPanelsWrapperRef} className="camera-panels-wrapper">
                     <div className="camera-streams-panel">
-                      {/* 360 Stream */}
                       <div className="stream-group" style={{ textAlign: 'center' }}>
                         <h3>360° Stream</h3>
                         <img
@@ -376,59 +387,7 @@ export default function App() {
                             Camera 1
                           </button>
                         </div>
-                        {show360Popup && (
-                          <FixedPopup
-                            style={{
-                              position: 'fixed',
-                              top: '100px',
-                              right: '20px',
-                              width: '700px',
-                              maxHeight: '80vh',
-                              backgroundColor: '#fff',
-                              border: '2px solid #333',
-                              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                              padding: '16px',
-                              overflowY: 'auto',
-                              zIndex: 1000,
-                              borderRadius: '8px',
-                            }}
-                          >
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
-                              <button
-                                style={{
-                                  background: 'none',
-                                  border: 'none',
-                                  fontSize: '1.3rem',
-                                  fontWeight: 'bold',
-                                  cursor: 'pointer',
-                                  color: '#333',
-                                }}
-                                onClick={() => setShow360Popup(false)}
-                                aria-label="Close"
-                              >
-                                ×
-                              </button>
-                            </div>
-                            {/* 360 Stream content */}
-                            <div style={{ textAlign: 'center' }}>
-                              <div style={{ fontWeight: 'bold', marginBottom: 4 }}>360° Camera 1</div>
-                              <video
-                                src="https://www.w3schools.com/html/mov_bbb.mp4"
-                                controls
-                                width="650"
-                                height="350"
-                                style={{ borderRadius: 6, background: '#000' }}
-                                autoPlay
-                                muted
-                                loop
-                              >
-                                Your browser does not support the video tag.
-                              </video>
-                            </div>
-                          </FixedPopup>
-                        )}
                       </div>
-                      {/* Thermal Stream */}
                       <div
                         className="stream-group"
                         style={{ textAlign: 'center', position: 'relative' }}
@@ -455,30 +414,7 @@ export default function App() {
                             Right Camera
                           </button>
                         </div>
-                        {(selectedThermalCamera || isHoveringThermal) && (
-                          <FixedPopup
-                            style={{
-                              position: 'fixed',
-                              top: '100px',
-                              right: '20px',
-                              width: '700px',
-                              maxHeight: '80vh',
-                              backgroundColor: '#fff',
-                              border: '2px solid #333',
-                              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                              padding: '16px',
-                              overflowY: 'auto',
-                              zIndex: 1000,
-                              borderRadius: '8px',
-                            }}
-                          >
-                            {filterZonesByCamera(selectedThermalCamera || (isHoveringThermal ? selectedThermalCamera : null)).map((zone) => (
-                              <ZoneVideoFeed key={zone.name} zone={zone} />
-                            ))}
-                          </FixedPopup>
-                        )}
                       </div>
-                      {/* Optical Stream */}
                       <div
                         className="stream-group"
                         style={{ textAlign: 'center', position: 'relative' }}
@@ -505,32 +441,9 @@ export default function App() {
                             Right Camera
                           </button>
                         </div>
-                        {(selectedOpticalCamera || isHoveringOptical) && (
-                          <FixedPopup
-                            style={{
-                              position: 'fixed',
-                              top: '100px',
-                              right: '20px',
-                              width: '700px',
-                              maxHeight: '80vh',
-                              backgroundColor: '#fff',
-                              border: '2px solid #333',
-                              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                              padding: '16px',
-                              overflowY: 'auto',
-                              zIndex: 1000,
-                              borderRadius: '8px',
-                            }}
-                          >
-                            {filterZonesByCamera(selectedOpticalCamera || (isHoveringOptical ? selectedOpticalCamera : null)).map((zone) => (
-                              <ZoneVideoFeed key={zone.name} zone={zone} />
-                            ))}
-                          </FixedPopup>
-                        )}
                       </div>
                     </div>
                   </div>
-                  {/* ---- END CAMERA PANELS WRAPPER ---- */}
                 </div>
               )}
               {activeTab === 'thermal' && (
@@ -556,6 +469,101 @@ export default function App() {
         </div>
         <Footer />
       </div>
+
+      {show360Popup && (
+        <FixedPopup
+          style={{
+            position: 'fixed',
+            top: '100px',
+            right: '20px',
+            width: '700px',
+            maxHeight: '80vh',
+            backgroundColor: '#fff',
+            border: '2px solid #333',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            padding: '16px',
+            overflowY: 'auto',
+            borderRadius: '8px',
+            zIndex: 100000,
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
+            <button
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '1.3rem',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                color: '#333',
+              }}
+              onClick={() => setShow360Popup(false)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontWeight: 'bold', marginBottom: 4 }}>360° Camera 1</div>
+            <video
+              src="https://www.w3schools.com/html/mov_bbb.mp4"
+              controls
+              width="650"
+              height="350"
+              style={{ borderRadius: 6, background: '#000' }}
+              autoPlay
+              muted
+              loop
+            >
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </FixedPopup>
+      )}
+      {(selectedThermalCamera || isHoveringThermal) && (
+        <FixedPopup
+          style={{
+            position: 'fixed',
+            top: '100px',
+            right: '20px',
+            width: '700px',
+            maxHeight: '80vh',
+            backgroundColor: '#fff',
+            border: '2px solid #333',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            padding: '16px',
+            overflowY: 'auto',
+            zIndex: 100000,
+            borderRadius: '8px',
+          }}
+        >
+          {filterZonesByCamera(selectedThermalCamera || (isHoveringThermal ? selectedThermalCamera : null)).map((zone) => (
+            <ZoneVideoFeed key={zone.name} zone={zone} />
+          ))}
+        </FixedPopup>
+      )}
+      {(selectedOpticalCamera || isHoveringOptical) && (
+        <FixedPopup
+          style={{
+            position: 'fixed',
+            top: '100px',
+            right: '20px',
+            width: '700px',
+            maxHeight: '80vh',
+            backgroundColor: '#fff',
+            border: '2px solid #333',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            padding: '16px',
+            overflowY: 'auto',
+            zIndex: 100000,
+            borderRadius: '8px',
+          }}
+        >
+          {filterZonesByCamera(selectedOpticalCamera || (isHoveringOptical ? selectedOpticalCamera : null)).map((zone) => (
+            <ZoneVideoFeed key={zone.name} zone={zone} />
+          ))}
+        </FixedPopup>
+      )}
     </>
   )
 }
