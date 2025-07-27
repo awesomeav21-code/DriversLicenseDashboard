@@ -295,4 +295,9 @@ body.dark-mode .fixed-popup {
   transition: all 0.3s ease;
   cursor: pointer;
 }
-
+@media (min-width: 1500px) and (max-width: 1600px) {
+.big-dashboard-container{
+  width: 100%; 
+  max-width: 1300px; 
+}
+}

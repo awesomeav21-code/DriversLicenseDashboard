@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import '../styles/surveillancestreams.css';
-import CameraIcon from '../components/images/Camera-icon.png';
 
 const THUMBNAIL_PLACEHOLDER = 'https://dummyimage.com/600x340/cccccc/222222&text=Camera+Frame';
 
@@ -77,10 +76,8 @@ const ArchiveCard = ({ event, index }) => {
 
   const cameraName = event.camera || '360 Camera';
   const formattedTime = event.time ? formatEventTime(event.time) : currentTimeStr;
-
   const objects = event.objects || 'Person';
   const videoSize = event.videoSize || getRandomVideoSize();
-
   const hasVideo = !!event.videoUrl;
 
   return (
@@ -122,11 +119,12 @@ const ArchiveCard = ({ event, index }) => {
           <span className="meta-label">Video Size:</span>
           <span className="meta-value">{videoSize}</span>
         </div>
+        <hr className="meta-divider" />
       </div>
 
       {hasVideo ? (
         <button
-          className="archive-download-btn"
+          className="archive-download-iconn"
           onClick={() => {
             alert(`Downloading video for event at ${formattedTime}`);
           }}
@@ -151,18 +149,20 @@ const ArchiveCard = ({ event, index }) => {
       ) : (
         <button className="archive-no-video-btn" disabled>
           <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
             xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
+            className="size-6"
             aria-hidden="true"
             focusable="false"
-            style={{ marginRight: 6 }}
+            style={{ marginRight: 6, width: 20, height: 20}}
           >
             <path
-              d="M17 7l5 4-5 4V7zM3 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"
-              fill="#767d88"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M12 18.75H4.5a2.25 2.25 0 0 1-2.25-2.25V9m12.841 9.091L16.5 19.5m-1.409-1.409c.407-.407.659-.97.659-1.591v-9a2.25 2.25 0 0 0-2.25-2.25h-9c-.621 0-1.184.252-1.591.659m12.182 12.182L2.909 5.909M1.5 4.5l1.409 1.409"
             />
           </svg>
           No Video
@@ -234,7 +234,6 @@ function getLatestEventDateInMonth(events, month) {
   return dates.sort((a, b) => b.localeCompare(a))[0];
 }
 
-// helper to get earliest event date in a month
 function getEarliestEventDateInMonth(events, month) {
   const year = month.getFullYear();
   const m = month.getMonth();
@@ -323,7 +322,6 @@ const SidebarDates = ({
   const now = new Date();
   const isNextMonthAllowed = () => {
     const nextMonth = getNextMonth(selectedMonth);
-    // Can't select a month after current month/year
     if (nextMonth.getFullYear() > now.getFullYear()) return false;
     if (nextMonth.getFullYear() === now.getFullYear() && nextMonth.getMonth() > now.getMonth()) return false;
     return true;
@@ -400,7 +398,6 @@ const SidebarDates = ({
           onClick={() => {
             const todayDate = new Date();
             const todayStrISO = todayDate.toISOString().slice(0, 10);
-            // Always set today's month and date (no toggle off)
             onMonthChange(todayDate);
             onDateSelect(todayStrISO);
           }}
@@ -435,7 +432,7 @@ const SidebarDates = ({
           </div>
         </div>
       ) : (
-        <div
+        <div className="no-eventsbtn"
           style={{
             marginTop: 16,
             padding: 20,
@@ -470,7 +467,6 @@ const SurveillanceStreams = ({
   const generateDynamicMayEvents = () => {
     const fixedDates = [
       '2025-05-03T08:15:00Z',
-      // '2025-05-15T14:45:00Z', // no event this day (simulate no data)
       '2025-05-22T19:30:00Z',
       '2025-05-30T12:00:00Z',
     ];
@@ -490,37 +486,53 @@ const SurveillanceStreams = ({
 
   const [may2025Events] = useState(generateDynamicMayEvents);
 
+  // Random assignment, persistent for this page load only
+  const [videoRandoms] = useState(() => {
+    const total =
+      camera1Zones.length +
+      camera2Zones.length +
+      may2025Events.length;
+    return Array.from({ length: total }, () =>
+      Math.random() < 0.5
+        ? 'https://dummyimage.com/600x340/cccccc/222222&text=Video+File'
+        : null
+    );
+  });
+
   const allEvents = useMemo(() => {
-    const baseEvents = [
-      ...camera1Zones.map(zone => ({
+    return [
+      ...camera1Zones.map((zone, idx) => ({
         ...zone,
         camera: '360 Camera',
         eventType: 'Detection',
         time: zone.time || nowISOString,
         objects: zone.objects || 'Person',
         videoSize: zone.videoSize || getRandomVideoSize(),
-        videoUrl: zone.videoUrl || null,
+        videoUrl: videoRandoms[idx],
         duration: zone.duration || getRandomDuration(),
       })),
-      ...camera2Zones.map(zone => ({
+      ...camera2Zones.map((zone, idx) => ({
         ...zone,
         camera: '360 Camera',
         eventType: 'Detection',
         time: zone.time || nowISOString,
         objects: zone.objects || 'Person',
         videoSize: zone.videoSize || getRandomVideoSize(),
-        videoUrl: zone.videoUrl || null,
+        videoUrl: videoRandoms[idx + camera1Zones.length],
         duration: zone.duration || getRandomDuration(),
+      })),
+      ...may2025Events.map((event, idx) => ({
+        ...event,
+        videoUrl: videoRandoms[
+          idx + camera1Zones.length + camera2Zones.length
+        ],
       })),
     ];
-
-    return [...baseEvents, ...may2025Events];
-  }, [camera1Zones, camera2Zones, nowISOString, may2025Events]);
+  }, [camera1Zones, camera2Zones, nowISOString, may2025Events, videoRandoms]);
 
   const currentDate = new Date();
   const currentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
 
-  // Helper to check if localStorage date is valid and in current month
   const isValidStoredDate = (dateStr) => {
     if (!dateStr) return false;
     const d = parseLocalDate(dateStr);
@@ -528,16 +540,13 @@ const SurveillanceStreams = ({
     return d.getFullYear() === currentMonth.getFullYear() && d.getMonth() === currentMonth.getMonth();
   };
 
-  // Try load from localStorage if valid
   const storedDate = typeof window !== 'undefined' ? localStorage.getItem('selectedDate') : null;
 
-  // UPDATED initialSelectedDate logic to select earliest event date automatically in current month
   const initialSelectedDate = (() => {
     if (isValidStoredDate(storedDate)) {
       return storedDate;
     }
 
-    // Check if there are any events in the current month
     const hasEventsInCurrentMonth = allEvents.some(ev => {
       if (!ev.time) return false;
       const d = new Date(ev.time);
@@ -548,14 +557,12 @@ const SurveillanceStreams = ({
       return '';
     }
 
-    // If events in current month, try today first
     const todayISO = formatYYYYMMDD(currentDate);
     const hasEventsToday = allEvents.some(ev => ev.time && ev.time.slice(0, 10) === todayISO);
     if (hasEventsToday) {
       return todayISO;
     }
 
-    // Otherwise, return earliest event date in month
     const earliest = getEarliestEventDateInMonth(allEvents, currentMonth);
     return earliest || '';
   })();
@@ -565,7 +572,6 @@ const SurveillanceStreams = ({
   const [isSidebarHover, setIsSidebarHover] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // NEW: state to control initial rendering after initialization
   const [isInitialized, setIsInitialized] = useState(false);
 
   const [customEvents, setCustomEvents] = useState([]);
@@ -578,7 +584,6 @@ const SurveillanceStreams = ({
 
   const cardsGridRef = useRef(null);
 
-  // NEW: state to control grid columns for responsiveness/zoom
   const [gridTemplateColumns, setGridTemplateColumns] = useState('repeat(auto-fit, minmax(260px, 1fr))');
 
   useEffect(() => {
@@ -602,7 +607,6 @@ const SurveillanceStreams = ({
     return () => window.removeEventListener('resize', updateGridColumns);
   }, []);
 
-  // Sync selectedDate to localStorage when changed
   useEffect(() => {
     if (selectedDate) {
       localStorage.setItem('selectedDate', selectedDate);
@@ -611,20 +615,16 @@ const SurveillanceStreams = ({
     }
   }, [selectedDate]);
 
-  // Set initialized to true immediately after mount so UI renders only after initial date is set
   useEffect(() => {
     setIsInitialized(true);
   }, []);
 
-  // ---------- START: AUTO SELECT EARLIEST EVENT DATE ON MONTH SWITCH ---------
   useEffect(() => {
-    // if selectedDate is not in selectedMonth or no events that day, set to earliest in month
     if (!selectedDate) {
       const earliest = getEarliestEventDateInMonth(allEvents, selectedMonth);
       if (earliest) setSelectedDate(earliest);
       return;
     }
-    // check if selectedDate is in selectedMonth and has events
     const d = parseLocalDate(selectedDate);
     if (
       !d ||
@@ -637,7 +637,6 @@ const SurveillanceStreams = ({
       else setSelectedDate('');
     }
   }, [selectedMonth, allEvents]);
-  // ---------- END: AUTO SELECT EARLIEST EVENT DATE ON MONTH SWITCH ---------
 
   const filteredEvents = useMemo(() => {
     if (!selectedDate) return [];
@@ -698,7 +697,7 @@ const SurveillanceStreams = ({
   };
 
   const handleDownloadTempEvents = () => {
-    // Intentionally left blank or implement as needed
+    // Implement if needed
   };
 
   const handleAddCustomEvent = e => {
@@ -730,7 +729,6 @@ const SurveillanceStreams = ({
   };
 
   if (!isInitialized) {
-    // Prevent flicker by not rendering before initialization
     return null;
   }
 
@@ -739,23 +737,22 @@ const SurveillanceStreams = ({
       <div className="mini-navbar-outer">
         <div className="mini-navbar">
           <div className="mini-navbar-title">
-            <div className="mini-navbar-icon-container">
-              <img
-                src={CameraIcon}
-                alt="Camera Icon"
-                style={{
-                  width: 32,
-                  height: 24,
-                  border: 'none',
-                  outline: 'none',
-                  boxShadow: 'none',
-                  display: 'block',
-                  margin: 0,
-                  padding: 0,
-                  background: 'transparent',
-                }}
-              />
-              <span>Surveillance Camera Recordings</span>
+            <div className="mini-navbar-icon-container" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 24, lineHeight: 1, userSelect: 'none' }}>
+            <svg
+  className="video-icon"
+  xmlns="http://www.w3.org/2000/svg"
+  fill="currentColor"
+  viewBox="0 0 24 24"
+  style={{ width: 29, height: 29 }}
+>
+  <path
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    strokeWidth={1.5}
+    stroke="currentColor"
+    d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"
+  />
+</svg>              <span>Surveillance Camera Recordings</span>
             </div>
           </div>
           <button className="archive-temp-event-btn" onClick={handleDownloadTempEvents}>
@@ -773,7 +770,6 @@ const SurveillanceStreams = ({
             selectedMonth={selectedMonth}
             onMonthChange={month => {
               setSelectedMonth(month);
-              // the useEffect will auto-select earliest event date if needed
             }}
             onDateSelect={setSelectedDate}
             onHoverChange={setIsSidebarHover}
@@ -879,31 +875,20 @@ const SurveillanceStreams = ({
                         }}
                       >
                         <svg
-                          width="64"
-                          height="64"
-                          viewBox="0 0 24 24"
-                          fill="none"
                           xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth="1.5"
+                          stroke="currentColor"
+                          className="size-6"
                           aria-hidden="true"
+                          focusable="false"
+                          style={{ marginRight: 6 }}
                         >
-                          <rect
-                            x="3"
-                            y="7"
-                            width="14"
-                            height="10"
-                            rx="2"
-                            ry="2"
-                            stroke="#666"
-                            strokeWidth="2"
-                          />
-                          <polygon points="17 10 21 7 21 17 17 14" fill="#666" />
-                          <line
-                            x1="1"
-                            y1="1"
-                            x2="23"
-                            y2="23"
-                            stroke="#666"
-                            strokeWidth="2"
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M12 18.75H4.5a2.25 2.25 0 0 1-2.25-2.25V9m12.841 9.091L16.5 19.5m-1.409-1.409c.407-.407.659-.97.659-1.591v-9a2.25 2.25 0 0 0-2.25-2.25h-9c-.621 0-1.184.252-1.591.659m12.182 12.182L2.909 5.909M1.5 4.5l1.409 1.409"
                           />
                         </svg>
                         <span>No camera events found</span>

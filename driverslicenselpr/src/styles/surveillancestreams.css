@@ -526,7 +526,6 @@
   box-shadow: none;
 }
 
-
 .page.dark-mode,
 .archive-page.dark-mode {
   background-color: #0f172a !important;
@@ -558,11 +557,16 @@
   justify-content: flex-start;
   font-family: var(--font-family);
 }
-.surveillance-header-row .formatted-date .comma-normal {
+.mini-navbar-icon-container svg {
+  color: black !important;
+}
+
+
+.dark-mode .surveillance-header-row .formatted-date .comma-normal {
   font-family: var(--font-family) !important;
   font-weight: 700;
   font-size: 1.2rem;
-  color: #000 !important;
+  color: #fff !important;
   font-variant-ligatures: none !important;
   -webkit-font-feature-settings: "liga" 0, "dlig" 0 !important;
   font-feature-settings: "liga" 0, "dlig" 0 !important;
@@ -610,10 +614,7 @@
   gap: 8px;
   font-family: var(--font-family);
 }
-.dark-mode .mini-navbar-outer{ 
-  background-color: #0f127a!important; 
-  border-bottom:none !important; 
-}
+
 .page.dark-mode .mini-navbar-outer {
   background-color: #0f172a !important;
   border-bottom: 1px solid #24406e !important;
@@ -722,6 +723,8 @@
   box-sizing: border-box;
   font-family: var(--font-family);
 }
+
+
 /* ---- SLIGHT ADJUSTMENTS BELOW ---- */
 .sidebar-event-dates > .inner-container {
   margin-left: 14px !important;
@@ -880,6 +883,8 @@
   border: 1px solid var(--border-color);
   padding: 22px 26px 26px 26px;
   margin-bottom: 0;
+  max-height: 700px; /* must be >= surveillance-cards-scroll max-height + other content */
+
   margin-top: 0;
   margin-left: 7px; /* Instead of 38px + left shift, reduce margin */
   margin-right: -33px;
@@ -940,7 +945,6 @@
   font-family: var(--font-family);
   
 }
-
 .archive-download-btn:hover {
   background: #578641;
 }
@@ -998,28 +1002,32 @@
 }
 
 .archive-no-events {
-  position: relative; 
-  top: 60px;                  /* moves box down by 60px */
-  right: -420px; 
+  position: static; /* instead of relative */
+  top: 60px; /* consider reducing or removing if causing overlap */
+  right: -420px; /* consider adjusting or removing */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 340px;               /* wider */
-  height: 240px;              /* increased height */
+  width: 340px;  /* keep width or make responsive */
+  height: auto;  /* change from fixed height to auto */
   min-height: 0;
   max-width: 340px;
-  background: rgba(255,255,255,0.13);  /* subtle transparent white */
-  border: 1px solid #e5e7eb;     /* thin black border */
-  border-radius: 6px;         /* slight border radius */
-  box-shadow: 0 4px 24px 0 rgba(108,169,86,0.10);
+  background: rgba(255, 255, 255, 0.13);
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  box-shadow: 0 4px 24px 0 rgba(108, 169, 86, 0.10);
   font-size: 1.05rem;
   font-weight: 500;
   color: #294066;
+  overflow: hidden !important;
+  max-height: none !important;
+  height: auto !important;
   text-align: center;
   transition: background 0.2s, box-shadow 0.2s;
-}
-.dark-mode .archive-no-events {
+  overflow: visible; /* make sure no scroll inside */
+  z-index: 10; /* bring it above overlapping elements */
+}.dark-mode .archive-no-events {
   background: rgba(30,40,60,0.74);
   color: #d7ffd0;
   box-shadow: 0 4px 24px 0 rgba(80,160,100,0.17);
@@ -1272,16 +1280,22 @@
   letter-spacing: 0.01em;
   box-shadow: 0 0.5px 0.5px rgba(80,80,80,0.04);
   gap: 6px;
-  width: auto;
+  height: 35px; 
+  width: 150px;
+  border-radius: 4px; 
+
   max-width: 140px;
+  position: relative; 
+  top: -20px;
   white-space: nowrap;
   font-family: var(--font-family);
 }
 
 .page.dark-mode .archive-no-video-btn {
-  background: #26345a !important;
+  background: gray !important;
   color: #bbb !important;
   font-family: var(--font-family);
+  
 }
 
 .archive-no-video-btn span {
@@ -1318,15 +1332,13 @@
 
 /* ADDED SECTION */
 .surveillance-cards-scroll {
-  flex: 1 1 auto;
-  min-height: 0;
-  max-height: 100%;
+  max-height: 600px;  /* or adjust as needed */
   overflow-y: auto;
-  overflow-x: auto;
-  width: calc(100% + 26px); /* expand width by right padding amount */
-  margin-right: -26px;       /* pull it right to edge */
-  font-family: var(--font-family);
+  overflow-x: hidden; /* avoid horizontal scroll */
+  width: 100%;        /* remove width calc if not needed */
+  margin-right: 0;    /* reset margin if not needed */
 }
+
 /* END OF SECTION */
 
 
@@ -1349,14 +1361,24 @@
   border-radius: 6px !important;
   font-weight: 600 !important;
 }
-.dark-mode .inner-container.month-nav .month-text,
-.dark-mode .inner-container.month-nav .year-text,
-.dark-mode .inner-container.month-nav .left-arrow,
-.dark-mode .inner-container.month-nav .right-arrow,
-.dark-mode .inner-container.month-nav .left-arrow svg,
-.dark-mode .inner-container.month-nav .right-arrow svg {
-  color: #fff !important;
-  fill: #fff !important;
+.dark-mode .inner-container.month-nav > button:hover .left-arrow svg {
+  fill: #6ca956 !important;   /* Or whatever highlight color */
+  filter: drop-shadow(0 0 5px #6ca956);  /* Optional: green glow */
+}
+.dark-mode .inner-container.month-nav > button:hover .left-arrow svg {
+  background-color: transparent !important;  /* Not needed for SVG, but okay */
+  fill: #6ca956 !important;                  /* or any color you want */
+  color: #6ca956 !important;                 /* for text-based arrows */
+}
+.dark-mode .inner-container.month-nav .today-button{
+  padding-left: 19px !important;
+  padding-right: 19px ! important;  
+  position: relative !important; 
+  left: -8px !important; 
+
+}
+.dark-mode .no-eventsbtn{
+  background-color: #6ca956 !important; 
 }
 
 /* Dark mode: Sidebar date text and items */
@@ -1381,11 +1403,12 @@
   font-weight: 700 !important;
 }
 
+.dark-mode .archive-temp-event-btn{
+  background-color: #6ca956 !important;
 
-.sidebar-date-item.selected .sidebar-date-badge {
-  background-color: #fff !important;
-  color: #6ca956 !important;
-  font-weight: 700 !important;
+}
+.dark-mode .inner-container.month-nav{
+  background-color:  #0c1424!important; 
 }
 .dark-mode .inner-container.month-nav .month-text,
 .dark-mode .inner-container.month-nav .year-text,
@@ -1407,7 +1430,6 @@
 .dark-mode,
 .dark-mode .page,
 .dark-mode .archive-page,
-.dark-mode .mini-navbar,
 .dark-mode .inner-container,
 .dark-mode .sidebar-event-dates,
 .dark-mode .sidebar-date-list,
@@ -1420,7 +1442,6 @@
 .dark-mode .archive-card-caption,
 .dark-mode .archive-card-time,
 .dark-mode .archive-no-events,
-.dark-mode .archive-no-video-btn,
 .dark-mode .archive-footer,
 .dark-mode .sidebar-month-arrow,
 .dark-mode .sidebar-month-text,
@@ -1432,8 +1453,6 @@
 .dark-mode .sidebar-date-text,
 .dark-mode .sidebar-date-badge,
 .dark-mode .archive-divider,
-.dark-mode .archive-temp-event-btn,
-.dark-mode .archive-download-btn,
 .dark-mode .card-badge {
   border-color: #1a2337 !important;
   font-family: var(--font-family) !important;
@@ -1444,14 +1463,20 @@
 }
 .dark-mode .mini-navbar{
   background-color: #0f172a!important; 
+  color: #fff !important; 
 }
 
-
+.dark-mode .archive-no-video-btn{
+  background-color: green !important; 
+}
 /* Lighter or transparent backgrounds for important content sections */
 .dark-mode .inner-container,
 .dark-mode .archive-card,
 .dark-mode .sidebar-event-dates,
 .dark-mode .surveillance-container,
+.dark-mode .mini-navbar, 
+.dark-mode .mini-navbar-outer, 
+.dark-mode .mini-navbar-icon-container,
 .dark-mode .modal-content {
   background: #101e34 !important;
   border-color: #243456 !important;
@@ -1459,12 +1484,43 @@
 
 /* Buttons and interactive elements */
 .dark-mode .archive-temp-event-btn,
-.dark-mode .archive-download-btn,
 .dark-mode .today-button {
-  background: #1d3557 !important;
   border-color: #243456 !important;
 }
 
+.archive-download-btn {
+  background: #6ca956;
+  color: #fff;
+  border: none;
+  border-radius: 0;
+  padding: 5px 10px;
+  font-weight: 700;
+  font-size: 0.83rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  box-shadow: none;
+  transition: background 0.13s;
+  min-width: unset;
+  height: 26px;
+  position: relative; 
+  left: -10px; 
+  transform: translateY(-3px);
+  font-family: var(--font-family);
+  
+}
+
+.archive-download-iconn{
+  background-color: #6ca956; 
+  border: none; 
+  height: 35px; 
+  width: 150px;
+  border-radius: 4px; 
+  position: relative; 
+  left: 15px; 
+  top: -7px; 
+}
 .dark-mode .archive-temp-event-btn:hover,
 .dark-mode .archive-download-btn:hover,
 .dark-mode .today-button:hover {
@@ -1504,7 +1560,7 @@
 /* Selected sidebar date item */
 .dark-mode .sidebar-date-item.selected,
 .dark-mode .sidebar-date-item.selected:hover {
-  background: #274060 !important;
+  background: #6ca956 !important;
 }
 
 /* Modal overlays and content */
@@ -1535,12 +1591,6 @@
 }
 
 /* Disable box-shadows in dark */
-.dark-mode .inner-container,
-.dark-mode .archive-card,
-.dark-mode .sidebar-event-dates,
-.dark-mode .surveillance-container {
-  box-shadow: none !important;
-}
 
 /* Hide light mode border when in dark */
 .dark-mode .archive-card,
@@ -1552,7 +1602,6 @@
 
 /* Fixes for contrast on buttons */
 .dark-mode .archive-temp-event-btn,
-.dark-mode .archive-download-btn,
 .dark-mode .today-button {
   border: 1.5px solid #243456 !important;
   box-shadow: none !important;
@@ -1573,8 +1622,8 @@
 }
 
 .dark-mode .archive-no-video-btn {
-  background: #16203b !important;
-  color: #bbb !important;
+  background: gray !important;
+  color: #fff !important;
 }
 
 .dark-mode .archive-footer {

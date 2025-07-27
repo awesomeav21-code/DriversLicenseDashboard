@@ -322,47 +322,49 @@
 .dark-video .camera-btn:hover {
   background-color: #22c55e;
 }
-@media (min-width: 1700px) and (max-width: 1800px) {
-  .video-feed-wrapper {
-    width: 1400px !important;
-    max-width: none !important;
-    margin: 0 auto;
-    height: auto !important;
-    overflow: visible !important;
-    transform: translateX(-150px);  /* Shift left by 150px */
-  }
+@media (min-width: 1500px) and (max-width: 1600px) {
+  .camera-section{
+    transform: scale(0.9); 
+    transform-origin: center center;
+    margin-left: -66px !important; 
+    margin-right: -83px !important; 
 
-  .live-data-wrapper {
-    width: 1400px !important;
-    max-width: none !important;
-    margin: 0 auto;
-    height: auto !important;
-    overflow: visible !important;
   }
-
-  .camera-section {
-    flex: 1 1 auto !important;
+ 
+}
+@media (min-width: 1200px) and (max-width: 1300px) {
+  .camera-section{
+    background-color: green !important;
+    flex: none !important;
+    width: 490px !important;
+    max-width: none !important;
     min-width: 0 !important;
-    max-width: none !important;
-    width: 1400px !important;
-    margin: 0 auto;
-    height: auto !important;
-    overflow: visible !important;
-  }
-
-  .zone-grid {
-    display: grid !important;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-    width: 100% !important;
-    height: auto !important;
+    overflow: hidden;
     box-sizing: border-box;
-    overflow: visible !important;
   }
-
-  .camera-streams-panel {
-    overflow: visible !important;
-    background-color: #ffffff !important; /* force white background */
-
+  .zone-card {
+    transform: scale(0.7);
+    transform-origin: center center;
+    position: relative; 
+    left: -15px;
+  }
+  .sidebar-panel {
+    transform: scale(0.8) translateX(15px);
+    transform-origin: top left;
+    font-size: 0.9rem;
+    padding: 8px;
+    margin-right: 8px;
+    box-sizing: border-box;
+    flex: none;
+  }
+  @media (max-width: 900px) {
+    body {
+      background: #ffeb3b; /* yellow, tablets */
+    }
+  }
+  @media (min-width: 3000px) and (max-width: 3100px) {
+    .camera-section {
+      background: pink !important;
+    }
   }
 }
