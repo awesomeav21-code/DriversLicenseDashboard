@@ -10,16 +10,16 @@
   100% { background-color: #16a34a; opacity: 1; box-shadow: 0 0 6px 2px rgba(22,163,74,0.4);}
 }
 
-/* MAIN WRAPPER: increase min-height slightly */
+/* MAIN WRAPPER */
 .video-feed-wrapper {
   position: relative;
   width: 100%;
   max-width: 1400px;
   left: 0;
-  min-height: 110vh;
-  height: auto; /* allow dynamic height */
+  min-height: 0;
+  height: auto;
   box-sizing: border-box;
-  padding: 8px 8px 90px 0;
+  padding: 8px 8px 0 0;
   margin-top: 10px;
   margin-left: auto;
   margin-right: auto;
@@ -38,7 +38,7 @@
   color: #e2e8f0;
 }
 
-/* LIVE DATA WRAPPER: dynamic height, remove fixed height */
+/* LIVE DATA WRAPPER */
 .live-data-wrapper {
   width: 100%;
   max-width: 1400px;
@@ -57,16 +57,18 @@
   margin-left: auto;
   margin-right: auto;
   top: -19px;
-  height: auto !important;    /* changed from fixed */
-  min-height: 0;              /* unset min-height */
-  max-height: none !important; /* unset max-height */
+  height: auto !important;
+  min-height: 0;
+  max-height: none !important;
 }
+
 
 .dark-video .live-data-wrapper {
   background-color: #0f172a;
   border-color: #ffffff;
   box-shadow: none;
 }
+
 
 .live-data-header {
   display: flex;
@@ -113,8 +115,8 @@
   overflow: visible;
   flex-grow: 1;
   top: -8px;
-  height: auto !important;    /* dynamic height */
-  min-height: 0;              /* unset min-height */
+  height: auto !important;
+  min-height: 0;
 }
 
 /* Camera panels grow/shrink dynamically */
@@ -132,9 +134,9 @@
   flex-direction: column;
   overflow: visible;
   transform: translateX(-34px);
-  height: auto !important;     /* dynamic height */
-  min-height: 0;               /* unset min-height */
-  max-height: none !important; /* unset max-height */
+  height: auto !important;
+  min-height: 0;
+  max-height: none !important;
 }
 
 .dark-video .camera-section {
@@ -188,18 +190,19 @@
   border-radius: 10px;
   overflow: visible !important;
   flex-grow: 1;
-  height: auto !important;      /* dynamic height */
-  min-height: 0;               /* unset min-height */
+  height: auto !important;
+  min-height: 0;
 }
 
+/* Zone grid */
 .zone-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   justify-items: stretch;
-  align-items: start; /* this prevents stretching */
+  align-items: start;
   width: 100%;
-  max-width: 800px; /* decreased from 1400px */
+  max-width: 800px;
   margin-left: auto;
   margin-right: auto;
   box-sizing: border-box;
@@ -207,15 +210,15 @@
   background-color: #f3f4f6;
   border-radius: 10px;
   overflow: hidden;
-  height: auto !important;     /* dynamic height */
-  min-height: 0;               /* unset min-height */
-  max-height: none !important; /* unset max-height */
+  height: auto !important;
+  min-height: 0;
+  max-height: none !important;
 }
 
 .zone-grid > * {
   min-height: 120px;
   padding: 22px 14px;
-  aspect-ratio: 1 / 1;         /* keep square ratio */
+  aspect-ratio: 1 / 1;
 }
 
 .dark-mode .zone-grid {
@@ -224,4 +227,142 @@
 
 .cameras-row.center {
   justify-content: center;
+}
+
+/* CAMERA PANELS CONTAINER */
+.camera-streams-panel {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between; /* Spread evenly */
+  gap: 24px;
+  width: calc(100% + 43px);
+  max-width: calc(1400px + 4px);
+  box-sizing: border-box;
+  background-color: transparent;
+  overflow: hidden;
+  z-index: 4000;
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  padding: 20px 17px;       /* was 16px 17px, now 25px more on top and bottom */
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  margin-left: -17px;       /* keep left margin as is */
+  margin-right: -1px !important; /* changed from -17px to -1px for right shift */
+  transform: translatey(-90px); 
+  min-height: 350px; /* Add this line to increase the panel height */
+}
+
+/* Remove individual background and border from stream-groups */
+.stream-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  padding: 0;
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  cursor: default;
+  transition: none;
+}
+
+.stream-group h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #1f2937;
+}
+
+.dark-video .stream-group h3 {
+  color: #e2e8f0;
+}
+
+.stream-group img {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  margin-bottom: 8px;
+  background-color: #e7ffe7;
+  object-fit: cover;
+  box-shadow: 0 0 6px rgba(22, 163, 74, 0.3);
+}
+
+.stream-group > div {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+.camera-btn {
+  background-color: #16a34a;
+  border: none;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+.camera-btn:hover {
+  background-color: #15803d;
+}
+
+.dark-video .camera-btn {
+  background-color: #4ade80;
+  color: #0f172a;
+}
+
+.dark-video .camera-btn:hover {
+  background-color: #22c55e;
+}
+@media (min-width: 1700px) and (max-width: 1800px) {
+  .video-feed-wrapper {
+    width: 1400px !important;
+    max-width: none !important;
+    margin: 0 auto;
+    height: auto !important;
+    overflow: visible !important;
+    transform: translateX(-150px);  /* Shift left by 150px */
+  }
+
+  .live-data-wrapper {
+    width: 1400px !important;
+    max-width: none !important;
+    margin: 0 auto;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .camera-section {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    width: 1400px !important;
+    margin: 0 auto;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .zone-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    width: 100% !important;
+    height: auto !important;
+    box-sizing: border-box;
+    overflow: visible !important;
+  }
+
+  .camera-streams-panel {
+    overflow: visible !important;
+    background-color: #ffffff !important; /* force white background */
+
+  }
 }

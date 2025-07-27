@@ -4,60 +4,197 @@
   --font-family: 'Inter', sans-serif; /* Define Inter as the base font */
   background-color: #f6fcf8;  /* 👈 Use your chosen green! */
   color: #1f2937;
+  position: relative; 
+  top: -6px; 
   font-family: var(--font-family);  /* Use CSS variable */
-  padding: 12px 56px 0 56px;  /* top padding set to 15px */
+  padding: 15px 56px 0 56px;
   max-width: 3000px !important;
-  margin: 0 auto;
-  height: 100vh;
+  
+  height: auto;
+  min-height: 100vh;
   box-sizing: border-box;
   display: flex;
-  flex-direction: column;
-  overflow: visible;
-  
-}
-@media (max-width: 1350px) {
-  .archive-cards-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  flex-direction: column !important; 
 }
 
-/* Collapse to 2 columns */
-@media (max-width: 1024px) {
-  .archive-cards-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px 0px;
-  }
-}
 
-/* Single column for mobile/super narrow */
-@media (max-width: 700px) {
-  .archive-cards-grid {
-    grid-template-columns: 1fr;
-    gap: 10px 0px;
+@media (min-width: 2100px) and (max-width: 2200px) {
+  .page,
+  .archive-page {
+    background-color: yellow !important; 
+    transform: scale(0.93)!important;
+    transform-origin: top center !important;
+    width: 100%;      /* Stay within the viewport */
+    max-width: 3000px !important;
+    margin: 0 auto;
+    height: 100vh !important;
+    min-height: 100vh !important;
+    box-sizing: border-box;
+    overflow: visible !important; /* Prevent hidden content */
   }
-}
+
+  .surveillance-container {
+    width: 100% !important; 
+    margin: 0 auto; 
+    
+  }
+  .mini-navbar,
+  .mini-navbar-outer {
+    width: 100% !important;
+    margin: 0 auto;   /* This is fine for centering if there's a max-width, otherwise optional */
+  }
+  .archive-cards-grid {
+    display: grid !important;
+    grid-template-columns: repeat(1, 315px) !important;  /* 2 fixed-width cards */
+    gap: 0 20px !important;      /* 20px gap between the cards */
+    max-width: 650px;            /* 2*315 + 20 */
+    margin: 0 auto;              /* Center the grid in parent */
+    padding: 0 !important;
+    justify-content: center;     /* extra centering if needed */
+    box-sizing: border-box;
+  }
   .archive-card {
-    max-width: 98vw;
-    min-width: 0;
-    margin: 0 auto 14px auto;
+    width: 315px !important;
+    max-width: 315px !important;
+    margin: 0 !important;
+  }
+  }
+  @media (min-width: 1820px) and (max-width: 2100px) {
+    .page,
+    .archive-page {
+      background-color: yellow !important; 
+      transform: scale(0.93)!important;
+      transform-origin: top center !important;
+      width: 100%;      /* Stay within the viewport */
+      max-width: 3000px !important;
+      margin: 0 auto;
+      height: 100vh !important;
+      min-height: 100vh !important;
+      box-sizing: border-box;
+      overflow: visible !important; /* Prevent hidden content */
+    }
+  
+    .surveillance-container {
+      width: 100% !important; 
+      margin: 0 auto; 
+      
+    }
+    .mini-navbar,
+    .mini-navbar-outer {
+      width: 100% !important;
+      margin: 0 auto;   /* This is fine for centering if there's a max-width, otherwise optional */
+    }
+    .archive-cards-grid {
+      display: grid !important;
+      grid-template-columns: repeat(1, 315px) !important;  /* 2 fixed-width cards */
+      gap: 0 20px !important;      /* 20px gap between the cards */
+      max-width: 650px;            /* 2*315 + 20 */
+      margin: 0 auto;              /* Center the grid in parent */
+      padding: 0 !important;
+      justify-content: center;     /* extra centering if needed */
+      box-sizing: border-box;
+    }
+    .archive-card {
+      width: 315px !important;
+      max-width: 315px !important;
+      margin: 0 !important;
+    }
+    }
+
+
+  @media (min-width: 1700px) and (max-width: 1800px) {
+    
+  
+    .surveillance-container {
+      width: 100% !important; 
+      margin: 0 auto; 
+    }
+  
+    .mini-navbar,
+    .mini-navbar-outer {
+      width: 100% !important;
+      margin: 0 auto;
+    }
+  
+    .archive-cards-grid {
+      display: grid !important;
+      grid-template-columns: repeat(2, 315px) !important;
+      gap: 20px 40px !important; /* Increased vertical and horizontal gap */
+      max-width: 650px;
+      margin: 0 auto;
+      padding: 0 !important;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+    .surveillance-container .formatted-date{ 
+      font-size: 1.15rem; 
+    }
+  
+    .archive-card {
+      width: 315px !important;
+      max-width: 315px !important;
+      margin: 0 !important;
+    }
+  }
+  @media (min-width: 1500px) and (max-width: 1600px) { /*for 90% zoom */ 
+    .page,
+    .archive-page {
+      background-color: yellow !important; 
+      transform: scale(0.93)!important;
+      transform-origin: top center !important;
+      width: 100%;      /* Stay within the viewport */
+      max-width: 3000px !important;
+      margin: 0 auto;
+      height: 100vh !important;
+      min-height: 100vh !important;
+      box-sizing: border-box;
+      overflow: visible !important; /* Prevent hidden content */
+    }
+  
+    .surveillance-container {
+      width: 100% !important; 
+      margin: 0 auto; 
+      
+    }
+    .mini-navbar,
+    .mini-navbar-outer {
+      width: 100% !important;
+      margin: 0 auto;   /* This is fine for centering if there's a max-width, otherwise optional */
+    }
+    .archive-cards-grid {
+      display: grid !important;
+      grid-template-columns: repeat(3, 315px) !important;  /* 2 fixed-width cards */
+      gap: 0 20px !important;      /* 20px gap between the cards */
+      max-width: 650px;            /* 2*315 + 20 */
+      margin: 0 auto;              /* Center the grid in parent */
+      padding: 0 !important;
+      justify-content: center;     /* extra centering if needed */
+      box-sizing: border-box;
+    }
+    .archive-card {
+      width: 315px !important;
+      max-width: 315px !important;
+      margin: 0 !important;
+    }
   }
 
 
-/* For further zoomed-in or even smaller screens */
-@media (max-width: 1100px) {
+@media (min-width: 1000px) and (max-width: 1200px) {
+  .page,
+  .archive-page {
+    background-color: #e0f7e0; /* light greenish for testing */
+    padding: 10px 20px 0 20px; /* reduce padding a bit */
+  }
+
+  /* For example, collapse your cards grid to 2 columns */
   .archive-cards-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px 0px;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+    max-width: 1000px !important;
+    margin: 0 auto !important;
   }
 }
 
-/* For single column at high zoom or mobile */
-@media (max-width: 700px) {
-  .archive-cards-grid {
-    grid-template-columns: 1fr;
-    gap: 10px 0px;
-  }
-}
 
 .inner-container.date-list-container.selected:hover {
   background-color: #6ca956 !important; /* Apple green stays when selected and hovered */
@@ -65,11 +202,9 @@
   border-radius: 6px !important;
 }
 
-
-.inner-container .sidebar-date-list.selected{
+.inner-container .sidebar-date-list.selected {
   background-color: green; 
 }
-
 
 .month-nav-text {
   display: flex;
@@ -391,6 +526,7 @@
   box-shadow: none;
 }
 
+
 .page.dark-mode,
 .archive-page.dark-mode {
   background-color: #0f172a !important;
@@ -474,7 +610,17 @@
   gap: 8px;
   font-family: var(--font-family);
 }
-
+.dark-mode .mini-navbar-outer{ 
+  background-color: #0f127a!important; 
+  border-bottom:none !important; 
+}
+.page.dark-mode .mini-navbar-outer {
+  background-color: #0f172a !important;
+  border-bottom: 1px solid #24406e !important;
+  box-sizing: border-box !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
 
 .sidebar-month-arrow:hover {
   color: #233046;
@@ -487,13 +633,6 @@
   font-family: var(--font-family);
 }
 
-.page.dark-mode .mini-navbar-outer,
-.page.dark-mode .mini-navbar {
-  background: #0f172a !important;
-  color: #e5e7eb !important;
-  box-shadow: 0 2px 6px rgba(5,8,19,0.33);
-  font-family: var(--font-family);
-}
 
 /* Tighter gap between sidebar and content */
 .archive-main-row {
@@ -550,11 +689,6 @@
   padding-left: 12px;
 }
 
-.page.dark-mode .mini-navbar-outer {
-  background: #0f172a !important;
-  border-color: #ffffff !important;
-  box-shadow: none !important;
-}
 
 .page.dark-mode .mini-navbar {
   color: #0f172a !important;
@@ -785,7 +919,6 @@
 }
 
 .archive-download-btn {
-  /* existing styles */
   background: #6ca956;
   color: #fff;
   border: none;
@@ -803,7 +936,6 @@
   height: 26px;
   position: relative; 
   left: -10px; 
-  /* Add this: */
   transform: translateY(-3px);
   font-family: var(--font-family);
   
@@ -812,7 +944,7 @@
 .archive-download-btn:hover {
   background: #578641;
 }
-.today-button{
+.today-button {
   position: relative; 
   left: -17px; 
 }
@@ -851,44 +983,16 @@
 }
 .archive-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(4, 1fr));
+  grid-template-columns: repeat(4, 1fr) ;
   gap: 22px 14px;
+  max-width: none !important;
+  margin: 20px auto 0 auto;
+  padding: 0 10px;
   width: 100%;
-  justify-content: stretch;
-  padding-right: 20px;
-  padding-left: 10px;
-  margin: 0;
   box-sizing: border-box;
-  margin-bottom: 0;
-  padding-bottom: 0;
-  margin-top: 20px;
   font-family: var(--font-family);
 }
-@media (max-width: 900px) {
-  body {
-    transform: scale(1.2);
-    transform-origin: top left;
-    width: 120vw;
-    overflow-x: auto;
-  }
-}
-@media (max-width: 1200px) {
-  .archive-cards-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
 
-@media (max-width: 900px) {
-  .archive-cards-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 600px) {
-  .archive-cards-grid {
-    grid-template-columns: 1fr;
-  }
-}
 .archive-no-events > div:first-child {
   margin-top: 65px; /* Or whatever value feels right */
 }
@@ -931,24 +1035,21 @@
   font-family: var(--font-family);
 }
 .archive-card {
+  max-width: 315px;
+  width: 100%;
+  height: 460px;
   background: transparent;
   border-radius: 10px !important;
   border: 1px solid #d1d5db;
   box-shadow: none;
   display: flex;
   flex-direction: column;
-  min-width: 0;
   overflow: visible;
-  min-width: 260px;
   padding: 0;
-  width: 100%;
-  max-width: 315px; /* if you want max card width */
-  margin: 0 0 16px 0; /* Removed horizontal margin, kept bottom margin */
-  height: 460px;
+  margin: 0 0 16px 0;  /* vertical margin of 16px */
   box-sizing: border-box;
-  transform: translateY(-);
-  transition: transform 0.2s ease; /* optional smooth effect */
   font-family: var(--font-family);
+  transition: transform 0.2s ease;
 }
 .modal-overlay {
   position: fixed;
@@ -1039,7 +1140,6 @@
   word-break: normal;
   position: relative; 
   left: -4px; 
-  letter-spacing: none! important; 
   font-family: var(--font-family);
 }
 .dash-separator{
@@ -1112,6 +1212,8 @@
   color: #294066;
   font-family: var(--font-family);
 }
+
+
 
 .page.dark-mode .archive-card-meta {
   color: #99d0f7 !important;
@@ -1213,95 +1315,6 @@
   font-family: var(--font-family);
 }
 
-@media (max-width: 900px) {
-  .mini-navbar-outer,
-  .archive-content-column {
-    max-width: 100% !important;
-    min-width: 0 !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-    font-family: var(--font-family);
-  }
-  .surveillance-container {
-    padding: 12px 5px 18px 5px;
-    margin-top: 0;
-    max-width: 100% !important;
-    font-family: var(--font-family);
-  }
-  .sidebar-event-dates {
-    background: #fff;
-    border-radius: 4px !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 8px 10px 14px 10px;
-    width: 100%;
-    max-width: 320px;
-    box-sizing: border-box;
-    font-size: 1.01rem;
-    color: #111827;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    margin-top: 0;
-    margin-left: 0;
-    margin-right: 40px;
-    margin-bottom: 0;
-    flex-grow: 1;
-    min-height: 0;
-    height: 100%;
-    overflow-y: auto;
-    max-height: none;
-    font-family: var(--font-family);
-  }
-  .formatted-date {
-    font-weight: 700;
-    font-size: 1.15rem;
-    color: inherit;
-    font-family: var(--font-family);
-  }
-  .sidebar-date-list {
-    max-height: 220px;
-    flex: unset;
-    width: 100%;
-    margin: 0;
-    align-items: flex-start;
-    font-family: var(--font-family);
-  }
-  .sidebar-date-item {
-    width: 100%;
-    justify-content: flex-start;
-    font-weight: 200 !important;
-    text-transform: uppercase;
-    margin-bottom: 0;
-    letter-spacing: 0.1em;
-    font-family: var(--font-family);
-  }
-  .archive-cards-grid {
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 12px 0;
-    font-family: var(--font-family);
-  }
-  .archive-card {
-    max-width: 160px;
-    height: 300px;
-    background: transparent;
-    font-family: var(--font-family);
-  }
-  .archive-card-img {
-    height: 140px;
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    gap: 1px;
-    font-family: var(--font-family);
-  }
-  .archive-no-video-btn {
-    margin: 10px 8pfx 12px 8px;
-    padding: 6px 0;
-    font-size: 0.9rem;
-    font-family: var(--font-family);
-  }
-}
 
 /* ADDED SECTION */
 .surveillance-cards-scroll {
@@ -1349,6 +1362,7 @@
 /* Dark mode: Sidebar date text and items */
 .dark-mode .sidebar-date-text,
 .dark-mode .sidebar-date-item {
+  background-color: none !important; 
   color: #fff !important;
 }
 
@@ -1393,7 +1407,6 @@
 .dark-mode,
 .dark-mode .page,
 .dark-mode .archive-page,
-.dark-mode .mini-navbar-outer,
 .dark-mode .mini-navbar,
 .dark-mode .inner-container,
 .dark-mode .sidebar-event-dates,
@@ -1422,10 +1435,17 @@
 .dark-mode .archive-temp-event-btn,
 .dark-mode .archive-download-btn,
 .dark-mode .card-badge {
-  background: #0f172a !important;
   border-color: #1a2337 !important;
   font-family: var(--font-family) !important;
 }
+.dark-mode .page,
+.dark-mode .archive-page{
+  background-color: #0f172a !important; 
+}
+.dark-mode .mini-navbar{
+  background-color: #0f172a!important; 
+}
+
 
 /* Lighter or transparent backgrounds for important content sections */
 .dark-mode .inner-container,
@@ -1496,6 +1516,12 @@
   background: #17223c !important;
   border-radius: 8px;
 }
+@media (min-width: 1199px) and (max-width: 1201px) {
+  body {
+    background-color: yellow;
+  }
+}
+  
 
 /* Archive divider lighter */
 .dark-mode .archive-divider,
@@ -1531,7 +1557,9 @@
   border: 1.5px solid #243456 !important;
   box-shadow: none !important;
 }
-
+.dark-mode .inner-container.sidebar-date-item{
+  background-color: #0f172a!important; 
+}
 /* Remove background for selected hover to keep things clean */
 .dark-mode .inner-container.date-list-container.selected,
 .dark-mode .inner-container.date-list-container.selected:hover {

@@ -312,16 +312,7 @@ export default function App() {
     })
   }
 
-  // Create refs for measuring and moving
-  const contentAboveRef = useRef(null)
-  const cameraPanelsWrapperRef = useRef(null)
-
-  useEffect(() => {
-    if (contentAboveRef.current && cameraPanelsWrapperRef.current) {
-      const heightAbove = contentAboveRef.current.offsetHeight
-      cameraPanelsWrapperRef.current.style.marginTop = `-${heightAbove}px`
-    }
-  }, [zones]) // update when zones change, or add other deps as needed
+  // Removed refs and effect related to camera panels
 
   return (
     <>
@@ -361,88 +352,25 @@ export default function App() {
               {activeTab === 'dashboard' && (
                 <div className={`big-dashboard-container${!eventLogsVisible ? ' big-dashboard-container--fullwidth' : ''}`}>
                   {/* Attach ref here */}
-                  <div ref={contentAboveRef}>
+                  <div>
                     <VideoFeed
                       isDarkMode={isDarkMode}
                       tempUnit={tempUnit}
                       camera1Zones={camera1Zones}
                       camera2Zones={camera2Zones}
+                      // You will handle camera panels inside VideoFeed now
+                      show360Popup={show360Popup}
+                      setShow360Popup={setShow360Popup}
+                      selectedThermalCamera={selectedThermalCamera}
+                      setSelectedThermalCamera={setSelectedThermalCamera}
+                      isHoveringThermal={isHoveringThermal}
+                      setIsHoveringThermal={setIsHoveringThermal}
+                      selectedOpticalCamera={selectedOpticalCamera}
+                      setSelectedOpticalCamera={setSelectedOpticalCamera}
+                      isHoveringOptical={isHoveringOptical}
+                      setIsHoveringOptical={setIsHoveringOptical}
+                      filterZonesByCamera={filterZonesByCamera}
                     />
-                  </div>
-                  {/* Attach ref here */}
-                  <div ref={cameraPanelsWrapperRef} className="camera-panels-wrapper">
-                    <div className="camera-streams-panel">
-                      <div className="stream-group" style={{ textAlign: 'center' }}>
-                        <h3>360° Stream</h3>
-                        <img
-                          src="/assets/cam-360.png"
-                          alt="360 Stream"
-                          style={{ width: '180px', borderRadius: '50%', marginBottom: '12px', background: '#e7ffe7' }}
-                        />
-                        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', gap: '8px', padding: 0, margin: 0 }}>
-                          <button
-                            className="camera-btn"
-                            onClick={() => setShow360Popup(true)}
-                          >
-                            Camera 1
-                          </button>
-                        </div>
-                      </div>
-                      <div
-                        className="stream-group"
-                        style={{ textAlign: 'center', position: 'relative' }}
-                        onMouseEnter={() => setIsHoveringThermal(true)}
-                        onMouseLeave={() => setIsHoveringThermal(false)}
-                      >
-                        <h3>Thermal Stream</h3>
-                        <img
-                          src={Thermal}
-                          alt="Thermal Stream"
-                          style={{ width: '180px', borderRadius: '50%', marginBottom: '12px', background: '#e7ffe7' }}
-                        />
-                        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', gap: '8px', padding: 0, margin: 0 }}>
-                          <button
-                            className="camera-btn"
-                            onClick={() => setSelectedThermalCamera((prev) => (prev === 'planck_1' ? null : 'planck_1'))}
-                          >
-                            Left Camera
-                          </button>
-                          <button
-                            className="camera-btn"
-                            onClick={() => setSelectedThermalCamera((prev) => (prev === 'planck_2' ? null : 'planck_2'))}
-                          >
-                            Right Camera
-                          </button>
-                        </div>
-                      </div>
-                      <div
-                        className="stream-group"
-                        style={{ textAlign: 'center', position: 'relative' }}
-                        onMouseEnter={() => setIsHoveringOptical(true)}
-                        onMouseLeave={() => setIsHoveringOptical(false)}
-                      >
-                        <h3>Optical Stream</h3>
-                        <img
-                          src={Surveillance}
-                          alt="Optical Stream"
-                          style={{ width: '180px', borderRadius: '50%', marginBottom: '12px', background: '#e7ffe7' }}
-                        />
-                        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', gap: '8px', padding: 0, margin: 0 }}>
-                          <button
-                            className="camera-btn"
-                            onClick={() => setSelectedOpticalCamera((prev) => (prev === 'planck_1' ? null : 'planck_1'))}
-                          >
-                            Left Camera
-                          </button>
-                          <button
-                            className="camera-btn"
-                            onClick={() => setSelectedOpticalCamera((prev) => (prev === 'planck_2' ? null : 'planck_2'))}
-                          >
-                            Right Camera
-                          </button>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               )}

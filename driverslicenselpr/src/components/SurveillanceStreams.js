@@ -578,6 +578,30 @@ const SurveillanceStreams = ({
 
   const cardsGridRef = useRef(null);
 
+  // NEW: state to control grid columns for responsiveness/zoom
+  const [gridTemplateColumns, setGridTemplateColumns] = useState('repeat(auto-fit, minmax(260px, 1fr))');
+
+  useEffect(() => {
+    function updateGridColumns() {
+      const width = window.innerWidth;
+
+      if (width < 700) {
+        setGridTemplateColumns('1fr');
+      } else if (width < 1024) {
+        setGridTemplateColumns('repeat(2, 1fr)');
+      } else if (width < 1350) {
+        setGridTemplateColumns('repeat(3, 1fr)');
+      } else {
+        setGridTemplateColumns('repeat(auto-fit, minmax(260px, 1fr))');
+      }
+    }
+
+    updateGridColumns();
+
+    window.addEventListener('resize', updateGridColumns);
+    return () => window.removeEventListener('resize', updateGridColumns);
+  }, []);
+
   // Sync selectedDate to localStorage when changed
   useEffect(() => {
     if (selectedDate) {
@@ -820,7 +844,11 @@ const SurveillanceStreams = ({
               <hr className="archive-divider" />
 
               <div className="surveillance-cards-scroll">
-                <div className="archive-cards-grid" ref={cardsGridRef}>
+                <div
+                  className="archive-cards-grid"
+                  ref={cardsGridRef}
+                  style={{ gridTemplateColumns }}
+                >
                   {filteredEvents.length === 0 ? (
                     hasEventsInMonth ? (
                       <div className="archive-no-events">

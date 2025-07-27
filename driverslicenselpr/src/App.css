@@ -12,27 +12,49 @@ html, body {
   font-family: 'Poppins', sans-serif;
 }
 
+body.dark-mode .mini-navbar-outer::before,
+body.dark-mode .mini-navbar-outer::after {
+  content: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.big-dashboard-container--fullwidth {
+  max-width: 100vw !important;
+  width: 100vw !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  border-radius: 0 0 10px 10px !important; /* Optional: squared left/right */
+  transition: max-width 0.25s, width 0.25s, padding 0.25s;
+}
+
+
+
 .big-dashboard-container {
   position: relative; 
   top: -32px; 
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  padding-bottom: 0 !important;
   max-width: 1150px;
-
   margin: 36px auto 0 auto;
-  padding: 30px 36px 36px 36px;
+  padding: 30px 36px 0 36px;
   background: #ffffff;
-  margin-bottom: 150px !important; 
   border-radius: 10px;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
   box-shadow: 0 4px 24px 0 rgba(30, 40, 60, 0.10);
   border: 1.5px solid #e3e3e8;
-  display: flex;
-  
-  flex-direction: column;
-
-  align-items: stretch;
-  gap: -32px;
-  min-height: 0;
+  display: block;
+  box-sizing: border-box;
   transition: background 0.25s, box-shadow 0.25s;
-  overflow-x: auto;
+}
+
+.big-dashboard-container > * {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 body.dark-mode .big-dashboard-container {
@@ -66,6 +88,7 @@ body.dark-mode .big-dashboard-container {
     opacity 0.15s;
   z-index: 10;
   pointer-events: auto;
+
 }
 
 .hamburger-area::before {
@@ -121,9 +144,6 @@ body.dark-mode {
 }
 
 /* Dark mode text color for camera panel and buttons */
-body.dark-mode .camera-streams-panel,
-body.dark-mode .camera-streams-panel .stream-group,
-body.dark-mode .camera-streams-panel .stream-group h3,
 body.dark-mode .camera-btn {
   color: #f9fafb;
 }
@@ -146,37 +166,12 @@ body.dark-mode .page-wrapper {
   border-radius: 8px;
   background-color: #fff;
   color: #000;
-  z-index: 100000 !important;
-  pointer-events: auto;
+  z-index: 1000;
 }
+
 /* Apply border-box to all elements */
 *, *::before, *::after {
   box-sizing: inherit;
-}
-.big-dashboard-container--fullwidth {
-  max-width: 100% !important;
-  margin-left: 20px !important;
-  margin-right: 20px !important;
-  padding-left: 20px !important;
-  padding-right: 20px !important;
-  position: relative;
-}
-
-/* Force camera panels to move right by padding */
-.big-dashboard-container--fullwidth .camera-panels-wrapper {
-  padding-left: 60px !important; /* pushes contents right */
-  max-width: calc(100% - 60px) !important;
-  margin-right: 20px !important;
-
-  margin-top: 0 !important;  /* allow normal flow vertically */
-  transform: none !important; /* disable any transform */
-  position: relative; /* reset position */
-}
-
-/* Move live data title right by transform */
-.big-dashboard-container--fullwidth .section-livedata-title {
-  transform: translateX(60px);
-  margin-left: 0;
 }
 
 .page-wrapper {
@@ -205,6 +200,7 @@ body.dark-mode .page-wrapper {
   padding: 0;
 }
 
+.dark-mod
 body.dark-mode .main-content {
   background-color: #0f172a !important;
 }
@@ -223,95 +219,6 @@ body.dark-mode .main-content {
   background: transparent !important;
   margin: 0;
   padding: 0;
-}
-
-/* CAMERA STREAMS PANEL */
-.camera-streams-panel {
-  margin: -20px auto 0 auto;
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-start;
-  gap: 48px;
-  background: transparent !important;
-  position: relative;
-  left: -76px;
-}
-
-/* --- ONLY ONE BORDER: .camera-panels-wrapper --- */
-.camera-panels-wrapper {
-  background: #fff;
-  border: 1px solid #d1d5db;
-  border-radius: 5px;
-  padding: 30px 30px 30px 30px; /* reduced from 132px top padding */
-  margin-top: 0 !important; /* removed negative margin */
-  margin-bottom: 36px;
-  margin-right: -34px !important;
-  margin-left: -18px !important;
-  max-width: 2000px;
-  width: 1112px;
-  box-shadow: 0 4px 24px 0 rgba(30, 40, 60, 0.07);
-  display: flex;
-  position: relative;
-  z-index: 9999;
-  flex-direction: column;
-  align-items: stretch;
-  /* removed transform */
-  /* removed fixed positioning */
-}
-
-body.dark-mode .camera-panels-wrapper {
-  background: #16243b;
-  border-color: #385490;
-}
-
-.camera-panels-wrapper h3 {
-  margin-top: 0.75em;
-  margin-bottom: 0.5em;
-  font-weight: 700;
-  font-size: 1.22rem;
-  color: #233046;
-}
-
-body.dark-mode .camera-panels-wrapper h3 {
-  color: #c4e7fc;
-}
-
-/* --- NO BORDERS/BOX FOR INDIVIDUAL PANELS --- */
-.camera-streams-panel .stream-group {
-  text-align: center;
-  flex: 1 1 0;
-  min-width: 350px;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0 10px;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.camera-streams-panel .stream-group h3 {
-  margin-top: 0;
-  margin-bottom: 18px;
-  font-weight: 700;
-  font-size: 1.25rem;
-  color: #233046;
-}
-
-body.dark-mode .camera-streams-panel .stream-group h3 {
-  color: #c4e7fc;
-}
-
-/* Camera images */
-.camera-streams-panel img {
-  width: 180px;
-  height: 180px;
-  object-fit: contain;
-  border-radius: 50%;
-  margin-bottom: 20px;
-  background: #e7ffe7;
-  box-shadow: 0 4px 12px 0 rgba(0,0,0,0.1);
 }
 
 /* Camera buttons */
@@ -380,26 +287,12 @@ body.dark-mode .fixed-popup {
   border-color: #23375b !important;
   box-shadow: 0 4px 12px rgba(0,0,0,0.7) !important;
 }
-
+/* For zoomed-out / larger viewport widths */
 .page.dark-mode .archive-card:hover {
   box-shadow: 0 0 15px 3px rgba(92, 255, 203, 0.7);
   border-color: #5cffcb;
   transform: translateY(-3px);
   transition: all 0.3s ease;
   cursor: pointer;
-}
-
-@media (max-width: 1024px) {
-  .camera-streams-panel {
-    flex-direction: column;
-    align-items: center;
-    gap: 36px;
-  }
-  .camera-streams-panel .stream-group {
-    min-width: 0;
-  }
-  .camera-btn {
-    margin-bottom: 12px;
-  }
 }
 

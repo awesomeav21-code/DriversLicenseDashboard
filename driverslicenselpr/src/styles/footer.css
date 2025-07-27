@@ -9,6 +9,7 @@
   border-top: 1px solid #2c3e66;
   box-sizing: border-box;
   position: relative;
+  top: -7px;
   z-index: 5;
   font-size: 14px;
 }
