@@ -5,11 +5,16 @@ html, body {
   width: 100%;
   height: 100%;
   min-height: 100vh;
-  background-color: #f8f9fa !important;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   font-family: 'Poppins', sans-serif;
+}
+.video-feed-wrapper.dark-video .live-data-wrapper {
+  background-color: #0f172a !important;
+  border-color: #ffffff !important;
+  box-shadow: none !important;
+  color: #eee; /* make sure text is readable */
 }
 
 body.dark-mode .mini-navbar-outer::before,
@@ -58,8 +63,8 @@ body.dark-mode .mini-navbar-outer::after {
 }
 
 body.dark-mode .big-dashboard-container {
-  background: #101b2b;
-  border-color: #253152;
+  background: #0f172a !important;
+  border: 1px solid #fff !important;
   color: #e0e8f0;
   box-shadow: 0 4px 24px 0 rgba(10, 18, 28, 0.45);
 }
@@ -274,7 +279,7 @@ body.dark-mode,
 body.dark-mode html, 
 body.dark-mode .page-wrapper, 
 body.dark-mode .main-content, 
-body-dark-mode .content-area,
+body.dark-mode .content-area,
 body.dark-mode .fixed-popup {
   background-color: #0f172a !important;
   color: #f9fafb !important;
@@ -283,10 +288,12 @@ body.dark-mode .fixed-popup {
   border: none !important;
 }
 
+/* Fixed popup overrides */
 body.dark-mode .fixed-popup {
   border-color: #23375b !important;
   box-shadow: 0 4px 12px rgba(0,0,0,0.7) !important;
 }
+
 /* For zoomed-out / larger viewport widths */
 .page.dark-mode .archive-card:hover {
   box-shadow: 0 0 15px 3px rgba(92, 255, 203, 0.7);
@@ -295,9 +302,10 @@ body.dark-mode .fixed-popup {
   transition: all 0.3s ease;
   cursor: pointer;
 }
+
 @media (min-width: 1500px) and (max-width: 1600px) {
-.big-dashboard-container{
-  width: 100%; 
-  max-width: 1300px; 
-}
+  .big-dashboard-container{
+    width: 100%; 
+    max-width: 1300px; 
+  }
 }

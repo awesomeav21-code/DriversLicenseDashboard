@@ -10,6 +10,7 @@
   box-sizing: border-box;
   position: relative;
   margin: 10px auto 0 auto; /* Top margin, center horizontally */
+  left: 60px; 
 }
 
 .thermal-container.dark-mode {
@@ -20,15 +21,37 @@
 
 /* === CAMERA BUTTON BAR (centered above chart) === */
 .camera-switcher-bar {
-  display: flex;
+  display: inline-flex;             /* Inline-flex to shrink to fit */
   justify-content: flex-start !important;
   align-items: center;
   gap: 14px;
-  transform: translateX(500px); /* Shift right by 500px */
+  transform: translateX(530px);    /* Keep your current position */
   margin-bottom: 10px;
   margin-top: 4px;
+  position: relative; 
+  top: -15px; 
+  background: #fff;                /* White background */
+  padding: 8px 20px;               /* Padding inside container */
+  border-radius: 6px;              /* Rounded corners */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* subtle shadow */
+  border: 1px solid #ddd;          /* subtle border */
+
+  max-width: 700px;                /* Max width limit */
+  min-width: 0;                   /* Allow shrinking */
+  white-space: nowrap;            /* Prevent buttons wrapping */
+  overflow-x: auto;               /* Scroll if buttons overflow */
+  box-sizing: border-box;          /* Include padding in width */
 }
 
+/* Dark mode container style */
+.dark-mode .camera-switcher-bar {
+  background: #0f172a;              /* Same dark blue as other dark mode areas */
+  border-color: #253152;            /* Darker border for contrast */
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.8); /* Darker shadow */
+  color: #eee;                     /* Light text color */
+}
+
+/* buttons keep their existing style */
 .camera-switcher-btn {
   padding: 8px 18px;
   border: none;
@@ -49,18 +72,70 @@
   background: #c1ebe0;
 }
 
-/* === BUTTON BAR FOR CHART === */
-.chart-button-container {
-  display: flex;
-  justify-content: flex-start; /* Left align inside shifted container */
-  align-items: center;
-  gap: 10px;
-  margin-top: 18px;
-  padding-bottom: 12px;
-  flex-wrap: wrap;
-  transform: translateX(350px); /* Shift right by 500px to align vertically */
+/* Dark mode buttons */
+.dark-mode .camera-switcher-btn {
+  background: #1a273b;
+  color: #73d2b5;
+  border: 1px solid #23375b;
+}
+.dark-mode .camera-switcher-btn.selected {
+  background: #4ade80;
+  color: #0f172a;
+}
+.dark-mode .camera-switcher-btn:hover:not(.selected) {
+  background: #18355b;
+  color: #a6f8dc;
 }
 
+/* === NEW CONTAINER FOR CHART BUTTONS === */
+.chart-button-wrapper {
+  background: #fff;                  /* White background */
+  padding: 8px 20px;                 /* Padding inside container */
+  border-radius: 6px;                /* Rounded corners */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* Subtle shadow */
+  border: 1px solid #ddd;            /* Subtle border */
+  max-width: 740px;                  /* Slightly bigger to hold buttons + translate */
+  margin: 18px auto 0 auto;          /* Margin top, centered horizontally */
+  box-sizing: border-box;
+  overflow-x: auto;                  /* If buttons overflow horizontally */
+  white-space: nowrap;               /* Prevent wrapping */
+}
+
+/* Dark mode container style for chart buttons */
+.dark-mode .chart-button-wrapper {
+  background: #0f172a;               /* Dark blue background */
+  border-color: #253152;             /* Dark border */
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.8); /* Dark shadow */
+  color: #eee;                      /* Light text */
+}
+
+/* === BUTTON BAR FOR CHART === */
+.chart-button-container {
+  background-color: #fff;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  padding: 8px 16px;
+  display: inline-flex;
+  gap: 10px;
+  position: relative; 
+  left: 330px;
+  top: 20px; 
+  flex-wrap: wrap;
+  cursor: pointer;
+  color: #000;
+  transition: background-color 0.3s ease;
+}
+
+/* Dark mode for chart button container */
+.dark-mode .chart-button-container {
+  background-color: #0f172a; /* Same dark blue as other dark mode areas */
+  border-color: #253152;
+  color: #fff; /* Always white text */
+}
+
+/* REMOVED the hover on container — NO color change on container hover */
+
+/* Buttons */
 .chart-button {
   display: inline-block;
   padding: 6px 18px;
@@ -86,6 +161,23 @@
 .chart-button:hover * {
   background-color: #000000;
   color: #ffffff;
+}
+
+/* Dark mode buttons */
+.dark-mode .chart-button,
+.dark-mode .zoom-left-button {
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+/* Dark mode button hover: Blue background, white text, blue border */
+.dark-mode .chart-button:hover,
+.dark-mode .chart-button:hover *,
+.dark-mode .zoom-left-button:hover,
+.dark-mode .zoom-left-button:hover * {
+  background-color: #2563eb;  /* Blue background */
+  color: #fff;                /* White text */
+  border-color: #1e40af;      /* Darker blue border */
 }
 
 .zoom-left-button {
@@ -114,21 +206,6 @@
 .zoom-left-button:hover * {
   background-color: #000000;
   color: #ffffff;
-}
-
-/* Dark mode overrides */
-.dark-mode .chart-button,
-.dark-mode .zoom-left-button {
-  border-color: #ffffff;
-  color: #ffffff;
-}
-
-.dark-mode .chart-button:hover,
-.dark-mode .chart-button:hover *,
-.dark-mode .zoom-left-button:hover,
-.dark-mode .zoom-left-button:hover * {
-  background-color: #ffffff;
-  color: #000000;
 }
 
 /* Responsive tweak for very small screens */

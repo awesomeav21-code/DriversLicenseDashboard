@@ -638,7 +638,7 @@ export default function ThermalPlot({
         zoom: {
           wheel: { enabled: true },
           pinch: { enabled: true },
-          mode: 'xy', // <--- CHANGE HERE to enable vertical scroll
+          mode: 'xy',
           threshold: 10,
           onZoom: ({ chart }) => {
             clampZoomPan(chart)
@@ -646,23 +646,35 @@ export default function ThermalPlot({
         },
         pan: {
           enabled: true,
-          mode: 'xy', // <--- CHANGE HERE to enable vertical scroll
+          mode: 'xy',
           onPan: ({ chart }) => {
             clampZoomPan(chart)
           },
         },
         limits: {
           x: {
-            min: (timeRange === '24h' || dayRanges[timeRange]) ? extendedMin
-              : timeRange === '1h' ? extendedMin
-              : timeRange === '3h' ? extendedMin
-              : extendedMin,
-            max: (timeRange === '24h' || dayRanges[timeRange]) ? extendedMax
-              : timeRange === '1h' ? extendedMax
-              : timeRange === '3h' ? extendedMax
-              : extendedMax,
+            min:
+              timeRange === '24h' || dayRanges[timeRange]
+                ? extendedMin
+                : timeRange === '1h'
+                ? extendedMin
+                : timeRange === '3h'
+                ? extendedMin
+                : extendedMin,
+            max:
+              timeRange === '24h' || dayRanges[timeRange]
+                ? extendedMax
+                : timeRange === '1h'
+                ? extendedMax
+                : timeRange === '3h'
+                ? extendedMax
+                : extendedMax,
           },
-          // y: No limits, allow full scroll
+          y: {
+            min: 0,
+            max: 200,
+            suggestedMax: 200,
+          },
         },
       },
       jitterPlugin: { isChartReady },
@@ -679,7 +691,7 @@ export default function ThermalPlot({
           usePointStyle: false,
           boxWidth: 20,
           boxHeight: 10,
-          font: function(context) {
+          font: function (context) {
             return {
               size: 15,
               family: 'Segoe UI',
@@ -688,7 +700,7 @@ export default function ThermalPlot({
               lineHeight: 1.2,
             }
           },
-          color: function(context) {
+          color: function (context) {
             return isDarkMode ? '#fff' : '#000'
           },
         },
@@ -714,7 +726,11 @@ export default function ThermalPlot({
                 month: 'short',
                 day: 'numeric',
               })
-            } else if (timeRange === '24h' || timeRange === '1h' || timeRange === '3h') {
+            } else if (
+              timeRange === '24h' ||
+              timeRange === '1h' ||
+              timeRange === '3h'
+            ) {
               let hours = date.getHours()
               const minutes = String(date.getMinutes()).padStart(2, '0')
               const ampm = hours >= 12 ? 'PM' : 'AM'
@@ -747,33 +763,35 @@ export default function ThermalPlot({
         type: 'time',
         bounds: 'ticks',
         reverse: false,
-        min: timeRange === '1h'
-          ? custom1hTicks[0]
-          : timeRange === '3h'
+        min:
+          timeRange === '1h'
+            ? custom1hTicks[0]
+            : timeRange === '3h'
             ? custom3hTicks[0]
-            : (timeRange === '24h' && custom24hTicks.length)
-              ? custom24hTicks[0]
-              : (dayRanges[timeRange] && customDayTicks.length)
-                ? customDayTicks[0]
-                : extendedMin,
-        max: timeRange === '1h'
-          ? custom1hTicks[custom1hTicks.length - 1]
-          : timeRange === '3h'
+            : timeRange === '24h' && custom24hTicks.length
+            ? custom24hTicks[0]
+            : dayRanges[timeRange] && customDayTicks.length
+            ? customDayTicks[0]
+            : extendedMin,
+        max:
+          timeRange === '1h'
+            ? custom1hTicks[custom1hTicks.length - 1]
+            : timeRange === '3h'
             ? custom3hTicks[custom3hTicks.length - 1]
-            : (timeRange === '24h' && custom24hTicks.length)
-              ? custom24hTicks[custom24hTicks.length - 1]
-              : (dayRanges[timeRange] && customDayTicks.length)
-                ? customDayTicks[customDayTicks.length - 1]
-                : extendedMax,
+            : timeRange === '24h' && custom24hTicks.length
+            ? custom24hTicks[custom24hTicks.length - 1]
+            : dayRanges[timeRange] && customDayTicks.length
+            ? customDayTicks[customDayTicks.length - 1]
+            : extendedMax,
         time:
-          (dayRanges[timeRange])
+          dayRanges[timeRange]
             ? {
                 unit: 'day',
                 stepSize: 1,
                 tooltipFormat: 'MMM d, yyyy',
                 displayFormats: { day: 'MMM d' },
               }
-          : timeRange === '24h' || timeRange === '1h' || timeRange === '3h'
+            : timeRange === '24h' || timeRange === '1h' || timeRange === '3h'
             ? {
                 unit: 'minute',
                 stepSize: 5,
@@ -797,15 +815,14 @@ export default function ThermalPlot({
                     : timeRange === '4d'
                     ? 12
                     : 1,
-                tooltipFormat:
-                  'MMM d, yyyy',
+                tooltipFormat: 'MMM d, yyyy',
                 displayFormats: {
                   minute: 'h:mm a',
                   hour: 'MMM d, h a',
                   day: 'MMM d, yyyy',
                 },
               },
-        ticks: (dayRanges[timeRange])
+        ticks: dayRanges[timeRange]
           ? {
               source: 'auto',
               autoSkip: false,
@@ -823,95 +840,97 @@ export default function ThermalPlot({
               },
             }
           : timeRange === '24h'
-            ? {
-                source: 'auto',
-                autoSkip: false,
-                maxRotation: 0,
-                minRotation: 0,
-                font: { size: 13, family: 'Segoe UI' },
-                color: isDarkMode ? '#ccc' : '#222',
-                values: custom24hTicks,
-                callback(value) {
-                  const date = new Date(value)
-                  let hours = date.getHours()
-                  const minutes = String(date.getMinutes()).padStart(2, '0')
-                  const ampm = hours >= 12 ? 'PM' : 'AM'
-                  hours = hours % 12 || 12
-                  const time = `${hours}:${minutes} ${ampm}`
-                  const day = date.toLocaleDateString(undefined, {
+          ? {
+              source: 'auto',
+              autoSkip: false,
+              maxRotation: 0,
+              minRotation: 0,
+              font: { size: 13, family: 'Segoe UI' },
+              color: isDarkMode ? '#ccc' : '#222',
+              values: custom24hTicks,
+              callback(value) {
+                const date = new Date(value)
+                let hours = date.getHours()
+                const minutes = String(date.getMinutes()).padStart(2, '0')
+                const ampm = hours >= 12 ? 'PM' : 'AM'
+                hours = hours % 12 || 12
+                const time = `${hours}:${minutes} ${ampm}`
+                const day = date.toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                })
+                return `${time} ${day}`
+              },
+            }
+          : timeRange === '1h'
+          ? {
+              source: 'auto',
+              autoSkip: false,
+              maxRotation: 0,
+              minRotation: 0,
+              font: { size: 13, family: 'Segoe UI' },
+              color: isDarkMode ? '#ccc' : '#222',
+              values: custom1hTicks,
+              callback(value) {
+                const date = new Date(value)
+                let hours = date.getHours()
+                const minutes = String(date.getMinutes()).padStart(2, '0')
+                const ampm = hours >= 12 ? 'PM' : 'AM'
+                hours = hours % 12 || 12
+                return `${hours}:${minutes} ${ampm}`
+              },
+            }
+          : timeRange === '3h'
+          ? {
+              source: 'auto',
+              autoSkip: false,
+              maxRotation: 0,
+              minRotation: 0,
+              font: { size: 13, family: 'Segoe UI' },
+              color: isDarkMode ? '#ccc' : '#222',
+              values: custom3hTicks,
+              callback(value) {
+                const date = new Date(value)
+                let hours = date.getHours()
+                const minutes = String(date.getMinutes()).padStart(2, '0')
+                const ampm = hours >= 12 ? 'PM' : 'AM'
+                hours = hours % 12 || 12
+                return `${hours}:${minutes} ${ampm}`
+              },
+            }
+          : {
+              source: 'auto',
+              autoSkip: true,
+              maxTicksLimit: 8,
+              autoSkipPadding: 50,
+              maxRotation: 15,
+              minRotation: 0,
+              font: { size: 13, family: 'Segoe UI' },
+              color: isDarkMode ? '#ccc' : '#222',
+              callback(value) {
+                const date = new Date(value)
+                if (['2d', '4d', '7d', '2w', '1m', '1y'].includes(timeRange)) {
+                  return date.toLocaleDateString(undefined, {
+                    year: 'numeric',
                     month: 'short',
                     day: 'numeric',
                   })
-                  return `${time} ${day}`
-                },
-              }
-            : timeRange === '1h'
-              ? {
-                source: 'auto',
-                autoSkip: false,
-                maxRotation: 0,
-                minRotation: 0,
-                font: { size: 13, family: 'Segoe UI' },
-                color: isDarkMode ? '#ccc' : '#222',
-                values: custom1hTicks,
-                callback(value) {
-                  const date = new Date(value)
+                } else {
                   let hours = date.getHours()
                   const minutes = String(date.getMinutes()).padStart(2, '0')
                   const ampm = hours >= 12 ? 'PM' : 'AM'
                   hours = hours % 12 || 12
                   return `${hours}:${minutes} ${ampm}`
-                },
-              }
-              : timeRange === '3h'
-                ? {
-                  source: 'auto',
-                  autoSkip: false,
-                  maxRotation: 0,
-                  minRotation: 0,
-                  font: { size: 13, family: 'Segoe UI' },
-                  color: isDarkMode ? '#ccc' : '#222',
-                  values: custom3hTicks,
-                  callback(value) {
-                    const date = new Date(value)
-                    let hours = date.getHours()
-                    const minutes = String(date.getMinutes()).padStart(2, '0')
-                    const ampm = hours >= 12 ? 'PM' : 'AM'
-                    hours = hours % 12 || 12
-                    return `${hours}:${minutes} ${ampm}`
-                  },
                 }
-                : {
-                  source: 'auto',
-                  autoSkip: true,
-                  maxTicksLimit: 8,
-                  autoSkipPadding: 50,
-                  maxRotation: 15,
-                  minRotation: 0,
-                  font: { size: 13, family: 'Segoe UI' },
-                  color: isDarkMode ? '#ccc' : '#222',
-                  callback(value) {
-                    const date = new Date(value)
-                    if (['2d', '4d', '7d', '2w', '1m', '1y'].includes(timeRange)) {
-                      return date.toLocaleDateString(undefined, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })
-                    } else {
-                      let hours = date.getHours()
-                      const minutes = String(date.getMinutes()).padStart(2, '0')
-                      const ampm = hours >= 12 ? 'PM' : 'AM'
-                      hours = hours % 12 || 12
-                      return `${hours}:${minutes} ${ampm}`
-                    }
-                  },
-                },
+              },
+            },
         grid: {
           display: true,
           color: isDarkMode ? '#2226' : '#ccc7',
           drawTicks: false,
+          drawOnChartArea: true,
           drawBorder: false,
+          borderColor: isDarkMode ? '#666' : '#999',
         },
         title: {
           display: true,
@@ -921,24 +940,25 @@ export default function ThermalPlot({
         },
       },
       y: {
-        min: 0, 
-        max: 100, 
+        min: 65, // Initial visible min
+        max: 90, // Initial visible max
+        suggestedMin: 0,
+        suggestedMax: 200,
+        ticks: {
+          stepSize: 5,
+          maxTicksLimit: 11,
+          color: isDarkMode ? '#ccc' : '#222',
+          font: { size: 13, family: 'Segoe UI' },
+          callback: function (value) {
+            return `${Math.round(value)}°${tempUnit}`
+          },
+        },
         grid: {
           display: true,
           drawTicks: false,
           drawOnChartArea: true,
           drawBorder: false,
           color: isDarkMode ? '#2226' : '#ccc7',
-          borderColor: isDarkMode ? '#666' : '#999',
-        },
-        ticks: {
-          stepSize: 1,
-          maxTicksLimit: 0,
-          color: isDarkMode ? '#ccc' : '#222',
-          font: { size: 13, family: 'Segoe UI' },
-          callback: function (value) {
-            return `${Math.round(value)}°${tempUnit}`
-          },
         },
         title: {
           display: true,
@@ -949,8 +969,7 @@ export default function ThermalPlot({
       },
     },
   }
-
-  return (
+          return (
     <>
       <div className="camera-switcher-bar">
         <button

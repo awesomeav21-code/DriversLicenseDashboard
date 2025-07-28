@@ -78,12 +78,38 @@ function ZoneVideoFeed({ zone }) {
   )
 }
 
-function HamburgerIcon({ size = 32, color = "#233046" }) {
+// New icon: square box with left-pointing arrow
+function ArrowBoxIcon({ size = 32, color = "#233046" }) {
+  const boxSize = size
+  const arrowSize = size * 0.4
+  const arrowX = size * 0.55
+  const arrowY = size * 0.3
+
   return (
-    <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
-      <rect y="8" width="40" height="4" rx="2" fill={color} />
-      <rect y="18" width="40" height="4" rx="2" fill={color} />
-      <rect y="28" width="40" height="4" rx="2" fill={color} />
+    <svg width={boxSize} height={boxSize} viewBox={`0 0 ${boxSize} ${boxSize}`} fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Square */}
+      <rect
+        x="0"
+        y="0"
+        width={boxSize}
+        height={boxSize}
+        rx={4}
+        ry={4}
+        fill={color}
+      />
+      {/* Left-pointing arrow */}
+      <path
+        d={`
+          M ${arrowX} ${arrowY}
+          L ${arrowX - arrowSize} ${boxSize / 2}
+          L ${arrowX} ${boxSize - arrowY}
+        `}
+        stroke="#fff"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
     </svg>
   )
 }
@@ -109,8 +135,9 @@ function HamburgerMenu({
           onClick()
         }}
         title="Show/Hide Event Logs"
+        style={{ position: 'relative', top: '-28px' }}
       >
-        <HamburgerIcon size={32} />
+        <ArrowBoxIcon size={31} />
       </div>
     </div>
   )
@@ -133,6 +160,9 @@ export default function App() {
   const [show360Popup, setShow360Popup] = useState(false)
   const [selectedThermalCamera, setSelectedThermalCamera] = useState(null)
   const [selectedOpticalCamera, setSelectedOpticalCamera] = useState(null)
+  
+  // Fullscreen state for all popups
+  const [isFullscreen, setIsFullscreen] = useState(false)
 
   const todayStr = new Date().toISOString().slice(0, 10)
   const [startDate, setStartDate] = useState(() => localStorage.getItem('logStartDate') || todayStr)
@@ -349,14 +379,12 @@ export default function App() {
             <div className="scroll-container">
               {activeTab === 'dashboard' && (
                 <div className={`big-dashboard-container${!eventLogsVisible ? ' big-dashboard-container--fullwidth' : ''}`}>
-                  {/* Attach ref here */}
                   <div>
                     <VideoFeed
                       isDarkMode={isDarkMode}
                       tempUnit={tempUnit}
                       camera1Zones={camera1Zones}
                       camera2Zones={camera2Zones}
-                      // You will handle camera panels inside VideoFeed now
                       show360Popup={show360Popup}
                       setShow360Popup={setShow360Popup}
                       selectedThermalCamera={selectedThermalCamera}
@@ -396,17 +424,21 @@ export default function App() {
         <Footer />
       </div>
 
+      {/* 360° Camera Popup */}
       {show360Popup && (
         <FixedPopup
           style={{
             position: 'fixed',
-            top: '100px',
-            right: '20px',
-            width: '700px',
-            maxHeight: '80vh',
-            backgroundColor: '#fff',
+            top: isFullscreen ? 0 : '100px',
+            right: isFullscreen ? 0 : '20px',
+            left: isFullscreen ? 0 : 'auto',
+            bottom: isFullscreen ? 0 : 'auto',
+            width: isFullscreen ? '100vw' : '700px',
+            height: isFullscreen ? '100vh' : 'auto',
+            maxHeight: isFullscreen ? '100vh' : '80vh',
+            backgroundColor: isDarkMode ? '#0f172a' : '#fff',
             border: '2px solid #333',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            boxShadow: isDarkMode ? '0 4px 12px rgba(255,255,255,0.15)' : '0 4px 12px rgba(0,0,0,0.3)',
             padding: '16px',
             overflowY: 'auto',
             borderRadius: '8px',
@@ -421,21 +453,43 @@ export default function App() {
                 fontSize: '1.3rem',
                 fontWeight: 'bold',
                 cursor: 'pointer',
-                color: '#333',
+                color: isDarkMode ? '#fff' : '#333',
+                marginRight: '10px',
+                lineHeight: 1,
               }}
-              onClick={() => setShow360Popup(false)}
+              onClick={() => {
+                setShow360Popup(false)
+                setIsFullscreen(false)
+              }}
               aria-label="Close"
             >
               ×
             </button>
+            <button
+              onClick={() => setIsFullscreen(prev => !prev)}
+              aria-label="Toggle Fullscreen"
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '1.3rem',
+                cursor: 'pointer',
+                color: isDarkMode ? '#fff' : '#333',
+                lineHeight: 1,
+              }}
+              title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+            >
+              {isFullscreen ? '🞬' : '⬜'}
+            </button>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontWeight: 'bold', marginBottom: 4 }}>360° Camera 1</div>
+            <div style={{ fontWeight: 'bold', marginBottom: 4, color: isDarkMode ? '#eee' : '#000' }}>
+              360° Camera 1
+            </div>
             <video
               src="https://www.w3schools.com/html/mov_bbb.mp4"
               controls
-              width="650"
-              height="350"
+              width={isFullscreen ? '100%' : '650'}
+              height={isFullscreen ? '100%' : '350'}
               style={{ borderRadius: 6, background: '#000' }}
               autoPlay
               muted
@@ -446,102 +500,125 @@ export default function App() {
           </div>
         </FixedPopup>
       )}
-      {/* Left Camera Button */}
-      <button
-        onClick={() =>
-          setSelectedThermalCamera((prev) => (prev === 'planck_1' ? null : 'planck_1'))
-        }
-        style={{ margin: 8 }}
-      >
-        Left Camera
-      </button>
-      {/* Right Camera Button */}
-      <button
-        onClick={() =>
-          setSelectedOpticalCamera((prev) => (prev === 'planck_2' ? null : 'planck_2'))
-        }
-        style={{ margin: 8 }}
-      >
-        Right Camera
-      </button>
 
+      {/* Thermal Camera Popup */}
       {selectedThermalCamera && (
         <FixedPopup
           style={{
             position: 'fixed',
-            top: '100px',
-            right: '20px',
-            width: '700px',
-            maxHeight: '80vh',
-            backgroundColor: '#fff',
+            top: isFullscreen ? 0 : '100px',
+            right: isFullscreen ? 0 : '20px',
+            left: isFullscreen ? 0 : 'auto',
+            bottom: isFullscreen ? 0 : 'auto',
+            width: isFullscreen ? '100vw' : '700px',
+            height: isFullscreen ? '100vh' : 'auto',
+            maxHeight: isFullscreen ? '100vh' : '80vh',
+            backgroundColor: isDarkMode ? '#0f172a' : '#fff',
             border: '2px solid #333',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            boxShadow: isDarkMode ? '0 4px 12px rgba(255,255,255,0.15)' : '0 4px 12px rgba(0,0,0,0.3)',
             padding: '16px',
             overflowY: 'auto',
             zIndex: 100000,
             borderRadius: '8px',
           }}
         >
-          <button
-            onClick={() => {
-              setSelectedThermalCamera(null)
-            }}
-            aria-label="Close"
-            style={{
-              position: 'absolute',
-              top: 8,
-              right: 12,
-              border: 'none',
-              background: 'transparent',
-              fontSize: '1.5rem',
-              cursor: 'pointer',
-              lineHeight: 1,
-              color: '#333',
-            }}
-          >
-            ×
-          </button>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
+            <button
+              onClick={() => {
+                setSelectedThermalCamera(null)
+                setIsFullscreen(false)
+              }}
+              aria-label="Close"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: '1.5rem',
+                cursor: 'pointer',
+                color: isDarkMode ? '#fff' : '#333',
+                marginRight: '10px',
+                lineHeight: 1,
+              }}
+            >
+              ×
+            </button>
+            <button
+              onClick={() => setIsFullscreen(prev => !prev)}
+              aria-label="Toggle Fullscreen"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: '1.5rem',
+                cursor: 'pointer',
+                color: isDarkMode ? '#fff' : '#333',
+                lineHeight: 1,
+              }}
+              title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+            >
+              {isFullscreen ? '🞬' : '⬜'}
+            </button>
+          </div>
           {filterZonesByCamera(selectedThermalCamera).map((zone) => (
             <ZoneVideoFeed key={zone.name} zone={zone} />
           ))}
         </FixedPopup>
       )}
+
+      {/* Optical Camera Popup */}
       {selectedOpticalCamera && (
         <FixedPopup
           style={{
             position: 'fixed',
-            top: '100px',
-            right: '20px',
-            width: '700px',
-            maxHeight: '80vh',
-            backgroundColor: '#fff',
+            top: isFullscreen ? 0 : '100px',
+            right: isFullscreen ? 0 : '20px',
+            left: isFullscreen ? 0 : 'auto',
+            bottom: isFullscreen ? 0 : 'auto',
+            width: isFullscreen ? '100vw' : '700px',
+            height: isFullscreen ? '100vh' : 'auto',
+            maxHeight: isFullscreen ? '100vh' : '80vh',
+            backgroundColor: isDarkMode ? '#0f172a' : '#fff',
             border: '2px solid #333',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            boxShadow: isDarkMode ? '0 4px 12px rgba(255,255,255,0.15)' : '0 4px 12px rgba(0,0,0,0.3)',
             padding: '16px',
             overflowY: 'auto',
             zIndex: 100000,
             borderRadius: '8px',
           }}
         >
-          <button
-            onClick={() => {
-              setSelectedOpticalCamera(null)
-            }}
-            aria-label="Close"
-            style={{
-              position: 'absolute',
-              top: 8,
-              right: 12,
-              border: 'none',
-              background: 'transparent',
-              fontSize: '1.5rem',
-              cursor: 'pointer',
-              lineHeight: 1,
-              color: '#333',
-            }}
-          >
-            ×
-          </button>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
+            <button
+              onClick={() => {
+                setSelectedOpticalCamera(null)
+                setIsFullscreen(false)
+              }}
+              aria-label="Close"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: '1.5rem',
+                cursor: 'pointer',
+                color: isDarkMode ? '#fff' : '#333',
+                marginRight: '10px',
+                lineHeight: 1,
+              }}
+            >
+              ×
+            </button>
+            <button
+              onClick={() => setIsFullscreen(prev => !prev)}
+              aria-label="Toggle Fullscreen"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                fontSize: '1.5rem',
+                cursor: 'pointer',
+                color: isDarkMode ? '#fff' : '#333',
+                lineHeight: 1,
+              }}
+              title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+            >
+              {isFullscreen ? '🞬' : '⬜'}
+            </button>
+          </div>
           {filterZonesByCamera(selectedOpticalCamera).map((zone) => (
             <ZoneVideoFeed key={zone.name} zone={zone} />
           ))}

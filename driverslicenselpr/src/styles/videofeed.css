@@ -9,6 +9,14 @@
   50% { background-color: #16a34a; opacity: 0.2; box-shadow: none;}
   100% { background-color: #16a34a; opacity: 1; box-shadow: 0 0 6px 2px rgba(22,163,74,0.4);}
 }
+.video-feed-wrapper.dark-video .live-data-wrapper {
+  background-color: #0f172a !important;
+  border-color: #444 !important;
+  box-shadow: none !important;
+  color: #eee; /* also fix text color */
+}
+
+
 
 /* MAIN WRAPPER */
 .video-feed-wrapper {
@@ -63,12 +71,11 @@
 }
 
 
-.dark-video .live-data-wrapper {
-  background-color: #0f172a;
-  border-color: #ffffff;
-  box-shadow: none;
+body.dark-mode .live-data-wrapper {
+  background-color: #0f172a !important;
+  border-color: #ffffff !important;
+  box-shadow: none !important;
 }
-
 
 .live-data-header {
   display: flex;
@@ -125,7 +132,7 @@
   min-width: 550px;
   max-width: 1010px;
   background-color: #ffffff;
-  border: 1px solid #d1d5db;
+  border: 1px solid#d1d5db;
   border-radius: 5px !important;
   padding: 12px;
   box-sizing: border-box;
@@ -141,7 +148,7 @@
 
 .dark-video .camera-section {
   background-color: #0f172a;
-  border-color: #ffffff;
+  border: 1px solid #fff !important;
 }
 
 .camera-header {
@@ -228,7 +235,9 @@
 .cameras-row.center {
   justify-content: center;
 }
-
+.dark-mode .camera-streams-panel{
+  border: solid 1px #fff !important; 
+}
 /* CAMERA PANELS CONTAINER */
 .camera-streams-panel {
   margin-top: 20px;
