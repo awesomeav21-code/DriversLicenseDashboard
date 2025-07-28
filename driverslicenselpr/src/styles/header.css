@@ -10,7 +10,7 @@
   z-index: 9999;
   padding: 24px 40px;  /* vertical padding */
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* Help Manual Panel Styles */
