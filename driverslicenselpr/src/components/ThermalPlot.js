@@ -672,8 +672,7 @@ export default function ThermalPlot({
           },
           y: {
             min: 0,
-            max: 200,
-            suggestedMax: 200,
+            max: tempUnit === 'F' ? 200 : Math.round(((200 - 32) * 5) / 9), // Clamp zoom max to 200°F or ~93°C
           },
         },
       },
@@ -940,8 +939,8 @@ export default function ThermalPlot({
         },
       },
       y: {
-        min: 65, // Initial visible min
-        max: 90, // Initial visible max
+        min: tempUnit === 'F' ? 65 : Math.round(((65 - 32) * 5) / 9),  // 65°F ≈ 18°C
+        max: tempUnit === 'F' ? 90 : Math.round(((90 - 32) * 5) / 9),  // 90°F ≈ 32°C
         suggestedMin: 0,
         suggestedMax: 200,
         ticks: {
@@ -969,7 +968,7 @@ export default function ThermalPlot({
       },
     },
   }
-          return (
+              return (
     <>
       <div className="camera-switcher-bar">
         <button
