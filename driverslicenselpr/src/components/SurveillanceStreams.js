@@ -59,7 +59,7 @@ function getRandomThreshold(min = 60, max = 80) {
   return +(min + Math.random() * (max - min)).toFixed(1);
 }
 
-const ArchiveCard = ({ event, index }) => {
+const ArchiveCard = ({ event, index, showDownloadButton }) => {
   const status = getStatus(event);
 
   function formatEventTime(timeStr) {
@@ -88,13 +88,6 @@ const ArchiveCard = ({ event, index }) => {
   const formattedTime = event.time ? formatEventTime(event.time) : currentTimeStr;
   const objects = event.objects || 'Person';
   const videoSize = event.videoSize || getRandomVideoSize();
-
-  // Check if event is in May 2025
-  const eventDate = event.time ? new Date(event.time) : null;
-  const isMay2025Event = eventDate && eventDate.getFullYear() === 2025 && eventDate.getMonth() === 4;
-
-  // We don't care about video URLs anymore, so ignore hasVideo
-  // Just always download JSON of the event on click
 
   function handleDownloadVideo() {
     const eventDateStr = getLocalYYYYMMDD(event.time);
@@ -152,27 +145,52 @@ const ArchiveCard = ({ event, index }) => {
         <hr className="meta-divider" />
       </div>
 
-      <button
-        className="archive-download-iconn"
-        onClick={handleDownloadVideo}
-      >
-        <span className="download-icon" aria-hidden="true">
+      {showDownloadButton ? (
+        <button
+          className="archive-download-iconn"
+          onClick={handleDownloadVideo}
+        >
+          <span className="download-icon" aria-hidden="true">
+            <svg
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10 3v9m0 0l-4-4m4 4l4-4m-9 7h10"
+                stroke="#fff"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          Download Video 
+        </button>
+      ) : (
+        <button className="archive-no-video-btn" disabled>
           <svg
-            viewBox="0 0 20 20"
-            fill="none"
             xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
+            className="size-6"
+            aria-hidden="true"
+            focusable="false"
+            width='20px'
+            height='20px'
+            style={{ marginRight: 6 }}
           >
             <path
-              d="M10 3v9m0 0l-4-4m4 4l4-4m-9 7h10"
-              stroke="#fff"
-              strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
+              d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M12 18.75H4.5a2.25 2.25 0 0 1-2.25-2.25V9m12.841 9.091L16.5 19.5m-1.409-1.409c.407-.407.659-.97.659-1.591v-9a2.25 2.25 0 0 0-2.25-2.25h-9c-.621 0-1.184.252-1.591.659m12.182 12.182L2.909 5.909M1.5 4.5l1.409 1.409"
             />
           </svg>
-        </span>
-        Download Video 
-      </button>
+          No Video
+        </button>
+      )}
     </div>
   );
 };
@@ -590,6 +608,13 @@ const SurveillanceStreams = ({
 
   const [gridTemplateColumns, setGridTemplateColumns] = useState('repeat(auto-fit, minmax(260px, 1fr))');
 
+  // New state: array of booleans, true = show Download Video button, false = show No Video button
+  const [videoButtonStates] = useState(() => {
+    const total = camera1Zones.length + camera2Zones.length + may2025Events.length;
+    // Generate array of true/false randomly, once per page load
+    return Array.from({ length: total }, () => Math.random() < 0.5);
+  });
+
   useEffect(() => {
     function updateGridColumns() {
       const width = window.innerWidth;
@@ -904,7 +929,12 @@ const SurveillanceStreams = ({
                     )
                   ) : (
                     filteredEvents.map((event, i) => (
-                      <ArchiveCard event={event} key={i} index={i} />
+                      <ArchiveCard
+                        event={event}
+                        key={i}
+                        index={i}
+                        showDownloadButton={videoButtonStates[i] || false}
+                      />
                     ))
                   )}
                 </div>
@@ -973,7 +1003,7 @@ const SurveillanceStreams = ({
               <div className="surveillance-cards-scroll">
                 <div className="archive-cards-grid">
                   {customEvents.map((event, i) => (
-                    <ArchiveCard event={event} key={i} index={i} />
+                    <ArchiveCard event={event} key={i} index={i} showDownloadButton={false} />
                   ))}
                 </div>
               </div>
