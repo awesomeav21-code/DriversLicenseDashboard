@@ -2,25 +2,45 @@
   width: 100%;
   background-color: #0c1424;
   color: #f9fafb;
-  padding: 24px 24px; /* Increased vertical padding for bigger height */
+  padding: 0;
+  height: 100px;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   border-top: 1px solid #2c3e66;
   box-sizing: border-box;
-  position: relative;
-  top: -7px;
+  position: relative;  /* RELATIVE instead of fixed */
+  /* Remove left, right, bottom, top properties */
   z-index: 5;
+  flex-shrink: 0;
   font-size: 14px;
 }
 
+.footer-icon {
+  text-align: left; 
+  width: 45px;
+  height: 45px;
+  display: inline-block;
+  position: relative; 
+  left: -40px; 
+  top: -10px; 
+}
+
 .footer-content {
-  max-width: 1200px;
   width: 100%;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 18px;
+  margin-left: -230px;
 }
 
 .footer-text {
+  position: relative; 
+  left: 70px;
   font-weight: 500;
   letter-spacing: 0.5px;
+  text-align: left;
+  top: -10px; 
+  left: 13px; 
 }

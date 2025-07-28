@@ -2,8 +2,7 @@
 .archive-page {
   --border-color: #e5e7eb; /* Added CSS variable for border color */
   --font-family: 'Inter', sans-serif; /* Define Inter as the base font */
-  background-color: #f6fcf8;  /* 👈 Use your chosen green! */
-  color: #1f2937;
+  color: #b4bfcf;
   position: relative; 
   top: -6px; 
   font-family: var(--font-family);  /* Use CSS variable */

@@ -3,9 +3,19 @@ import '../styles/surveillancestreams.css';
 
 const THUMBNAIL_PLACEHOLDER = 'https://dummyimage.com/600x340/cccccc/222222&text=Camera+Frame';
 
+// Helper: always returns yyyy-mm-dd in your local time zone
+function getLocalYYYYMMDD(date) {
+  if (!date) return '';
+  const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return '';
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 function parseLocalDate(dateString) {
-  if (!dateString) return null;
-  const [year, month, day] = dateString.split('-');
+  if (!dateString || typeof dateString !== 'string') return null;
+  const datePart = dateString.includes('T') ? dateString.split('T')[0] : dateString;
+  const [year, month, day] = datePart.split('-');
+  if (!year || !month || !day) return null;
   return new Date(Number(year), Number(month) - 1, Number(day));
 }
 
@@ -78,7 +88,27 @@ const ArchiveCard = ({ event, index }) => {
   const formattedTime = event.time ? formatEventTime(event.time) : currentTimeStr;
   const objects = event.objects || 'Person';
   const videoSize = event.videoSize || getRandomVideoSize();
-  const hasVideo = !!event.videoUrl;
+
+  // Check if event is in May 2025
+  const eventDate = event.time ? new Date(event.time) : null;
+  const isMay2025Event = eventDate && eventDate.getFullYear() === 2025 && eventDate.getMonth() === 4;
+
+  // We don't care about video URLs anymore, so ignore hasVideo
+  // Just always download JSON of the event on click
+
+  function handleDownloadVideo() {
+    const eventDateStr = getLocalYYYYMMDD(event.time);
+    const jsonStr = JSON.stringify(event, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Event_${eventDateStr}_${index}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <div className="archive-card">
@@ -122,52 +152,27 @@ const ArchiveCard = ({ event, index }) => {
         <hr className="meta-divider" />
       </div>
 
-      {hasVideo ? (
-        <button
-          className="archive-download-iconn"
-          onClick={() => {
-            alert(`Downloading video for event at ${formattedTime}`);
-          }}
-        >
-          <span className="download-icon" aria-hidden="true">
-            <svg
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M10 3v9m0 0l-4-4m4 4l4-4m-9 7h10"
-                stroke="#fff"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
-          Download Video
-        </button>
-      ) : (
-        <button className="archive-no-video-btn" disabled>
+      <button
+        className="archive-download-iconn"
+        onClick={handleDownloadVideo}
+      >
+        <span className="download-icon" aria-hidden="true">
           <svg
-            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
             fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="1.5"
-            stroke="currentColor"
-            className="size-6"
-            aria-hidden="true"
-            focusable="false"
-            style={{ marginRight: 6, width: 20, height: 20}}
+            xmlns="http://www.w3.org/2000/svg"
           >
             <path
+              d="M10 3v9m0 0l-4-4m4 4l4-4m-9 7h10"
+              stroke="#fff"
+              strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M12 18.75H4.5a2.25 2.25 0 0 1-2.25-2.25V9m12.841 9.091L16.5 19.5m-1.409-1.409c.407-.407.659-.97.659-1.591v-9a2.25 2.25 0 0 0-2.25-2.25h-9c-.621 0-1.184.252-1.591.659m12.182 12.182L2.909 5.909M1.5 4.5l1.409 1.409"
             />
           </svg>
-          No Video
-        </button>
-      )}
+        </span>
+        Download Video 
+      </button>
     </div>
   );
 };
@@ -181,7 +186,7 @@ function aggregateEventDatesWithTimes(events, selectedMonth) {
     if (!event.time) return;
     const d = new Date(event.time);
     if (d.getFullYear() !== year || d.getMonth() !== month) return;
-    const dayStr = d.toISOString().slice(0, 10);
+    const dayStr = getLocalYYYYMMDD(event.time);
     if (!dateMap[dayStr]) dateMap[dayStr] = [];
     dateMap[dayStr].push(event.time);
   });
@@ -224,7 +229,7 @@ function getLatestEventDateInMonth(events, month) {
   const year = month.getFullYear();
   const m = month.getMonth();
   const dates = events
-    .map(ev => ev.time && ev.time.slice(0, 10))
+    .map(ev => ev.time && getLocalYYYYMMDD(ev.time))
     .filter(date =>
       !!date &&
       new Date(date).getMonth() === m &&
@@ -238,7 +243,7 @@ function getEarliestEventDateInMonth(events, month) {
   const year = month.getFullYear();
   const m = month.getMonth();
   const dates = events
-    .map(ev => ev.time && ev.time.slice(0, 10))
+    .map(ev => ev.time && getLocalYYYYMMDD(ev.time))
     .filter(date =>
       !!date &&
       new Date(date).getMonth() === m &&
@@ -397,9 +402,9 @@ const SidebarDates = ({
           className="today-button"
           onClick={() => {
             const todayDate = new Date();
-            const todayStrISO = todayDate.toISOString().slice(0, 10);
+            const todayLocal = getLocalYYYYMMDD(todayDate);
             onMonthChange(todayDate);
-            onDateSelect(todayStrISO);
+            onDateSelect(todayLocal);
           }}
         >
           Today
@@ -486,7 +491,6 @@ const SurveillanceStreams = ({
 
   const [may2025Events] = useState(generateDynamicMayEvents);
 
-  // Random assignment, persistent for this page load only
   const [videoRandoms] = useState(() => {
     const total =
       camera1Zones.length +
@@ -557,10 +561,10 @@ const SurveillanceStreams = ({
       return '';
     }
 
-    const todayISO = formatYYYYMMDD(currentDate);
-    const hasEventsToday = allEvents.some(ev => ev.time && ev.time.slice(0, 10) === todayISO);
+    const todayLocal = getLocalYYYYMMDD(currentDate);
+    const hasEventsToday = allEvents.some(ev => ev.time && getLocalYYYYMMDD(ev.time) === todayLocal);
     if (hasEventsToday) {
-      return todayISO;
+      return todayLocal;
     }
 
     const earliest = getEarliestEventDateInMonth(allEvents, currentMonth);
@@ -630,17 +634,17 @@ const SurveillanceStreams = ({
       !d ||
       d.getFullYear() !== selectedMonth.getFullYear() ||
       d.getMonth() !== selectedMonth.getMonth() ||
-      !allEvents.some(ev => ev.time && ev.time.slice(0, 10) === selectedDate)
+      !allEvents.some(ev => ev.time && getLocalYYYYMMDD(ev.time) === selectedDate)
     ) {
       const earliest = getEarliestEventDateInMonth(allEvents, selectedMonth);
       if (earliest) setSelectedDate(earliest);
       else setSelectedDate('');
     }
-  }, [selectedMonth, allEvents]);
+  }, [selectedMonth, allEvents, selectedDate]);
 
   const filteredEvents = useMemo(() => {
     if (!selectedDate) return [];
-    return allEvents.filter(ev => ev.time && ev.time.slice(0, 10) === selectedDate);
+    return allEvents.filter(ev => ev.time && getLocalYYYYMMDD(ev.time) === selectedDate);
   }, [allEvents, selectedDate]);
 
   const hasEventsInMonth = useMemo(() => {
@@ -664,7 +668,7 @@ const SurveillanceStreams = ({
       let nextDate = null;
       for (let i = currentIndex + 1; i < allDatesSorted.length; i++) {
         const next = allDatesSorted[i];
-        const eventsOnNext = allEvents.filter(ev => ev.time && ev.time.slice(0, 10) === next);
+        const eventsOnNext = allEvents.filter(ev => ev.time && getLocalYYYYMMDD(ev.time) === next);
         if (eventsOnNext.length > 0) {
           nextDate = next;
           break;
@@ -737,22 +741,26 @@ const SurveillanceStreams = ({
       <div className="mini-navbar-outer">
         <div className="mini-navbar">
           <div className="mini-navbar-title">
-            <div className="mini-navbar-icon-container" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 24, lineHeight: 1, userSelect: 'none' }}>
-            <svg
-  className="video-icon"
-  xmlns="http://www.w3.org/2000/svg"
-  fill="currentColor"
-  viewBox="0 0 24 24"
-  style={{ width: 29, height: 29 }}
->
-  <path
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    strokeWidth={1.5}
-    stroke="currentColor"
-    d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"
-  />
-</svg>              <span>Surveillance Camera Recordings</span>
+            <div
+              className="mini-navbar-icon-container"
+              style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 24, lineHeight: 1, userSelect: 'none' }}
+            >
+              <svg
+                className="video-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                style={{ width: 29, height: 29 }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"
+                />
+              </svg>{' '}
+              <span>Surveillance Camera Recordings</span>
             </div>
           </div>
           <button className="archive-temp-event-btn" onClick={handleDownloadTempEvents}>
