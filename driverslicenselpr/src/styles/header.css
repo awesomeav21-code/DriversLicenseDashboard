@@ -238,7 +238,11 @@
   white-space: normal;
   word-break: break-word;
 }
-
+.substation-dropdown{ 
+  left: 355px !important; 
+  top: 50px !important;
+  min-width: 250px; 
+}
 /* override the help‑icon’s inline blue stroke */
 button[aria-label="Help"] svg {
   stroke: #888888 !important;
@@ -497,6 +501,8 @@ input:checked + .slider:before {
   padding: 10px 14px;
   border-radius: 8px;
   display: flex !important;
+  position: relative; 
+  left: 50px!important ; 
   align-items: center;
   color: #003366;
   margin-left: 125px !important; /* moves it 40px right */
@@ -507,17 +513,43 @@ input:checked + .slider:before {
 .substation-clickable {
   cursor: pointer;
   user-select: none;
-  font-weight: bold;
+  font-weight: 700;
   font-size: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-left: 0; /* removed negative margin */
-  max-width: none; /* allow full width */
-  color: black;
+  min-width: 180px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  outline: none;
+  color: gray !important;
+  background-color: #222b3b !important;
+  border: 1px solid #e5e7eb;
+  box-shadow: none;
+  transition: background-color 0.3s, border 0.3s, box-shadow 0.3s;
+  position: relative;
+  left: 325px ; /* your shift */
+}
+.substation-container{ 
+  left: -195px!important; 
+  width: 290px;
+}
+.substation-clickable.active {
+  color: #444; /* or white if dark */
+  background-color: #eaf6ff;
+  border: 1.5px solid #3b82f6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
 }
 
-/* Dark mode for substation clickable */
+.substation-clickable.dark {
+  color: #e3eaf5;
+  background-color: #1c2336;
+}
+
+.substation-clickable.dark.active {
+  background-color: #17203a;
+  border-color: #3b82f6;
+}/* Dark mode for substation clickable */
 .dark-mode .substation-clickable {
   color: white;
 }

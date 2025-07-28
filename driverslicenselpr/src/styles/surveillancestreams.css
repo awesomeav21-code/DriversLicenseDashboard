@@ -377,6 +377,7 @@
   padding: 0;               /* Remove padding to avoid extra height */
   box-sizing: border-box;
   display: flex;
+  height: 150px;
   flex-direction: column;
   transform: translateY(4px);
   gap: 0;
@@ -705,7 +706,7 @@
   border-radius: 7px !important; /* reduced from 10px to 7px */
   border: 1px solid var(--border-color) !important;
   box-shadow: none !important;
-  padding: 8px 10px 14px 10px;
+  padding: 8px 10px 0 10px; /* remove bottom padding to test */
   font-size: 1.01rem;
   color: #111827;
   display: flex;
@@ -714,6 +715,9 @@
   gap: 8px;
   margin-top: 0;
   margin-left: -40px;
+  height: 100vh !important;
+  min-height: 100vh !important;
+
   margin-bottom: 0;
   margin-right: 0;
   min-height: 0;
@@ -877,18 +881,16 @@
 /* Remove margin-top for tighter vertical stacking */
 .surveillance-container {
   background-color: #fff;
-  border-radius: 7px !important; /* reduced from 10px to 7px */
+  border-radius: 7px !important;
   box-shadow: none;
   border: 1px solid var(--border-color);
   padding: 22px 26px 26px 26px;
   margin-bottom: 0;
-  max-height: 700px; /* must be >= surveillance-cards-scroll max-height + other content */
-
+  /* max-height: 700px;  <-- REMOVE THIS */
   margin-top: 0;
-  margin-left: 7px; /* Instead of 38px + left shift, reduce margin */
+  margin-left: 7px;
   margin-right: -33px;
   position: relative;
-  /* remove left and width adjustment */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -896,8 +898,7 @@
   flex: 1 1 auto;
   min-height: 0;
   font-family: var(--font-family);
-}
-.archive-temp-event-btn {
+}.archive-temp-event-btn {
   margin-left: 0 !important;
   margin-right: 12px !important;
   flex-shrink: 0 !important;
@@ -1280,7 +1281,7 @@
   box-shadow: 0 0.5px 0.5px rgba(80,80,80,0.04);
   gap: 6px;
   height: 35px; 
-  width: 150px;
+  width: 100px;
   border-radius: 4px; 
 
   max-width: 140px;
@@ -1517,8 +1518,8 @@
   width: 150px;
   border-radius: 4px; 
   position: relative; 
-  left: 15px; 
-  top: -7px; 
+  left: 20px; 
+  top: -9px; 
 }
 .dark-mode .archive-temp-event-btn:hover,
 .dark-mode .archive-download-btn:hover,

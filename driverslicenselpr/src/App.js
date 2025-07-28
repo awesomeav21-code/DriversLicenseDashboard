@@ -132,9 +132,7 @@ export default function App() {
   // Popup states
   const [show360Popup, setShow360Popup] = useState(false)
   const [selectedThermalCamera, setSelectedThermalCamera] = useState(null)
-  const [isHoveringThermal, setIsHoveringThermal] = useState(false)
   const [selectedOpticalCamera, setSelectedOpticalCamera] = useState(null)
-  const [isHoveringOptical, setIsHoveringOptical] = useState(false)
 
   const todayStr = new Date().toISOString().slice(0, 10)
   const [startDate, setStartDate] = useState(() => localStorage.getItem('logStartDate') || todayStr)
@@ -363,12 +361,12 @@ export default function App() {
                       setShow360Popup={setShow360Popup}
                       selectedThermalCamera={selectedThermalCamera}
                       setSelectedThermalCamera={setSelectedThermalCamera}
-                      isHoveringThermal={isHoveringThermal}
-                      setIsHoveringThermal={setIsHoveringThermal}
+                      isHoveringThermal={false}
+                      setIsHoveringThermal={() => {}}
                       selectedOpticalCamera={selectedOpticalCamera}
                       setSelectedOpticalCamera={setSelectedOpticalCamera}
-                      isHoveringOptical={isHoveringOptical}
-                      setIsHoveringOptical={setIsHoveringOptical}
+                      isHoveringOptical={false}
+                      setIsHoveringOptical={() => {}}
                       filterZonesByCamera={filterZonesByCamera}
                     />
                   </div>
@@ -448,7 +446,26 @@ export default function App() {
           </div>
         </FixedPopup>
       )}
-      {(selectedThermalCamera || isHoveringThermal) && (
+      {/* Left Camera Button */}
+      <button
+        onClick={() =>
+          setSelectedThermalCamera((prev) => (prev === 'planck_1' ? null : 'planck_1'))
+        }
+        style={{ margin: 8 }}
+      >
+        Left Camera
+      </button>
+      {/* Right Camera Button */}
+      <button
+        onClick={() =>
+          setSelectedOpticalCamera((prev) => (prev === 'planck_2' ? null : 'planck_2'))
+        }
+        style={{ margin: 8 }}
+      >
+        Right Camera
+      </button>
+
+      {selectedThermalCamera && (
         <FixedPopup
           style={{
             position: 'fixed',
@@ -465,12 +482,31 @@ export default function App() {
             borderRadius: '8px',
           }}
         >
-          {filterZonesByCamera(selectedThermalCamera || (isHoveringThermal ? selectedThermalCamera : null)).map((zone) => (
+          <button
+            onClick={() => {
+              setSelectedThermalCamera(null)
+            }}
+            aria-label="Close"
+            style={{
+              position: 'absolute',
+              top: 8,
+              right: 12,
+              border: 'none',
+              background: 'transparent',
+              fontSize: '1.5rem',
+              cursor: 'pointer',
+              lineHeight: 1,
+              color: '#333',
+            }}
+          >
+            ×
+          </button>
+          {filterZonesByCamera(selectedThermalCamera).map((zone) => (
             <ZoneVideoFeed key={zone.name} zone={zone} />
           ))}
         </FixedPopup>
       )}
-      {(selectedOpticalCamera || isHoveringOptical) && (
+      {selectedOpticalCamera && (
         <FixedPopup
           style={{
             position: 'fixed',
@@ -487,7 +523,26 @@ export default function App() {
             borderRadius: '8px',
           }}
         >
-          {filterZonesByCamera(selectedOpticalCamera || (isHoveringOptical ? selectedOpticalCamera : null)).map((zone) => (
+          <button
+            onClick={() => {
+              setSelectedOpticalCamera(null)
+            }}
+            aria-label="Close"
+            style={{
+              position: 'absolute',
+              top: 8,
+              right: 12,
+              border: 'none',
+              background: 'transparent',
+              fontSize: '1.5rem',
+              cursor: 'pointer',
+              lineHeight: 1,
+              color: '#333',
+            }}
+          >
+            ×
+          </button>
+          {filterZonesByCamera(selectedOpticalCamera).map((zone) => (
             <ZoneVideoFeed key={zone.name} zone={zone} />
           ))}
         </FixedPopup>

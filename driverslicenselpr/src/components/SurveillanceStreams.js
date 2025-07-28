@@ -178,8 +178,6 @@ const ArchiveCard = ({ event, index, showDownloadButton }) => {
             className="size-6"
             aria-hidden="true"
             focusable="false"
-            width='20px'
-            height='20px'
             style={{ marginRight: 6 }}
           >
             <path
