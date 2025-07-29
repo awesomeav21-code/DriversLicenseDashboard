@@ -2,8 +2,7 @@
 .thermal-container {
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.05);
-  padding: 28px;           /* Slightly reduced padding */
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25), 0 8px 24px rgba(0,0,0,0.15);  padding: 28px;           /* Slightly reduced padding */
   height: 600px;           /* Shorter, so more is visible! */
   width: 1000px !important ;
   max-width: 98vw;         /* Prevents overflow on small screens */
@@ -119,7 +118,7 @@
   gap: 10px;
   position: relative;
   left: -10px;
-  top: 100px;
+  top: 85px;
   flex-wrap: wrap;
   cursor: pointer;
   color: #000;
@@ -154,16 +153,16 @@
   user-select: none;
   text-align: center;
   position: relative; 
-  left: 300px; 
+  left: 250px; 
   line-height: 1.2;
 }
 .chart-dropdown{
   position: relative !important; 
-   left: 300px !important; 
+   left: 250px !important; 
 }
 .pdf-dropdown{
   position: relative; 
-  left: 300px !important
+  left: 250px !important
 }
 /* Ensure hover color applies to button and all its children */
 .chart-button:hover,

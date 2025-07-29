@@ -1,56 +1,106 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import '../styles/sidebarpanel.css';
 
-export default function SidebarPanel({ isDarkMode, onDatePick, logs = [], visibleZones = [] }) {
-  const today = new Date().toISOString().slice(0, 10);
+export default function SidebarPanel({
+  isDarkMode,
+  onDatePick,
+  visibleZones = [],
+  zones = [],
+  startDate,
+  setStartDate,
+  endDate,
+  setEndDate,
+}) {
+  const todayLocal = new Date();
+  const year = todayLocal.getFullYear();
+  const month = String(todayLocal.getMonth() + 1).padStart(2, '0');
+  const day = String(todayLocal.getDate()).padStart(2, '0');
+  const todayISO = `${year}-${month}-${day}`;
 
-  const [startDate, setStartDate] = useState(() => localStorage.getItem('logStartDate') || today);
-  const [endDate, setEndDate] = useState(() => localStorage.getItem('logEndDate') || today);
-
-  const parseInputDate = (dateStr, isStart) => {
-    if (!dateStr) return null;
-    return isStart
-      ? new Date(dateStr + 'T00:00:00')
-      : new Date(dateStr + 'T23:59:59.999');
-  };
+  const clampDate = (dateStr) => (dateStr > todayISO ? todayISO : dateStr);
 
   useEffect(() => {
-    localStorage.setItem('logStartDate', startDate);
-    localStorage.setItem('logEndDate', endDate);
+    const savedStart = localStorage.getItem('logStartDate') || '';
+    const savedEnd = localStorage.getItem('logEndDate') || '';
+    if (savedStart) setStartDate(savedStart);
+    if (savedEnd) setEndDate(savedEnd);
+  }, [setStartDate, setEndDate]);
+
+  useEffect(() => {
+    if (startDate !== '') localStorage.setItem('logStartDate', startDate);
+    if (endDate !== '') localStorage.setItem('logEndDate', endDate);
     if (onDatePick) onDatePick(startDate, endDate);
   }, [startDate, endDate, onDatePick]);
+
+  const formatZoneInfo = (zone) => {
+    const cameraName =
+      zone.camera === 'planck_1'
+        ? 'Left Camera'
+        : zone.camera === 'planck_2'
+        ? 'Right Camera'
+        : zone.camera;
+    const temp = zone.temperature != null ? `${zone.temperature}°` : 'N/A';
+    return `Temperature: ${temp}, ${cameraName}, Zone: ${zone.name}`;
+  };
+
+  const zonesToDisplay = zones.filter((z) => visibleZones.includes(z.name));
+
+  const getLocalDateStr = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  // Filter zones within date range (used for display and download)
+  const filteredZones = (startDate && endDate)
+    ? zonesToDisplay.filter((zone) => {
+        if (!zone.lastTriggered) return false;
+        const triggeredDate = new Date(zone.lastTriggered);
+        if (isNaN(triggeredDate)) return false;
+        const triggeredDateStr = getLocalDateStr(triggeredDate);
+        return triggeredDateStr >= startDate && triggeredDateStr <= endDate;
+      })
+    : [];
 
   const downloadLogs = () => {
     if (!startDate || !endDate) {
       alert('Please select both start and end dates.');
       return;
     }
-    const start = parseInputDate(startDate, true);
-    const end = parseInputDate(endDate, false);
-    if (start > end) {
-      alert('Start date must be before end date.');
-      return;
-    }
-    if (logs.length === 0) {
-      alert('No logs available for the selected date range and zones.');
+
+    if (filteredZones.length === 0) {
+      alert('No zone data available to download for selected dates.');
       return;
     }
 
-    const csvRows = [
-      ['Index', 'Timestamp', 'Message'],
-      ...logs.map((log, index) => [index + 1, log.timestamp, `"${log.message}"`])
-    ];
-    const csvContent = csvRows.map(row => row.join(',')).join('\n');
+    const headers = ['Index', 'Last Triggered', 'Temperature', 'Camera', 'Zone Name'];
+    const rows = filteredZones.map((zone, index) => [
+      index + 1,
+      zone.lastTriggered || 'N/A',
+      zone.temperature != null ? `${zone.temperature}°` : 'N/A',
+      zone.camera === 'planck_1'
+        ? 'Left Camera'
+        : zone.camera === 'planck_2'
+        ? 'Right Camera'
+        : zone.camera,
+      zone.name,
+    ]);
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${cell}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `event_logs_${startDate}_to_${endDate}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `zone_logs_${todayISO}.csv`;
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
@@ -58,74 +108,81 @@ export default function SidebarPanel({ isDarkMode, onDatePick, logs = [], visibl
     <div className={`sidebar-panel ${isDarkMode ? 'dark-panel' : 'light-panel'}`}>
       <div className="sidebar-inner">
         <div className="event-logs">
-          <h2 className="log-title">Event Logs</h2>
+          <h2 className="log-title">Zone Details</h2>
+
           <div className="date-inputs">
             <label htmlFor="start-date">Start</label>
             <input
               id="start-date"
               type="date"
               min="1900-01-01"
-              max={today}
+              max={todayISO}
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              onChange={(e) => setStartDate(clampDate(e.target.value))}
               className={isDarkMode ? 'dark-input' : ''}
               style={{ marginBottom: '6px' }}
+              placeholder="MM/DD/YYYY"
             />
             <label htmlFor="end-date">End</label>
             <input
               id="end-date"
               type="date"
               min="1900-01-01"
-              max={today}
+              max={todayISO}
               value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              onChange={(e) => setEndDate(clampDate(e.target.value))}
               className={isDarkMode ? 'dark-input' : ''}
+              placeholder="MM/DD/YYYY"
             />
           </div>
+
           <div className="log-buttons">
             <button
               className={`download-logs-btn${isDarkMode ? ' dark-btn' : ''}`}
               onClick={downloadLogs}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+              }}
             >
-              <span
-                className="download-icon"
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                style={{ width: '24px', height: '24px' }}
                 aria-hidden="true"
-                style={{ marginRight: '6px', display: 'inline-flex', alignItems: 'center' }}
               >
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style={{ display: 'block' }}>
-                  <path
-                    d="M10 3v9m0 0l-4-4m4 4l4-4m-9 7h10"
-                    stroke="#fff"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </span>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+                />
+              </svg>
               Download Logs
             </button>
           </div>
+
           <div
             className="logs-scroll-container"
             style={{ maxHeight: '340px', overflowY: 'auto', marginTop: '10px' }}
           >
             <div className="log-entries-list">
-              {startDate && endDate ? (
-                logs.length === 0 ? (
-                  <div className="log-empty">No logs available.</div>
-                ) : (
-                  logs.map((log, index) => (
-                    <div className="log-entry" key={index}>
-                      <div className="log-index">{index + 1}.</div>
-                      <div className="log-text">
-                        <div className="log-timestamp">{log.timestamp}</div>
-                        <div className="log-message">{log.message}</div>
-                      </div>
-                    </div>
-                  ))
-                )
+              {filteredZones.length === 0 ? (
+                <div className="log-empty">No zone data available.</div>
               ) : (
-                <div className="log-empty">Please select a start and end date to view logs.</div>
+                filteredZones.map((zone, index) => (
+                  <div className="log-entry" key={zone.name}>
+                    <div className="log-index">{index + 1}.</div>
+                    <div className="log-text">
+                      <div className="log-timestamp">{zone.lastTriggered || 'N/A'}</div>
+                      <div className="log-message">{formatZoneInfo(zone)}</div>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
           </div>
@@ -138,6 +195,10 @@ export default function SidebarPanel({ isDarkMode, onDatePick, logs = [], visibl
 SidebarPanel.propTypes = {
   isDarkMode: PropTypes.bool,
   onDatePick: PropTypes.func,
-  logs: PropTypes.array,
-  visibleZones: PropTypes.array
+  visibleZones: PropTypes.array,
+  zones: PropTypes.array,
+  startDate: PropTypes.string,
+  setStartDate: PropTypes.func,
+  endDate: PropTypes.string,
+  setEndDate: PropTypes.func,
 };
