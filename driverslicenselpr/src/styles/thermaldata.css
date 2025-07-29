@@ -1,16 +1,16 @@
 /* === CONTAINER FOR CHART AREA === */
 .thermal-container {
-  background: #f7fdfb;
+  background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.05);
   padding: 28px;           /* Slightly reduced padding */
   height: 600px;           /* Shorter, so more is visible! */
-  width: 1400px;
+  width: 1000px !important ;
   max-width: 98vw;         /* Prevents overflow on small screens */
   box-sizing: border-box;
   position: relative;
   margin: 10px auto 0 auto; /* Top margin, center horizontally */
-  left: 60px; 
+  left: -20px; 
 }
 
 .thermal-container.dark-mode {
@@ -117,15 +117,15 @@
   padding: 8px 16px;
   display: inline-flex;
   gap: 10px;
-  position: relative; 
-  left: 330px;
-  top: 20px; 
+  position: relative;
+  left: -10px;
+  top: 100px;
   flex-wrap: wrap;
   cursor: pointer;
   color: #000;
   transition: background-color 0.3s ease;
+  width: calc(100% + 20px) !important;
 }
-
 /* Dark mode for chart button container */
 .dark-mode .chart-button-container {
   background-color: #0f172a; /* Same dark blue as other dark mode areas */
@@ -153,9 +153,18 @@
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
   user-select: none;
   text-align: center;
+  position: relative; 
+  left: 300px; 
   line-height: 1.2;
 }
-
+.chart-dropdown{
+  position: relative !important; 
+   left: 300px !important; 
+}
+.pdf-dropdown{
+  position: relative; 
+  left: 300px !important
+}
 /* Ensure hover color applies to button and all its children */
 .chart-button:hover,
 .chart-button:hover * {

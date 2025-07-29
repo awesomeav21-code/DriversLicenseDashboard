@@ -1007,7 +1007,7 @@ export default function ThermalPlot({
               <span>Save Graph ▼</span>
             </button>
             {showExportMenu && (
-              <div
+              <div className="pdf-dropdown" 
                 style={{
                   position: 'absolute',
                   top: '100%',
