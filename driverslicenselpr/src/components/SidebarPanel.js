@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import '../styles/sidebarpanel.css';
 
@@ -12,24 +12,61 @@ export default function SidebarPanel({
   endDate,
   setEndDate,
 }) {
-  const todayLocal = new Date();
-  const year = todayLocal.getFullYear();
-  const month = String(todayLocal.getMonth() + 1).padStart(2, '0');
-  const day = String(todayLocal.getDate()).padStart(2, '0');
-  const todayISO = `${year}-${month}-${day}`;
+  // ======= TEST DATA =======
+  // Sample data if zones are empty
+  const [testZones, setTestZones] = useState([]);
+  useEffect(() => {
+    if (zones.length === 0) {
+      setTestZones([
+        {
+          name: 'Zone A',
+          camera: 'planck_1',
+          temperature: 72,
+          lastTriggered: '2025-07-26T14:30:00',
+        },
+        {
+          name: 'Zone B',
+          camera: 'planck_2',
+          temperature: 68,
+          lastTriggered: '2025-07-27T09:15:00',
+        },
+        {
+          name: 'Zone C',
+          camera: 'planck_1',
+          temperature: 75,
+          lastTriggered: '2025-07-27T20:45:00',
+        },
+      ]);
+    } else {
+      setTestZones([]);
+    }
+  }, [zones]);
 
-  const clampDate = (dateStr) => (dateStr > todayISO ? todayISO : dateStr);
+  const zonesToUse = zones.length > 0 ? zones : testZones;
+
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date();
+  const todayISO = today.toISOString().split('T')[0];
+
+  const formatDateISO = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  const clampDate = (dateStr) => {
+    if (!dateStr) return '';
+    if (dateStr > todayISO) return todayISO; // prevent future dates
+    return dateStr;
+  };
 
   useEffect(() => {
-    const savedStart = localStorage.getItem('logStartDate') || '';
-    const savedEnd = localStorage.getItem('logEndDate') || '';
-    if (savedStart) setStartDate(savedStart);
-    if (savedEnd) setEndDate(savedEnd);
-  }, [setStartDate, setEndDate]);
+    if (startDate && startDate > todayISO) setStartDate(todayISO);
+    if (endDate && endDate > todayISO) setEndDate(todayISO);
+  }, [startDate, endDate, setStartDate, setEndDate, todayISO]);
 
   useEffect(() => {
-    if (startDate !== '') localStorage.setItem('logStartDate', startDate);
-    if (endDate !== '') localStorage.setItem('logEndDate', endDate);
     if (onDatePick) onDatePick(startDate, endDate);
   }, [startDate, endDate, onDatePick]);
 
@@ -44,32 +81,22 @@ export default function SidebarPanel({
     return `Temperature: ${temp}, ${cameraName}, Zone: ${zone.name}`;
   };
 
-  const zonesToDisplay = zones.filter((z) => visibleZones.includes(z.name));
-
-  const getLocalDateStr = (date) => {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  };
-
-  // Filter zones within date range (used for display and download)
-  const filteredZones = (startDate && endDate)
-    ? zonesToDisplay.filter((zone) => {
-        if (!zone.lastTriggered) return false;
-        const triggeredDate = new Date(zone.lastTriggered);
-        if (isNaN(triggeredDate)) return false;
-        const triggeredDateStr = getLocalDateStr(triggeredDate);
-        return triggeredDateStr >= startDate && triggeredDateStr <= endDate;
-      })
-    : [];
+  const filteredZones =
+    startDate && endDate
+      ? zonesToUse.filter((zone) => {
+          if (!zone.lastTriggered) return false;
+          const triggeredDate = new Date(zone.lastTriggered);
+          if (isNaN(triggeredDate)) return false;
+          const triggeredDateStr = formatDateISO(triggeredDate);
+          return triggeredDateStr >= startDate && triggeredDateStr <= endDate;
+        })
+      : [];
 
   const downloadLogs = () => {
     if (!startDate || !endDate) {
       alert('Please select both start and end dates.');
       return;
     }
-
     if (filteredZones.length === 0) {
       alert('No zone data available to download for selected dates.');
       return;
@@ -96,7 +123,7 @@ export default function SidebarPanel({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `zone_logs_${todayISO}.csv`;
+    a.download = `zone_logs_${startDate}_to_${endDate}.csv`;
 
     document.body.appendChild(a);
     a.click();
@@ -115,7 +142,6 @@ export default function SidebarPanel({
             <input
               id="start-date"
               type="date"
-              min="1900-01-01"
               max={todayISO}
               value={startDate}
               onChange={(e) => setStartDate(clampDate(e.target.value))}
@@ -127,7 +153,6 @@ export default function SidebarPanel({
             <input
               id="end-date"
               type="date"
-              min="1900-01-01"
               max={todayISO}
               value={endDate}
               onChange={(e) => setEndDate(clampDate(e.target.value))}
@@ -171,18 +196,22 @@ export default function SidebarPanel({
             style={{ maxHeight: '340px', overflowY: 'auto', marginTop: '10px' }}
           >
             <div className="log-entries-list">
-              {filteredZones.length === 0 ? (
-                <div className="log-empty">No zone data available.</div>
-              ) : (
+              {startDate && endDate && filteredZones.length === 0 && (
+                <div className="log-empty">No zone data available for selected dates.</div>
+              )}
+
+              {startDate && endDate ? (
                 filteredZones.map((zone, index) => (
-                  <div className="log-entry" key={zone.name}>
+                  <div className="log-entry" key={zone.name + zone.lastTriggered}>
                     <div className="log-index">{index + 1}.</div>
                     <div className="log-text">
-                      <div className="log-timestamp">{zone.lastTriggered || 'N/A'}</div>
+                      <div className="log-timestamp">{new Date(zone.lastTriggered).toLocaleString() || 'N/A'}</div>
                       <div className="log-message">{formatZoneInfo(zone)}</div>
                     </div>
                   </div>
                 ))
+              ) : (
+                <div className="log-empty">Select start and end dates to view logs.</div>
               )}
             </div>
           </div>

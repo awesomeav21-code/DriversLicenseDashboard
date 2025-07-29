@@ -357,6 +357,7 @@ export default function App() {
                   logs={filteredLogs}
                   visibleZones={visibleZones}
                   zones={zones}                   // <-- Pass zones array here
+                  history={history}               // <-- Add this line to pass thermal data history
                   addZone={addZone}
                   onDatePick={(start, end) => {
                     setStartDate(start)
