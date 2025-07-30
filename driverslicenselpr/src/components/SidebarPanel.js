@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import '../styles/sidebarpanel.css';
 
@@ -6,45 +6,39 @@ export default function SidebarPanel({
   isDarkMode,
   onDatePick,
   visibleZones = [],
-  zones = [],
+  zones = [],   // kept for compatibility
+  history = [], // full history [{ time: Date, readings: { zoneName: temp } }]
+  zoneCameraMap = {}, // NEW: mapping zoneName => camera ('planck_1' or 'planck_2')
   startDate,
   setStartDate,
   endDate,
   setEndDate,
 }) {
-  // ======= TEST DATA =======
-  // Sample data if zones are empty
-  const [testZones, setTestZones] = useState([]);
+  // Test fallback if history empty
+  const [testHistory, setTestHistory] = useState([]);
   useEffect(() => {
-    if (zones.length === 0) {
-      setTestZones([
+    if (history.length === 0) {
+      setTestHistory([
         {
-          name: 'Zone A',
-          camera: 'planck_1',
-          temperature: 72,
-          lastTriggered: '2025-07-26T14:30:00',
+          time: new Date('2025-07-26T14:30:00'),
+          readings: { 'Zone A': 72 },
         },
         {
-          name: 'Zone B',
-          camera: 'planck_2',
-          temperature: 68,
-          lastTriggered: '2025-07-27T09:15:00',
+          time: new Date('2025-07-27T09:15:00'),
+          readings: { 'Zone B': 68 },
         },
         {
-          name: 'Zone C',
-          camera: 'planck_1',
-          temperature: 75,
-          lastTriggered: '2025-07-27T20:45:00',
+          time: new Date('2025-07-27T20:45:00'),
+          readings: { 'Zone C': 75 },
         },
       ]);
     } else {
-      setTestZones([]);
+      setTestHistory([]);
     }
-  }, [zones]);
+  }, [history]);
 
-  const zonesToUse = zones.length > 0 ? zones : testZones;
+  const dataToUse = history.length > 0 ? history : testHistory;
 
-  // Get today's date in YYYY-MM-DD format
   const today = new Date();
   const todayISO = today.toISOString().split('T')[0];
 
@@ -57,7 +51,7 @@ export default function SidebarPanel({
 
   const clampDate = (dateStr) => {
     if (!dateStr) return '';
-    if (dateStr > todayISO) return todayISO; // prevent future dates
+    if (dateStr > todayISO) return todayISO;
     return dateStr;
   };
 
@@ -70,53 +64,91 @@ export default function SidebarPanel({
     if (onDatePick) onDatePick(startDate, endDate);
   }, [startDate, endDate, onDatePick]);
 
-  const formatZoneInfo = (zone) => {
-    const cameraName =
-      zone.camera === 'planck_1'
+  // Use zoneCameraMap to get camera label here:
+  const formatZoneInfo = (zoneName, reading) => {
+    const temp = reading != null ? `${reading}°` : 'N/A';
+    const cameraRaw = zoneCameraMap[zoneName] || '';
+    const cameraLabel =
+      cameraRaw === 'planck_1'
         ? 'Left Camera'
-        : zone.camera === 'planck_2'
+        : cameraRaw === 'planck_2'
         ? 'Right Camera'
-        : zone.camera;
-    const temp = zone.temperature != null ? `${zone.temperature}°` : 'N/A';
-    return `Temperature: ${temp}, ${cameraName}, Zone: ${zone.name}`;
+        : cameraRaw || 'Unknown Camera';
+    return `Zone: ${zoneName}, Temperature: ${temp}, Camera: ${cameraLabel}`;
   };
 
-  const filteredZones =
+  // Filter history entries by date range & visible zones
+  const filteredHistory =
     startDate && endDate
-      ? zonesToUse.filter((zone) => {
-          if (!zone.lastTriggered) return false;
-          const triggeredDate = new Date(zone.lastTriggered);
-          if (isNaN(triggeredDate)) return false;
-          const triggeredDateStr = formatDateISO(triggeredDate);
-          return triggeredDateStr >= startDate && triggeredDateStr <= endDate;
+      ? dataToUse.filter(entry => {
+          if (!(entry.time instanceof Date) || isNaN(entry.time)) return false;
+          const entryDateStr = formatDateISO(entry.time);
+          if (entryDateStr < startDate || entryDateStr > endDate) return false;
+          return visibleZones.some(zoneName => entry.readings && entry.readings[zoneName] != null);
         })
       : [];
 
+  // Find latest reading for each visible zone (most recent time)
+  const latestReadingsMap = new Map();
+  filteredHistory.forEach(entry => {
+    visibleZones.forEach(zoneName => {
+      const val = entry.readings?.[zoneName];
+      if (val != null) {
+        const prev = latestReadingsMap.get(zoneName);
+        if (!prev || entry.time > prev.time) {
+          latestReadingsMap.set(zoneName, { time: entry.time, reading: val });
+        }
+      }
+    });
+  });
+
+  // Entries for latest readings (top cards) — show current time, keep latest reading
+  const now = new Date();
+  const latestEntries = Array.from(latestReadingsMap.entries()).map(
+    ([zoneName, { reading }]) => ({
+      zoneName,
+      time: now, // current actual time for latest entries
+      reading,
+    })
+  );
+
+  // Entries for previous readings (exclude latest timestamps per zone)
+  const previousEntries = filteredHistory.flatMap(entry =>
+    visibleZones.flatMap(zoneName => {
+      const val = entry.readings?.[zoneName];
+      if (
+        val != null &&
+        (!latestReadingsMap.has(zoneName) || entry.time.getTime() !== latestReadingsMap.get(zoneName).time.getTime())
+      ) {
+        return [{ zoneName, time: entry.time, reading: val }];
+      }
+      return [];
+    })
+  );
+
+  // Download logs handler (same as before, using filteredHistory)
   const downloadLogs = () => {
     if (!startDate || !endDate) {
       alert('Please select both start and end dates.');
       return;
     }
-    if (filteredZones.length === 0) {
+    if (filteredHistory.length === 0) {
       alert('No zone data available to download for selected dates.');
       return;
     }
 
-    const headers = ['Index', 'Last Triggered', 'Temperature', 'Camera', 'Zone Name'];
-    const rows = filteredZones.map((zone, index) => [
-      index + 1,
-      zone.lastTriggered || 'N/A',
-      zone.temperature != null ? `${zone.temperature}°` : 'N/A',
-      zone.camera === 'planck_1'
-        ? 'Left Camera'
-        : zone.camera === 'planck_2'
-        ? 'Right Camera'
-        : zone.camera,
-      zone.name,
-    ]);
+    const headers = ['Index', 'Timestamp', ...visibleZones];
+    const rows = filteredHistory.map((entry, index) => {
+      const row = [index + 1, entry.time.toLocaleString()];
+      visibleZones.forEach(zoneName => {
+        const val = entry.readings && entry.readings[zoneName];
+        row.push(val != null ? `${val}°` : 'N/A');
+      });
+      return row;
+    });
 
     const csvContent = [headers, ...rows]
-      .map((row) => row.map((cell) => `"${cell}"`).join(','))
+      .map(row => row.map(cell => `"${cell}"`).join(','))
       .join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -196,23 +228,52 @@ export default function SidebarPanel({
             style={{ maxHeight: '340px', overflowY: 'auto', marginTop: '10px' }}
           >
             <div className="log-entries-list">
-              {startDate && endDate && filteredZones.length === 0 && (
+              {/* Latest entries top */}
+              {latestEntries.length > 0 && (
+                <>
+                  <h3>Latest Readings</h3>
+                  {latestEntries.map(({ zoneName, time, reading }, idx) => (
+                    <div
+                      className="log-entry"
+                      key={`latest-${zoneName}-${time.toISOString()}-${idx}`}
+                    >
+                      <div className="log-index">{idx + 1}.</div>
+                      <div className="log-text">
+                        <div className="log-timestamp">{time.toLocaleString()}</div>
+                        <div className="log-message">{formatZoneInfo(zoneName, reading)}</div>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+
+              {/* Previous entries */}
+              {previousEntries.length > 0 && (
+                <>
+                  <h3>Previous Entries</h3>
+                  {previousEntries.map(({ zoneName, time, reading }, idx) => (
+                    <div
+                      className="log-entry"
+                      key={`prev-${zoneName}-${time.toISOString()}-${idx}`}
+                    >
+                      <div className="log-index">{idx + 1}.</div>
+                      <div className="log-text">
+                        <div className="log-timestamp">{time.toLocaleString()}</div>
+                        <div className="log-message">{formatZoneInfo(zoneName, reading)}</div>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+
+              {/* No entries fallback */}
+              {startDate && endDate && latestEntries.length === 0 && previousEntries.length === 0 && (
                 <div className="log-empty">No zone data available for selected dates.</div>
               )}
 
-              {startDate && endDate ? (
-                filteredZones.map((zone, index) => (
-                  <div className="log-entry" key={zone.name + zone.lastTriggered}>
-                    <div className="log-index">{index + 1}.</div>
-                    <div className="log-text">
-                      <div className="log-timestamp">{new Date(zone.lastTriggered).toLocaleString() || 'N/A'}</div>
-                      <div className="log-message">{formatZoneInfo(zone)}</div>
-                    </div>
-                  </div>
-                ))
-              ) : (
+              {!startDate || !endDate ? (
                 <div className="log-empty">Select start and end dates to view logs.</div>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
@@ -226,6 +287,8 @@ SidebarPanel.propTypes = {
   onDatePick: PropTypes.func,
   visibleZones: PropTypes.array,
   zones: PropTypes.array,
+  history: PropTypes.array,
+  zoneCameraMap: PropTypes.object,  // NEW: mapping zoneName -> camera
   startDate: PropTypes.string,
   setStartDate: PropTypes.func,
   endDate: PropTypes.string,

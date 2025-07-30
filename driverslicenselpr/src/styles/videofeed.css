@@ -9,14 +9,13 @@
   50% { background-color: #16a34a; opacity: 0.2; box-shadow: none;}
   100% { background-color: #16a34a; opacity: 1; box-shadow: 0 0 6px 2px rgba(22,163,74,0.4);}
 }
+
 .video-feed-wrapper.dark-video .live-data-wrapper {
   background-color: #0f172a !important;
   border-color: #444 !important;
   box-shadow: none !important;
-  color: #eee; /* also fix text color */
+  color: #eee;
 }
-
-
 
 /* MAIN WRAPPER */
 .video-feed-wrapper {
@@ -69,7 +68,6 @@
   min-height: 0;
   max-height: none !important;
 }
-
 
 body.dark-mode .live-data-wrapper {
   background-color: #0f172a !important;
@@ -132,7 +130,7 @@ body.dark-mode .live-data-wrapper {
   min-width: 550px;
   max-width: 1010px;
   background-color: #ffffff;
-  border: 1px solid#d1d5db;
+  border: 1px solid #d1d5db;
   border-radius: 5px !important;
   padding: 12px;
   box-sizing: border-box;
@@ -235,9 +233,11 @@ body.dark-mode .live-data-wrapper {
 .cameras-row.center {
   justify-content: center;
 }
-.dark-mode .camera-streams-panel{
+
+.dark-mode .camera-streams-panel {
   border: solid 1px #fff !important; 
 }
+
 /* CAMERA PANELS CONTAINER */
 .camera-streams-panel {
   margin-top: 20px;
@@ -253,12 +253,12 @@ body.dark-mode .live-data-wrapper {
   z-index: 4000;
   border: 1px solid #d1d5db;
   border-radius: 5px;
-  padding: 20px 17px;       /* was 16px 17px, now 25px more on top and bottom */
+  padding: 20px 17px;
   box-shadow: 0 0 15px rgba(0,0,0,0.1);
-  margin-left: -17px;       /* keep left margin as is */
-  margin-right: -1px !important; /* changed from -17px to -1px for right shift */
-  transform: translatey(-90px); 
-  min-height: 350px; /* Add this line to increase the panel height */
+  margin-left: -17px;
+  margin-right: -1px !important;
+  transform: translateY(-90px); 
+  min-height: 350px;
 }
 
 /* Remove individual background and border from stream-groups */
@@ -331,16 +331,66 @@ body.dark-mode .live-data-wrapper {
 .dark-video .camera-btn:hover {
   background-color: #22c55e;
 }
-@media (min-width: 1500px) and (max-width: 1600px) {
-  .camera-section{
-    transform: scale(0.9); 
-    transform-origin: center center;
-    margin-left: -66px !important; 
-    margin-right: -83px !important; 
 
+/* MEDIA QUERIES */
+
+/* 1500px - 1600px adjustments */
+@media (min-width: 1500px) and (max-width: 1600px) {
+  .camera-section.right {
+    max-width: calc(1010px + 50px) !important; /* Expand width */
+    transform: none !important; 
+    margin-right: 30px !important;
+    z-index: 2;
   }
- 
+
+  .camera-section.left {
+    transform: translateX(-34px);
+    z-index: 1;
+  }
 }
+
+/* 1700px - 1800px drastic increase for camera-section using vh */
+@media (min-width: 1700px) and (max-width: 1800px) {
+  .camera-section {
+    max-width: 900px !important;  /* fixed max-width */
+    min-width: 710px !important;   /* fixed min-width */
+    flex: 1 1 60% !important;    /* Even bigger flex-basis */
+  }
+}
+
+/* 1900px - 2000px adjustments */
+@media (min-width: 1900px) and (max-width: 2000px) {
+  .section-livedata-tite{
+    position: relative !important; 
+    left: -112px !important; 
+  }
+  .live-data-dot{
+    position: relative !important; 
+    left: -115px !important; 
+  }
+  .camera-section {
+    max-width: 1300px !important;  
+    min-width: 785px !important;
+    flex: 1 1 60% !important;
+  }
+  .camera-section:nth-of-type(1) {
+    width: 100% !important;
+    margin-right: 0 !important;
+    margin-left: -40px !important; 
+    position: relative; 
+    left: -10px !important; 
+    box-sizing: border-box;
+  }
+  .camera-section:nth-of-type(2) {
+    width: calc(100% + 50px) !important;
+    margin-right: -78px !important;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 2;
+  }
+}
+
+/* 1200px - 1300px adjustments */
 @media (min-width: 1200px) and (max-width: 1300px) {
   .camera-section{
     background-color: green !important;
@@ -366,14 +416,25 @@ body.dark-mode .live-data-wrapper {
     box-sizing: border-box;
     flex: none;
   }
-  @media (max-width: 900px) {
-    body {
-      background: #ffeb3b; /* yellow, tablets */
-    }
-  }
-  @media (min-width: 3000px) and (max-width: 3100px) {
-    .camera-section {
-      background: pink !important;
-    }
+}
+
+/* max-width 900px adjustments */
+@media (max-width: 900px) {
+  body {
+    background: #ffeb3b;
   }
 }
+
+/* Ultra wide adjustments */
+@media (min-width: 3000px) and (max-width: 3100px) {
+  .camera-section {
+    background: pink !important;
+  }
+}
+@media (min-width: 2100px) and (max-width: 2200px) {
+  .zone-grid {
+    max-width: 900px !important; /* Slightly wider than the default 800px */
+    gap: 16px !important; /* Optional: reduce gap a little to keep it tight */
+  }
+}
+

@@ -7,14 +7,16 @@ html, body {
   min-height: 100vh;
   box-sizing: border-box;
   display: flex;
+  overflow-x: hidden !important; 
   flex-direction: column;
   font-family: 'Poppins', sans-serif;
 }
+
 .video-feed-wrapper.dark-video .live-data-wrapper {
   background-color: #0f172a !important;
   border-color: #ffffff !important;
   box-shadow: none !important;
-  color: #eee; /* make sure text is readable */
+  color: #eee;
 }
 
 body.dark-mode .mini-navbar-outer::before,
@@ -23,6 +25,7 @@ body.dark-mode .mini-navbar-outer::after {
   border: none !important;
   box-shadow: none !important;
 }
+
 .big-dashboard-container--fullwidth {
   max-width: 100vw !important;
   width: 100vw !important;
@@ -30,11 +33,9 @@ body.dark-mode .mini-navbar-outer::after {
   margin-right: 0 !important;
   padding-left: 0 !important;
   padding-right: 0 !important;
-  border-radius: 0 0 10px 10px !important; /* Optional: squared left/right */
+  border-radius: 0 0 10px 10px !important;
   transition: max-width 0.25s, width 0.25s, padding 0.25s;
 }
-
-
 
 .big-dashboard-container {
   position: relative; 
@@ -51,7 +52,7 @@ body.dark-mode .mini-navbar-outer::after {
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
   box-shadow: 0 4px 24px 0 rgba(30, 40, 60, 0.10);
-  border: 1.5px solid #e3e3e8;
+  border: 1.5px solid #e3e8e8;
   display: block;
   box-sizing: border-box;
   transition: background 0.25s, box-shadow 0.25s;
@@ -69,7 +70,6 @@ body.dark-mode .big-dashboard-container {
   box-shadow: 0 4px 24px 0 rgba(10, 18, 28, 0.45);
 }
 
-/* Hide hamburger by default, show a small sliver on the right */
 .sidebarpanel-hamburger-row {
   display: flex;
   flex-direction: row;
@@ -93,7 +93,6 @@ body.dark-mode .big-dashboard-container {
     opacity 0.15s;
   z-index: 10;
   pointer-events: auto;
-
 }
 
 .hamburger-area::before {
@@ -148,12 +147,10 @@ body.dark-mode {
   color: #f9fafb;
 }
 
-/* Dark mode text color for camera panel and buttons */
 body.dark-mode .camera-btn {
   color: #f9fafb;
 }
 
-/* Dark mode background for page wrapper */
 body.dark-mode .page-wrapper {
   background-color: #0f172a !important;
 }
@@ -174,7 +171,6 @@ body.dark-mode .page-wrapper {
   z-index: 1000;
 }
 
-/* Apply border-box to all elements */
 *, *::before, *::after {
   box-sizing: inherit;
 }
@@ -226,7 +222,6 @@ body.dark-mode .main-content {
   padding: 0;
 }
 
-/* Camera buttons */
 .camera-btn {
   margin: 0 10px 0 0;
   padding: 8px 18px;
@@ -288,13 +283,11 @@ body.dark-mode .fixed-popup {
   border: none !important;
 }
 
-/* Fixed popup overrides */
 body.dark-mode .fixed-popup {
   border-color: #23375b !important;
   box-shadow: 0 4px 12px rgba(0,0,0,0.7) !important;
 }
 
-/* For zoomed-out / larger viewport widths */
 .page.dark-mode .archive-card:hover {
   box-shadow: 0 0 15px 3px rgba(92, 255, 203, 0.7);
   border-color: #5cffcb;
@@ -303,9 +296,224 @@ body.dark-mode .fixed-popup {
   cursor: pointer;
 }
 
+/* Base grid: 4 cards per row */
+.archive-cards-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 20px !important;
+  max-width: 1150px;
+  margin: 0 auto;
+  transition: all 0.3s ease;
+}
+
+/* Responsive: add one card per row when viewport >= 1700px */
+@media (min-width: 1700px) {
+  .archive-cards-grid {
+    grid-template-columns: repeat(5, 1fr) !important;
+    max-width: 1400px;
+  }
+}
+
+/* Optional: add more cards for very wide screens */
+@media (min-width: 2000px) {
+  .archive-cards-grid {
+    grid-template-columns: repeat(6, 1fr) !important;
+    max-width: 1800px;
+  }
+}
+
 @media (min-width: 1500px) and (max-width: 1600px) {
   .big-dashboard-container{
     width: 100%; 
     max-width: 1300px; 
+  }
+  .camera-section:nth-of-type(1) {
+    width: 100% !important;
+    margin-right: 0 !important;
+    box-sizing: border-box;
+  }
+  .camera-section:nth-of-type(2) {
+    width: calc(100% + 50px) !important;
+    margin-right: -78px !important;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 2;
+  }
+}
+
+@media (min-width: 1900px) and (max-width: 2000px) {
+  .big-dashboard-container {
+    max-width: 1630px !important;
+    height: 105vh !important;
+    max-height: 105vh !important;
+
+  }
+  .camera-streams-panel {
+    position: relative !important;
+    width: 155vh !important;
+    max-width: 700vh !important;
+    margin-left: -40px !important;
+    margin-right: -40px !important;
+    left: -30px !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    height: 50vh !important; 
+    display: flex !important;
+    flex-direction: row !important;      /* Keep horizontal */
+    align-items: center !important;      /* Center vertically */
+    justify-content: center !important;  /* Center horizontally */
+  }
+  .camera-icon {
+    height: 88px !important;
+    width: auto !important;
+    display: block !important;
+    margin: 0 28px !important;
+  }
+  .camera-btn {
+    font-size: 1.18rem !important;
+    padding: 16px 32px !important;
+    margin: 0 12px !important;
+  }
+  html, body{
+    min-height: 0 !important;
+    height: 100vh !important;
+  }
+  .camera-section:nth-of-type(1) {
+    position: relative !important;
+    margin-left: -70px !important;
+    width: calc(50% + 30px) !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+  }
+  .camera-section:nth-of-type(2) {
+    position: relative !important;
+    margin-right: -100px !important;
+    width: calc(50% + 30px) !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+  }
+  .camera-streams-panel {
+    position: relative !important;
+    margin-left: -70px !important;
+    margin-right: -70px !important;
+    width: 155vh;
+    left: -26px;
+    max-width: 700vh !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+  }
+}
+
+@media (min-width: 1700px) and (max-width: 1800px) {
+  .camera-streams-panel {
+    position: relative !important;
+    width: 152vh !important;
+    max-width: 700vh !important;
+    margin-left: -40px !important;
+    margin-right: -40px !important;
+    left: 8px !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    height: 50vh !important; 
+    display: flex !important;
+    flex-direction: row !important;      /* Keep horizontal */
+    align-items: center !important;      /* Center vertically */
+    justify-content: center !important;  /* Center horizontally */
+  }
+  .camera-icon {
+    height: 88px !important;
+    width: auto !important;
+    display: block !important;
+    margin: 0 28px !important;
+  }
+  .camera-btn {
+    font-size: 1.18rem !important;
+    padding: 16px 32px !important;
+    margin: 0 12px !important;
+  }
+  .big-dashboard-container {
+    min-width: 156vh !important;
+    max-width: 1 !important;
+    margin-left: auto;
+    margin-right: auto;
+    height: 105vh !important;
+    max-height: 105vh !important;
+    overflow-x: visible !important;
+    box-sizing: border-box;
+    margin-bottom: 0 !important;
+  }
+  html, body{
+    min-height: 0 !important;
+    height: 100vh !important;
+  }
+  .camera-section{
+    position: relative !important; 
+    left: 20px !important; 
+    width: 100vh !important; 
+  }
+  .camera-section:nth-of-type(1){
+    margin-left: -20px !important; 
+  }
+  .camera-section:nth-of-type(2){
+    margin-right: 20px !important; 
+  }
+  .camera-section:nth-of-type(1) {
+    width: 100% !important;
+    margin-right: 0 !important;
+    box-sizing: border-box;
+  }
+  .camera-section:nth-of-type(2) {
+    width: calc(100% + 50px) !important;
+    margin-right: -53px !important;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 2;
+  }
+  body, html {
+    overflow-x: hidden;
+  }
+}
+@media (min-width: 2100px) and (max-width: 2200px) {
+  .big-dashboard-container {
+    width: 1850px !important;       /* Set fixed width */
+    max-width: none !important;     
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+    margin-bottom: 0 !important;
+    height: auto !important;        /* Remove fixed height */
+    max-height: none !important;
+    overflow-x: visible !important;
+  }
+
+  .camera-section {
+    box-sizing: border-box;
+    transform: none !important;
+    position: relative;
+    width: 45% !important;          /* Use flexible width */
+    min-width: 850px !important;    /* Prevent too narrow */
+    max-width: 900px !important;
+    margin: 0 10px !important;      /* Add small margin for spacing */
+  }
+
+  .camera-section:nth-of-type(1),
+  .camera-section:nth-of-type(2) {
+    left: 0 !important;             /* Remove left shifts */
+  }
+
+  .camera-streams-panel {
+    position: relative !important;
+    width: 1850px !important;       /* Match container width */
+    max-width: none !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    left: 0 !important;             /* Remove left shifts */
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important; /* Even spacing */
+    gap: 20px !important;          /* Use gap for spacing */
   }
 }

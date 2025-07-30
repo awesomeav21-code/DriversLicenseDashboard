@@ -15,6 +15,13 @@
   flex-shrink: 0;
   font-size: 14px;
 }
+@media (min-width: 1700px) and (max-width: 1800px) {
+  .footer {
+    position: static !important;   /* Default flow: appears after .big-dashboard-container */
+    margin-top: 0 !important;
+  }
+
+}
 
 .footer-icon {
   text-align: left; 

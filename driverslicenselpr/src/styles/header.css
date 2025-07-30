@@ -12,7 +12,24 @@
   box-sizing: border-box;
   overflow: visible;
 }
+.logo.transparent-logo img:hover,
+.logo.transparent-logo svg:hover {
+  cursor: pointer !important;
+}
 
+.logo.transparent-logo, 
+.logo.transparent-logo * {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  z-index: 10001 !important; /* Make sure it’s on top */
+  position: relative !important; /* Positioning needed for z-index */
+}
+.logo.transparent-logo img,
+.logo.transparent-logo svg {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+
+}
 /* Help Manual Panel Styles */
 .manual-panel {
   position: absolute;
@@ -502,7 +519,7 @@ input:checked + .slider:before {
   border-radius: 8px;
   display: flex !important;
   position: relative; 
-  left: 50px!important ; 
+  left: 20px!important; 
   align-items: center;
   color: #003366;
   margin-left: 125px !important; /* moves it 40px right */
@@ -528,7 +545,7 @@ input:checked + .slider:before {
   box-shadow: none;
   transition: background-color 0.3s, border 0.3s, box-shadow 0.3s;
   position: relative;
-  left: 325px ; /* your shift */
+  left: 308px ; /* your shift */
 }
 .substation-container{ 
   left: -195px!important; 

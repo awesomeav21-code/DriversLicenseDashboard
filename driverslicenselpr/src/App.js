@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import Header from './components/Header'
 import Navigation from './components/Navigation'
 import VideoFeed from './components/VideoFeed'
@@ -6,8 +6,6 @@ import ThermalPlot from './components/ThermalPlot'
 import SidebarPanel from './components/SidebarPanel'
 import Footer from './components/Footer'
 import SurveillanceStreams from './components/SurveillanceStreams'
-import Surveillance from './components/images/Surveillance.png'
-import Thermal from './components/images/Thermal.png'
 import FixedPopup from './components/FixedPopup'
 import './styles/videofeed.css'
 import './App.css'
@@ -128,6 +126,8 @@ function HamburgerMenu({
           justifyContent: 'center',
           boxShadow: '0 0 4px rgba(0,0,0,0.15)',
           cursor: 'pointer',
+          position: 'relative',
+          top: '-25px'
         }}
       >
         <LeftArrowIcon size={24} color="#233046" />
@@ -140,7 +140,21 @@ export default function App() {
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('activeTab') || 'dashboard')
   const [zones, setZones] = useState([])
   const [allZones, setAllZones] = useState([])
-  const [history, setHistory] = useState([])
+  const [history, setHistory] = useState(() => {
+    const stored = localStorage.getItem('thermalHistory')
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        return parsed.map(entry => ({
+          ...entry,
+          time: new Date(entry.time)
+        }))
+      } catch {
+        return []
+      }
+    }
+    return []
+  })
   const [visibleZones, setVisibleZones] = useState([])
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [tempUnit, setTempUnit] = useState('F')
@@ -149,23 +163,19 @@ export default function App() {
     return saved || 'planck_1'
   })
 
-  // Popup states
   const [show360Popup, setShow360Popup] = useState(false)
+  const [popup360Minimized, setPopup360Minimized] = useState(false)
+
   const [selectedThermalCamera, setSelectedThermalCamera] = useState(null)
+  const [popupThermalMinimized, setPopupThermalMinimized] = useState(false)
+
   const [selectedOpticalCamera, setSelectedOpticalCamera] = useState(null)
+  const [popupOpticalMinimized, setPopupOpticalMinimized] = useState(false)
 
-  // Clear saved date selectors on page load
-  useEffect(() => {
-    localStorage.removeItem('logStartDate')
-    localStorage.removeItem('logEndDate')
-  }, [])
-
-  // Initialize date selectors as empty strings
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
+  const [startDate, setStartDate] = useState(() => localStorage.getItem('logStartDate') || '')
+  const [endDate, setEndDate] = useState(() => localStorage.getItem('logEndDate') || '')
   const [filteredLogs, setFilteredLogs] = useState([])
 
-  // Hamburger state (persisted to localStorage)
   const [hamburgerHovered, setHamburgerHovered] = useState(false)
   const [hamburgerLocked, setHamburgerLocked] = useState(() => {
     const saved = localStorage.getItem('hamburgerLocked')
@@ -176,21 +186,50 @@ export default function App() {
     return saved === null ? true : saved === 'true'
   })
 
-  // Persist hamburgerLocked and eventLogsVisible to localStorage
   useEffect(() => {
     localStorage.setItem('hamburgerLocked', hamburgerLocked)
     localStorage.setItem('eventLogsVisible', eventLogsVisible)
   }, [hamburgerLocked, eventLogsVisible])
 
   useEffect(() => {
+    if (startDate) localStorage.setItem('logStartDate', startDate)
+    else localStorage.removeItem('logStartDate')
+    if (endDate) localStorage.setItem('logEndDate', endDate)
+    else localStorage.removeItem('logEndDate')
+  }, [startDate, endDate])
+
+  useEffect(() => {
+    localStorage.setItem('selectedCamera', selectedCamera)
+  }, [selectedCamera])
+
+  useEffect(() => {
+    localStorage.setItem('activeTab', activeTab)
+    document.body.classList.toggle('dark-mode', isDarkMode)
+    document.body.classList.toggle('light-mode', !isDarkMode)
+  }, [activeTab, isDarkMode])
+
+  // Persist history in localStorage every update
+  useEffect(() => {
+    localStorage.setItem('thermalHistory', JSON.stringify(history))
+  }, [history])
+
+  // Build zoneCameraMap to pass to SidebarPanel
+  const zoneCameraMap = {}
+  zones.forEach(z => {
+    if (z.name && z.camera) {
+      zoneCameraMap[z.name] = z.camera.trim().toLowerCase()
+    }
+  })
+
+  useEffect(() => {
     let mounted = true
 
     fetch('/SSAM.temperature_logs.json')
-      .then((res) => {
+      .then(res => {
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
         return res.json()
       })
-      .then((json) => {
+      .then(json => {
         if (!mounted) return
 
         const recent = Array.isArray(json) ? json.slice(-100) : []
@@ -213,32 +252,62 @@ export default function App() {
         const selectedZonesArr = pickZonesAtLeastOnePerCameraUniqueNames(validZones, zoneCount)
 
         setAllZones(selectedZonesArr)
-        setVisibleZones(selectedZonesArr.map((z) => z.name))
 
-        const fullHistory = recent.map((entry) => {
-          const camera = entry.camera_id ? entry.camera_id.trim().toLowerCase() : null
-          const readings = {}
-          selectedZonesArr.forEach((z) => {
-            let found = null
-            if (camera === z.camera) {
-              ;(entry.zones || []).forEach((zoneObj) => {
-                if (Object.keys(zoneObj)[0] === z.name) found = zoneObj[z.name]
-              })
-            }
-            readings[z.name] = typeof found === 'number' ? Math.round(found) : null
-          })
+        // Merge all zone names from history and selectedZonesArr to keep visibleZones comprehensive
+        const allZoneNames = new Set([
+          ...selectedZonesArr.map(z => z.name),
+          ...history.flatMap(entry => Object.keys(entry.readings || {})),
+        ])
 
-          const entryTime =
-            entry.timestamp && entry.timestamp.$date ? new Date(entry.timestamp.$date) : new Date(NaN)
+        setVisibleZones(Array.from(allZoneNames))
 
-          return {
-            time: entryTime,
-            readings,
+        const testEntries = [
+          {
+            time: new Date(new Date().setDate(new Date().getDate() - 2)),
+            readings: selectedZonesArr.reduce((acc, z) => {
+              acc[z.name] = Math.floor(Math.random() * 100)
+              return acc
+            }, {})
+          },
+          {
+            time: new Date(new Date().setDate(new Date().getDate() - 1)),
+            readings: selectedZonesArr.reduce((acc, z) => {
+              acc[z.name] = Math.floor(Math.random() * 100)
+              return acc
+            }, {})
           }
-        })
-        setHistory(fullHistory)
+        ]
 
-        const curZones = selectedZonesArr.map((z) => {
+        const combinedHistory = [
+          ...history,
+          ...testEntries,
+          ...recent.map(entry => {
+            const camera = entry.camera_id ? entry.camera_id.trim().toLowerCase() : null
+            const readings = {}
+            selectedZonesArr.forEach(z => {
+              let found = null
+              if (camera === z.camera) {
+                ;(entry.zones || []).forEach(zoneObj => {
+                  if (Object.keys(zoneObj)[0] === z.name) found = zoneObj[z.name]
+                })
+              }
+              readings[z.name] = typeof found === 'number' ? Math.round(found) : null
+            })
+
+            const entryTime = entry.timestamp && entry.timestamp.$date ? new Date(entry.timestamp.$date) : new Date(NaN)
+
+            return {
+              time: entryTime,
+              readings
+            }
+          })
+        ]
+
+        combinedHistory.sort((a, b) => a.time - b.time)
+
+        setHistory(combinedHistory)
+
+        const curZones = selectedZonesArr.map(z => {
           let value = null
           for (let i = recent.length - 1; i >= 0; i--) {
             const entry = recent[i]
@@ -255,35 +324,24 @@ export default function App() {
           }
           return {
             ...z,
-            camera: z.camera?.trim().toLowerCase(),  // <-- This line added for camera normalization
+            camera: z.camera?.trim().toLowerCase(),
             temperature: typeof value === 'number' ? Math.round(value) : null,
             threshold: 75,
-            lastTriggered: new Date().toLocaleString(),
+            lastTriggered: new Date().toLocaleString()
           }
         })
+
         setZones(curZones)
       })
       .catch(() => {
         setZones([])
         setAllZones([])
-        setHistory([])
-        setVisibleZones([])
       })
 
     return () => {
       mounted = false
     }
   }, [])
-
-  useEffect(() => {
-    localStorage.setItem('selectedCamera', selectedCamera)
-  }, [selectedCamera])
-
-  useEffect(() => {
-    localStorage.setItem('activeTab', activeTab)
-    document.body.classList.toggle('dark-mode', isDarkMode)
-    document.body.classList.toggle('light-mode', !isDarkMode)
-  }, [activeTab, isDarkMode])
 
   useEffect(() => {
     if (!startDate || !endDate || !history.length) {
@@ -295,22 +353,22 @@ export default function App() {
     const endDateObj = new Date(endDate + 'T23:59:59.999')
 
     const filtered = history
-      .filter((entry) => {
+      .filter(entry => {
         if (!(entry.time instanceof Date) || isNaN(entry.time)) return false
         return (
           entry.time >= startDateObj &&
           entry.time <= endDateObj &&
-          visibleZones.some((zoneName) => entry.readings[zoneName] != null)
+          visibleZones.some(zoneName => entry.readings[zoneName] != null)
         )
       })
-      .map((entry) => {
+      .map(entry => {
         const messageZones = visibleZones
-          .filter((zoneName) => entry.readings[zoneName] != null)
-          .map((zoneName) => `${zoneName}: ${entry.readings[zoneName]}`)
+          .filter(zoneName => entry.readings[zoneName] != null)
+          .map(zoneName => `${zoneName}: ${entry.readings[zoneName]}`)
           .join('; ')
         return {
           timestamp: entry.time.toLocaleString(),
-          message: messageZones || 'No data',
+          message: messageZones || 'No data'
         }
       })
 
@@ -319,12 +377,11 @@ export default function App() {
 
   function addZone() {}
 
-  const camera1Zones = zones.filter((z) => z.camera?.trim().toLowerCase() === 'planck_1')
-  const camera2Zones = zones.filter((z) => z.camera?.trim().toLowerCase() === 'planck_2')
+  const camera1Zones = zones.filter(z => z.camera?.trim().toLowerCase() === 'planck_1')
+  const camera2Zones = zones.filter(z => z.camera?.trim().toLowerCase() === 'planck_2')
 
-  const filterZonesByCamera = (cameraName) => zones.filter((z) => z.camera?.trim().toLowerCase() === cameraName)
+  const filterZonesByCamera = cameraName => zones.filter(z => z.camera?.trim().toLowerCase() === cameraName)
 
-  // Hamburger handlers
   const handleHamburgerHover = () => setHamburgerHovered(true)
   const handleHamburgerUnhover = () => {
     if (!hamburgerLocked) setHamburgerHovered(false)
@@ -336,8 +393,6 @@ export default function App() {
       return willLock
     })
   }
-
-  // Removed refs and effect related to camera panels
 
   return (
     <>
@@ -356,9 +411,10 @@ export default function App() {
                   setEndDate={setEndDate}
                   logs={filteredLogs}
                   visibleZones={visibleZones}
-                  zones={zones}                   // <-- Pass zones array here
-                  history={history}               // <-- Add this line to pass thermal data history
+                  zones={zones}
+                  history={history}
                   addZone={addZone}
+                  zoneCameraMap={zoneCameraMap}
                   onDatePick={(start, end) => {
                     setStartDate(start)
                     setEndDate(end)
@@ -378,14 +434,12 @@ export default function App() {
             <div className="scroll-container">
               {activeTab === 'dashboard' && (
                 <div className={`big-dashboard-container${!eventLogsVisible ? ' big-dashboard-container--fullwidth' : ''}`}>
-                  {/* Attach ref here */}
                   <div>
                     <VideoFeed
                       isDarkMode={isDarkMode}
                       tempUnit={tempUnit}
                       camera1Zones={camera1Zones}
                       camera2Zones={camera2Zones}
-                      // You will handle camera panels inside VideoFeed now
                       show360Popup={show360Popup}
                       setShow360Popup={setShow360Popup}
                       selectedThermalCamera={selectedThermalCamera}
@@ -425,47 +479,106 @@ export default function App() {
         <Footer />
       </div>
 
+      {/* 360° Camera Popup */}
       {show360Popup && (
         <FixedPopup
           style={{
             position: 'fixed',
-            top: '100px',
-            right: '20px',
-            width: '700px',
-            maxHeight: '80vh',
+            top: 0,
+            left: 0,
+            width: popup360Minimized ? '400px' : '100vw',
+            height: popup360Minimized ? '240px' : '100vh',
             backgroundColor: '#fff',
             border: '2px solid #333',
             boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-            padding: '16px',
-            overflowY: 'auto',
-            borderRadius: '8px',
+            padding: '0',
+            borderRadius: '0',
             zIndex: 100000,
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
-            <button
-              style={{
-                background: 'none',
-                border: 'none',
-                fontSize: '1.3rem',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                color: '#333',
-              }}
-              onClick={() => setShow360Popup(false)}
-              aria-label="Close"
-            >
-              ×
-            </button>
+          {/* Control Bar */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            backgroundColor: '#ddd',
+            padding: '8px 12px',
+            userSelect: 'none',
+            flexShrink: 0,
+            borderBottom: '1px solid #ccc',
+            position: 'sticky',
+            top: 0,
+            zIndex: 100001,
+          }}>
+            <div style={{ fontWeight: 'bold' }}>360° Camera 1</div>
+            <div>
+              <button
+                onClick={() => setPopup360Minimized(true)}
+                aria-label="Minimize popup"
+                style={{
+                  cursor: 'pointer',
+                  fontSize: '20px',
+                  background: '#bbb',
+                  border: '1px solid #888',
+                  borderRadius: '4px',
+                  padding: '0 8px',
+                  minWidth: '28px',
+                  height: '28px',
+                  marginRight: '10px',
+                  userSelect: 'none',
+                }}
+              >
+                —
+              </button>
+              <button
+                onClick={() => setPopup360Minimized(false)}
+                aria-label="Fullscreen popup"
+                style={{
+                  cursor: 'pointer',
+                  fontSize: '20px',
+                  background: '#bbb',
+                  border: '1px solid #888',
+                  borderRadius: '4px',
+                  padding: '0 8px',
+                  minWidth: '28px',
+                  height: '28px',
+                  marginRight: '10px',
+                  userSelect: 'none',
+                }}
+              >
+                ⬜
+              </button>
+              <button
+                onClick={() => {
+                  setShow360Popup(false)
+                  setPopup360Minimized(false)
+                }}
+                aria-label="Close popup"
+                style={{
+                  cursor: 'pointer',
+                  fontSize: '20px',
+                  background: '#bbb',
+                  border: '1px solid #888',
+                  borderRadius: '4px',
+                  padding: '0 8px',
+                  minWidth: '28px',
+                  height: '28px',
+                  userSelect: 'none',
+                }}
+              >
+                ×
+              </button>
+            </div>
           </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontWeight: 'bold', marginBottom: 4 }}>360° Camera 1</div>
+
+          {/* Content Area */}
+          <div style={{ flex: 1, overflow: 'auto', background: '#000' }}>
             <video
               src="https://www.w3schools.com/html/mov_bbb.mp4"
               controls
-              width="650"
-              height="350"
-              style={{ borderRadius: 6, background: '#000' }}
+              style={{ width: '100%', height: '100%', borderRadius: 0 }}
               autoPlay
               muted
               loop
@@ -476,86 +589,225 @@ export default function App() {
         </FixedPopup>
       )}
 
+      {/* Thermal Camera Popup */}
       {selectedThermalCamera && (
         <FixedPopup
           style={{
             position: 'fixed',
-            top: '100px',
-            right: '20px',
-            width: '700px',
-            maxHeight: '80vh',
+            top: 0,
+            left: 0,
+            width: popupThermalMinimized ? '400px' : '100vw',
+            height: popupThermalMinimized ? '240px' : '100vh',
             backgroundColor: '#fff',
             border: '2px solid #333',
             boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-            padding: '16px',
-            overflowY: 'auto',
+            padding: '0',
+            borderRadius: '0',
             zIndex: 100000,
-            borderRadius: '8px',
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
-          <button
-            onClick={() => {
-              setSelectedThermalCamera(null)
-            }}
-            aria-label="Close"
-            style={{
-              position: 'absolute',
-              top: 8,
-              right: 12,
-              border: 'none',
-              background: 'transparent',
-              fontSize: '1.5rem',
-              cursor: 'pointer',
-              lineHeight: 1,
-              color: '#333',
-            }}
-          >
-            ×
-          </button>
-          {filterZonesByCamera(selectedThermalCamera).map((zone) => (
-            <ZoneVideoFeed key={zone.name} zone={zone} />
-          ))}
+          {/* Control Bar */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            backgroundColor: '#ddd',
+            padding: '8px 12px',
+            userSelect: 'none',
+            flexShrink: 0,
+            borderBottom: '1px solid #ccc',
+            position: 'sticky',
+            top: 0,
+            zIndex: 100001,
+          }}>
+            <div style={{ fontWeight: 'bold' }}>Thermal Camera</div>
+            <div>
+              <button
+                onClick={() => setPopupThermalMinimized(true)}
+                aria-label="Minimize popup"
+                style={{
+                  cursor: 'pointer',
+                  fontSize: '20px',
+                  background: '#bbb',
+                  border: '1px solid #888',
+                  borderRadius: '4px',
+                  padding: '0 8px',
+                  minWidth: '28px',
+                  height: '28px',
+                  marginRight: '10px',
+                  userSelect: 'none',
+                }}
+              >
+                —
+              </button>
+              <button
+                onClick={() => setPopupThermalMinimized(false)}
+                aria-label="Fullscreen popup"
+                style={{
+                  cursor: 'pointer',
+                  fontSize: '20px',
+                  background: '#bbb',
+                  border: '1px solid #888',
+                  borderRadius: '4px',
+                  padding: '0 8px',
+                  minWidth: '28px',
+                  height: '28px',
+                  marginRight: '10px',
+                  userSelect: 'none',
+                }}
+              >
+                ⬜
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedThermalCamera(null)
+                  setPopupThermalMinimized(false)
+                }}
+                aria-label="Close popup"
+                style={{
+                  cursor: 'pointer',
+                  fontSize: '20px',
+                  background: '#bbb',
+                  border: '1px solid #888',
+                  borderRadius: '4px',
+                  padding: '0 8px',
+                  minWidth: '28px',
+                  height: '28px',
+                  userSelect: 'none',
+                }}
+              >
+                ×
+              </button>
+            </div>
+          </div>
+
+          {/* Content Area */}
+          <div style={{
+            flex: 1,
+            overflowY: 'auto',
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: '#fff',
+          }}>
+            {filterZonesByCamera(selectedThermalCamera).map(zone => (
+              <ZoneVideoFeed key={zone.name} zone={zone} />
+            ))}
+          </div>
         </FixedPopup>
       )}
+
+      {/* Optical Camera Popup */}
       {selectedOpticalCamera && (
         <FixedPopup
           style={{
             position: 'fixed',
-            top: '100px',
-            right: '20px',
-            width: '700px',
-            maxHeight: '80vh',
+            top: 0,
+            left: 0,
+            width: popupOpticalMinimized ? '400px' : '100vw',
+            height: popupOpticalMinimized ? '240px' : '100vh',
             backgroundColor: '#fff',
             border: '2px solid #333',
             boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-            padding: '16px',
-            overflowY: 'auto',
+            padding: '0',
+            borderRadius: '0',
             zIndex: 100000,
-            borderRadius: '8px',
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
-          <button
-            onClick={() => {
-              setSelectedOpticalCamera(null)
-            }}
-            aria-label="Close"
-            style={{
-              position: 'absolute',
-              top: 8,
-              right: 12,
-              border: 'none',
-              background: 'transparent',
-              fontSize: '1.5rem',
-              cursor: 'pointer',
-              lineHeight: 1,
-              color: '#333',
-            }}
-          >
-            ×
-          </button>
-          {filterZonesByCamera(selectedOpticalCamera).map((zone) => (
-            <ZoneVideoFeed key={zone.name} zone={zone} />
-          ))}
+          {/* Control Bar */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            backgroundColor: '#ddd',
+            padding: '8px 12px',
+            userSelect: 'none',
+            flexShrink: 0,
+            borderBottom: '1px solid #ccc',
+            position: 'sticky',
+            top: 0,
+            zIndex: 100001,
+          }}>
+            <div style={{ fontWeight: 'bold' }}>Optical Camera</div>
+            <div>
+              <button
+                onClick={() => setPopupOpticalMinimized(true)}
+                aria-label="Minimize popup"
+                style={{
+                  cursor: 'pointer',
+                  fontSize: '20px',
+                  background: '#bbb',
+                  border: '1px solid #888',
+                  borderRadius: '4px',
+                  padding: '0 8px',
+                  minWidth: '28px',
+                  height: '28px',
+                  marginRight: '10px',
+                  userSelect: 'none',
+                }}
+              >
+                —
+              </button>
+              <button
+                onClick={() => setPopupOpticalMinimized(false)}
+                aria-label="Fullscreen popup"
+                style={{
+                  cursor: 'pointer',
+                  fontSize: '20px',
+                  background: '#bbb',
+                  border: '1px solid #888',
+                  borderRadius: '4px',
+                  padding: '0 8px',
+                  minWidth: '28px',
+                  height: '28px',
+                  marginRight: '10px',
+                  userSelect: 'none',
+                }}
+              >
+                ⬜
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedOpticalCamera(null)
+                  setPopupOpticalMinimized(false)
+                }}
+                aria-label="Close popup"
+                style={{
+                  cursor: 'pointer',
+                  fontSize: '20px',
+                  background: '#bbb',
+                  border: '1px solid #888',
+                  borderRadius: '4px',
+                  padding: '0 8px',
+                  minWidth: '28px',
+                  height: '28px',
+                  userSelect: 'none',
+                }}
+              >
+                ×
+              </button>
+            </div>
+          </div>
+
+          {/* Content Area */}
+          <div style={{
+            flex: 1,
+            overflowY: 'auto',
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: '#fff',
+          }}>
+            {filterZonesByCamera(selectedOpticalCamera).map(zone => (
+              <ZoneVideoFeed key={zone.name} zone={zone} />
+            ))}
+          </div>
         </FixedPopup>
       )}
     </>

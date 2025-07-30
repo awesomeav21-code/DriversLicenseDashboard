@@ -3,8 +3,8 @@
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.25), 0 8px 24px rgba(0,0,0,0.15);  padding: 28px;           /* Slightly reduced padding */
-  height: 600px;           /* Shorter, so more is visible! */
-  width: 1000px !important ;
+  height: 500px !important;           /* Shorter, so more is visible! */
+  width: 1200px !important ;
   max-width: 98vw;         /* Prevents overflow on small screens */
   box-sizing: border-box;
   position: relative;
@@ -16,6 +16,7 @@
   background: #0f172a;
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.8);
   color: #eee;
+  border: 1px solid #fff !important
 }
 
 /* === CAMERA BUTTON BAR (centered above chart) === */
@@ -41,11 +42,16 @@
   overflow-x: auto;               /* Scroll if buttons overflow */
   box-sizing: border-box;          /* Include padding in width */
 }
+.chart-button, 
+.pdf-dropdown, 
+.chart-dropdown {
+  left: 335px !important; 
+}
 
 /* Dark mode container style */
 .dark-mode .camera-switcher-bar {
   background: #0f172a;              /* Same dark blue as other dark mode areas */
-  border-color: #253152;            /* Darker border for contrast */
+  border: 1px solid #fff !important;            /* Darker border for contrast */
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.8); /* Darker shadow */
   color: #eee;                     /* Light text color */
 }
@@ -99,11 +105,19 @@
   overflow-x: auto;                  /* If buttons overflow horizontally */
   white-space: nowrap;               /* Prevent wrapping */
 }
-
+.dark-mode .chart-button{
+  border: 1px solid #fff!important; 
+}
+.dark-mode .pdf-dropdown{
+  border: 1px solid #fff!important; 
+}
+.dark-mode .chart-dropdown{
+  border: 1px solid #fff !important; 
+}
 /* Dark mode container style for chart buttons */
 .dark-mode .chart-button-wrapper {
   background: #0f172a;               /* Dark blue background */
-  border-color: #253152;             /* Dark border */
+  border: 1px solid #fff !important;             /* Dark border */
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.8); /* Dark shadow */
   color: #eee;                      /* Light text */
 }
@@ -128,7 +142,7 @@
 /* Dark mode for chart button container */
 .dark-mode .chart-button-container {
   background-color: #0f172a; /* Same dark blue as other dark mode areas */
-  border-color: #253152;
+  border: 1px solid #fff!important;
   color: #fff; /* Always white text */
 }
 
@@ -158,11 +172,9 @@
 }
 .chart-dropdown{
   position: relative !important; 
-   left: 250px !important; 
 }
 .pdf-dropdown{
   position: relative; 
-  left: 250px !important
 }
 /* Ensure hover color applies to button and all its children */
 .chart-button:hover,
@@ -174,7 +186,7 @@
 /* Dark mode buttons */
 .dark-mode .chart-button,
 .dark-mode .zoom-left-button {
-  border-color: #ffffff;
+  border: 1px solid #fff;
   color: #ffffff;
 }
 

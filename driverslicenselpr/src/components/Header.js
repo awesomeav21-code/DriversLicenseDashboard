@@ -10,7 +10,6 @@ function Header({
   tempUnit,
   setTempUnit,
 }) {
-  // Sample substations data
   const substations = [
     {
       id: 1,
@@ -35,12 +34,9 @@ function Header({
     },
   ]
 
-  // State for current selected substation (defaults to first)
   const [selectedSubstationId, setSelectedSubstationId] = useState(substations[0].id)
   const [showSubstationDropdown, setShowSubstationDropdown] = useState(false)
   const substationDropdownRef = useRef(null)
-
-  // Shuffle substations list for dropdown only
   const [shuffledSubstations, setShuffledSubstations] = useState([])
 
   useEffect(() => {
@@ -55,24 +51,20 @@ function Header({
     setShuffledSubstations(shuffle(substations))
   }, [])
 
-  // Find current substation object
   const currentSubstation = substations.find(s => s.id === selectedSubstationId)
 
-  // Profile and UI states
   const [showHelp, setShowHelp] = useState(false)
   const [showSettingsMenu, setShowSettingsMenu] = useState(false)
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [isAlertOn, setIsAlertOn] = useState(false)
-  const [modalContent, setModalContent] = useState(null) // null | 'edit' | 'view'
+  const [modalContent, setModalContent] = useState(null)
   const [profileName, setProfileName] = useState(null)
 
-  // Form fields for profile editing
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [profileColor, setProfileColor] = useState('#1c7ed6')
   const [tempColor, setTempColor] = useState(profileColor)
 
-  // Refs for dropdown close handling
   const helpRef = useRef(null)
   const settingsRef = useRef(null)
   const profileRef = useRef(null)
@@ -81,7 +73,6 @@ function Header({
   const settingsMouseInside = useRef(false)
   const profileMouseInside = useRef(false)
 
-  // Load profile from localStorage once
   useEffect(() => {
     const savedProfile = localStorage.getItem('userProfile')
     if (savedProfile) {
@@ -92,13 +83,10 @@ function Header({
           setProfileColor(parsed.color)
           setTempColor(parsed.color)
         }
-      } catch {
-        // ignore parse errors
-      }
+      } catch {}
     }
   }, [])
 
-  // Close dropdowns on outside click (including substation dropdown)
   useEffect(() => {
     function handleClickOutside(event) {
       if (helpRef.current && !helpRef.current.contains(event.target)) {
@@ -120,7 +108,6 @@ function Header({
     }
   }, [])
 
-  // Mouse enter/leave handlers for help dropdown
   const onHelpEnter = () => {
     helpMouseInside.current = true
     setShowHelp(true)
@@ -131,7 +118,6 @@ function Header({
       if (!helpMouseInside.current) setShowHelp(false)
     }, 100)
   }
-  // Mouse enter/leave handlers for settings dropdown
   const onSettingsEnter = () => {
     settingsMouseInside.current = true
     setShowSettingsMenu(true)
@@ -142,7 +128,6 @@ function Header({
       if (!settingsMouseInside.current) setShowSettingsMenu(false)
     }, 100)
   }
-  // Mouse enter/leave handlers for profile dropdown
   const onProfileEnter = () => {
     profileMouseInside.current = true
     setShowProfileMenu(true)
@@ -153,8 +138,6 @@ function Header({
       if (!profileMouseInside.current) setShowProfileMenu(false)
     }, 100)
   }
-
-  // Edit profile modal open
   const handleEditProfile = () => {
     setFirstName('')
     setLastName('')
@@ -162,31 +145,24 @@ function Header({
     setModalContent('edit')
     setShowProfileMenu(false)
   }
-  // View profile modal open
   const handleViewProfile = () => {
     setModalContent('view')
     setShowProfileMenu(false)
   }
-  // Close modal
   const closeModal = () => setModalContent(null)
-
-  // Submit profile form
   const handleProfileSubmit = (e) => {
     e.preventDefault()
     const fullName = `${firstName.trim()}${lastName.trim() ? ' ' + lastName.trim() : ''}`
     setProfileName(fullName || null)
     setProfileColor(tempColor)
-
     localStorage.setItem(
       'userProfile',
       JSON.stringify({ name: fullName, color: tempColor })
     )
-
     setFirstName('')
     setLastName('')
     setModalContent(null)
   }
-  // Remove profile data
   const handleRemoveProfile = () => {
     setProfileName(null)
     setProfileColor('#1c7ed6')
@@ -197,7 +173,6 @@ function Header({
 
   const profileInitial = profileName ? profileName.charAt(0).toUpperCase() : 'O'
 
-  // Colors for dark mode
   const helpTextColor = isDarkMode ? '#f9fafb' : '#1f2937'
   const helpHeadingColor = isDarkMode ? '#f3f4f6' : '#111827'
   const helpBorderColor = isDarkMode ? '#334155' : '#ccc'
@@ -213,7 +188,6 @@ function Header({
     ? '0 8px 24px rgba(0, 0, 0, 0.8)'
     : '0 8px 24px rgba(0, 0, 0, 0.12)'
 
-  // Substation dropdown arrow component
   const DropdownArrow = ({ open }) => (
     <svg
       style={{
@@ -236,7 +210,6 @@ function Header({
     </svg>
   )
 
-  // Status dot component
   const StatusDot = ({ active }) => (
     <span
       style={{
@@ -244,7 +217,7 @@ function Header({
         width: 10,
         height: 10,
         borderRadius: '50%',
-        background: active ? '#3b82f6' : '#ef4444', // blue for active, red for others
+        background: active ? '#3b82f6' : '#ef4444',
         marginLeft: 10,
         verticalAlign: 'middle',
         boxShadow: active ? '0 0 5px #60a5fa' : undefined,
@@ -252,11 +225,32 @@ function Header({
     />
   )
 
-  // Substation select handler
   function handleSubstationSelect(id) {
     setSelectedSubstationId(id)
     setShowSubstationDropdown(false)
   }
+
+  const [isAlternateLogo, setIsAlternateLogo] = useState(false)
+  const toggleLogo = () => setIsAlternateLogo(prev => !prev)
+
+  const AlternateIcon = (
+    <svg
+      width="40"
+      height="40"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={isDarkMode ? 'white' : 'black'}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ cursor: 'pointer' }}
+      aria-label="Alternate Icon"
+      role="img"
+    >
+      <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
+      <line x1="4" y1="12" x2="20" y2="12" />
+    </svg>
+  )
 
   return (
     <>
@@ -266,30 +260,34 @@ function Header({
             <img src={AssetLogo} alt="SSAM Logo" className="ssam-image" />
           </div>
           <div className="divider-container" style={{ height: '100%' }}>
-            <div
-              className="divider"
-              style={{ height: '100%', alignSelf: 'stretch' }}
-            />
+            <div className="divider" style={{ height: '100%', alignSelf: 'stretch' }} />
           </div>
-          <div className="logo transparent-logo">
-            <a
-              href={ANECLogo}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="ANEC"
-            >
+          <div
+            className="logo transparent-logo"
+            onClick={toggleLogo}
+            role="button"
+            tabIndex={0}
+            aria-label="Toggle Logo"
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                toggleLogo()
+              }
+            }}
+            style={{ cursor: 'pointer' }}
+          >
+            {isAlternateLogo ? AlternateIcon : (
               <img
                 src={ANECLogo}
                 alt="ANEC Logo"
                 className="logo-image anec-filter"
               />
-            </a>
+            )}
           </div>
 
-          {/* Substation info box dropdown */}
-          <div  
+          <div
             ref={substationDropdownRef}
-            style={{ position: 'relative', zIndex: 1000}}
+            style={{ position: 'relative', zIndex: 1000 }}
             className="substation-container"
           >
             <div
@@ -306,8 +304,8 @@ function Header({
               style={{
                 marginLeft: '20px',
                 marginTop: '10px',
-                display: 'flex', 
-                alignItems: 'center', 
+                display: 'flex',
+                alignItems: 'center',
                 flexWrap: 'nowrap',
                 backgroundColor: showSubstationDropdown
                   ? (isDarkMode ? '#1c2336' : '#e0f0ff')
@@ -315,16 +313,16 @@ function Header({
                 borderRadius: '12px',
                 padding: '12px 16px',
                 cursor: 'pointer',
-                whiteSpace: 'nowrap',  // prevents wrapping inside this text
-                overflow: 'hidden',   // hides overflow content
-                textOverflow: 'ellipsis',  // adds ... when text is too long
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
                 color: showSubstationDropdown
                   ? (isDarkMode ? '#a5b4fc' : '#1c3a70')
                   : (isDarkMode ? 'white' : 'black'),
                 fontWeight: '600',
                 fontSize: '14px',
                 display: 'flex',
-                justifyContent: 'center',  // or 'space-between' as you want
+                justifyContent: 'center',
                 alignItems: 'center',
                 userSelect: 'none',
                 transition: 'background-color 0.3s, color 0.3s',
@@ -332,13 +330,12 @@ function Header({
               aria-label="Select Substation"
             >
               <span><strong>Substation:&nbsp;</strong>{currentSubstation?.name || 'N/A'}</span>
-              {/* Remove StatusDot here so no dot before dropdown click */}
               <DropdownArrow open={showSubstationDropdown} />
             </div>
 
             {showSubstationDropdown && (
               <div
-                className="substation-dropdown" 
+                className="substation-dropdown"
                 style={{
                   position: 'absolute',
                   top: '74px',
@@ -417,7 +414,6 @@ function Header({
         </div>
 
         <div className="header-icons">
-          {/* Help icon */}
           <div
             className="icon-container dropdown-parent"
             ref={helpRef}
