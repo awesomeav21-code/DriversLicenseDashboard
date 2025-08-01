@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Reset and base styles */
 html, body {
   margin: 0;
@@ -296,32 +300,6 @@ body.dark-mode .fixed-popup {
   cursor: pointer;
 }
 
-/* Base grid: 4 cards per row */
-.archive-cards-grid {
-  display: grid !important;
-  grid-template-columns: repeat(4, 1fr) !important;
-  gap: 20px !important;
-  max-width: 1150px;
-  margin: 0 auto;
-  transition: all 0.3s ease;
-}
-
-/* Responsive: add one card per row when viewport >= 1700px */
-@media (min-width: 1700px) {
-  .archive-cards-grid {
-    grid-template-columns: repeat(5, 1fr) !important;
-    max-width: 1400px;
-  }
-}
-
-/* Optional: add more cards for very wide screens */
-@media (min-width: 2000px) {
-  .archive-cards-grid {
-    grid-template-columns: repeat(6, 1fr) !important;
-    max-width: 1800px;
-  }
-}
-
 @media (min-width: 1500px) and (max-width: 1600px) {
   .big-dashboard-container{
     width: 100%; 
@@ -420,6 +398,12 @@ body.dark-mode .fixed-popup {
     align-items: center !important;      /* Center vertically */
     justify-content: center !important;  /* Center horizontally */
   }
+    .archive-cards-grid {
+      grid-template-columns: repeat(6, 1fr) !important;
+      max-width: 1800px !important;
+    }
+  
+  
   .camera-icon {
     height: 88px !important;
     width: auto !important;
@@ -473,47 +457,4 @@ body.dark-mode .fixed-popup {
     overflow-x: hidden;
   }
 }
-@media (min-width: 2100px) and (max-width: 2200px) {
-  .big-dashboard-container {
-    width: 1850px !important;       /* Set fixed width */
-    max-width: none !important;     
-    margin-left: auto;
-    margin-right: auto;
-    box-sizing: border-box;
-    margin-bottom: 0 !important;
-    height: auto !important;        /* Remove fixed height */
-    max-height: none !important;
-    overflow-x: visible !important;
-  }
 
-  .camera-section {
-    box-sizing: border-box;
-    transform: none !important;
-    position: relative;
-    width: 45% !important;          /* Use flexible width */
-    min-width: 850px !important;    /* Prevent too narrow */
-    max-width: 900px !important;
-    margin: 0 10px !important;      /* Add small margin for spacing */
-  }
-
-  .camera-section:nth-of-type(1),
-  .camera-section:nth-of-type(2) {
-    left: 0 !important;             /* Remove left shifts */
-  }
-
-  .camera-streams-panel {
-    position: relative !important;
-    width: 1850px !important;       /* Match container width */
-    max-width: none !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    left: 0 !important;             /* Remove left shifts */
-    box-sizing: border-box !important;
-    overflow: visible !important;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: space-between !important; /* Even spacing */
-    gap: 20px !important;          /* Use gap for spacing */
-  }
-}

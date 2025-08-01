@@ -49,23 +49,14 @@ function pickZonesAtLeastOnePerCameraUniqueNames(allZonesArr, count) {
 
 function ZoneVideoFeed({ zone }) {
   return (
-    <div
-      style={{
-        margin: 8,
-        border: '1px solid #ccc',
-        borderRadius: 6,
-        padding: 4,
-        width: 320,
-        textAlign: 'center',
-      }}
-    >
-      <div style={{ fontWeight: 'bold', marginBottom: 4 }}>{zone.name}</div>
+    <div className="m-2 border border-gray-300 rounded-md p-1 w-[320px] text-center">
+      <div className="font-bold mb-1">{zone.name}</div>
       <video
         src={zone.videoFeedUrl || 'https://www.w3schools.com/html/mov_bbb.mp4'}
         controls
         width="300"
         height="170"
-        style={{ borderRadius: 6, background: '#000' }}
+        className="rounded-md bg-black"
         autoPlay
         muted
         loop
@@ -109,26 +100,12 @@ function HamburgerMenu({
       onMouseLeave={onUnhover}
     >
       <div
-        className={`hamburger-menu${visible ? ' open' : ''}${locked ? ' locked' : ''}`}
+        className={`hamburger-menu${visible ? ' open' : ''}${locked ? ' locked' : ''} bg-white rounded-md p-1 w-10 h-10 flex items-center justify-center shadow-sm cursor-pointer relative -top-6`}
         onClick={e => {
           e.stopPropagation()
           onClick()
         }}
         title="Show/Hide Event Logs"
-        style={{
-          backgroundColor: 'white',
-          borderRadius: '4px',
-          padding: '4px',
-          width: '40px',
-          height: '40px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 0 4px rgba(0,0,0,0.15)',
-          cursor: 'pointer',
-          position: 'relative',
-          top: '-25px'
-        }}
       >
         <LeftArrowIcon size={24} color="#233046" />
       </div>
@@ -208,12 +185,10 @@ export default function App() {
     document.body.classList.toggle('light-mode', !isDarkMode)
   }, [activeTab, isDarkMode])
 
-  // Persist history in localStorage every update
   useEffect(() => {
     localStorage.setItem('thermalHistory', JSON.stringify(history))
   }, [history])
 
-  // Build zoneCameraMap to pass to SidebarPanel
   const zoneCameraMap = {}
   zones.forEach(z => {
     if (z.name && z.camera) {
@@ -253,7 +228,6 @@ export default function App() {
 
         setAllZones(selectedZonesArr)
 
-        // Merge all zone names from history and selectedZonesArr to keep visibleZones comprehensive
         const allZoneNames = new Set([
           ...selectedZonesArr.map(z => z.name),
           ...history.flatMap(entry => Object.keys(entry.readings || {})),
@@ -479,7 +453,6 @@ export default function App() {
         <Footer />
       </div>
 
-      {/* 360° Camera Popup */}
       {show360Popup && (
         <FixedPopup
           style={{
@@ -498,7 +471,6 @@ export default function App() {
             flexDirection: 'column',
           }}
         >
-          {/* Control Bar */}
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -515,8 +487,8 @@ export default function App() {
             <div style={{ fontWeight: 'bold' }}>360° Camera 1</div>
             <div>
               <button
-                onClick={() => setPopup360Minimized(true)}
-                aria-label="Minimize popup"
+                onClick={() => setPopup360Minimized(!popup360Minimized)}
+                aria-label={popup360Minimized ? 'Maximize popup' : 'Minimize popup'}
                 style={{
                   cursor: 'pointer',
                   fontSize: '20px',
@@ -530,25 +502,7 @@ export default function App() {
                   userSelect: 'none',
                 }}
               >
-                —
-              </button>
-              <button
-                onClick={() => setPopup360Minimized(false)}
-                aria-label="Fullscreen popup"
-                style={{
-                  cursor: 'pointer',
-                  fontSize: '20px',
-                  background: '#bbb',
-                  border: '1px solid #888',
-                  borderRadius: '4px',
-                  padding: '0 8px',
-                  minWidth: '28px',
-                  height: '28px',
-                  marginRight: '10px',
-                  userSelect: 'none',
-                }}
-              >
-                ⬜
+                {popup360Minimized ? '⬜' : '—'}
               </button>
               <button
                 onClick={() => {
@@ -572,8 +526,6 @@ export default function App() {
               </button>
             </div>
           </div>
-
-          {/* Content Area */}
           <div style={{ flex: 1, overflow: 'auto', background: '#000' }}>
             <video
               src="https://www.w3schools.com/html/mov_bbb.mp4"
@@ -589,7 +541,6 @@ export default function App() {
         </FixedPopup>
       )}
 
-      {/* Thermal Camera Popup */}
       {selectedThermalCamera && (
         <FixedPopup
           style={{
@@ -608,7 +559,6 @@ export default function App() {
             flexDirection: 'column',
           }}
         >
-          {/* Control Bar */}
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -625,8 +575,8 @@ export default function App() {
             <div style={{ fontWeight: 'bold' }}>Thermal Camera</div>
             <div>
               <button
-                onClick={() => setPopupThermalMinimized(true)}
-                aria-label="Minimize popup"
+                onClick={() => setPopupThermalMinimized(!popupThermalMinimized)}
+                aria-label={popupThermalMinimized ? 'Maximize popup' : 'Minimize popup'}
                 style={{
                   cursor: 'pointer',
                   fontSize: '20px',
@@ -640,25 +590,7 @@ export default function App() {
                   userSelect: 'none',
                 }}
               >
-                —
-              </button>
-              <button
-                onClick={() => setPopupThermalMinimized(false)}
-                aria-label="Fullscreen popup"
-                style={{
-                  cursor: 'pointer',
-                  fontSize: '20px',
-                  background: '#bbb',
-                  border: '1px solid #888',
-                  borderRadius: '4px',
-                  padding: '0 8px',
-                  minWidth: '28px',
-                  height: '28px',
-                  marginRight: '10px',
-                  userSelect: 'none',
-                }}
-              >
-                ⬜
+                {popupThermalMinimized ? '⬜' : '—'}
               </button>
               <button
                 onClick={() => {
@@ -682,8 +614,6 @@ export default function App() {
               </button>
             </div>
           </div>
-
-          {/* Content Area */}
           <div style={{
             flex: 1,
             overflowY: 'auto',
@@ -700,7 +630,6 @@ export default function App() {
         </FixedPopup>
       )}
 
-      {/* Optical Camera Popup */}
       {selectedOpticalCamera && (
         <FixedPopup
           style={{
@@ -719,7 +648,6 @@ export default function App() {
             flexDirection: 'column',
           }}
         >
-          {/* Control Bar */}
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -736,8 +664,8 @@ export default function App() {
             <div style={{ fontWeight: 'bold' }}>Optical Camera</div>
             <div>
               <button
-                onClick={() => setPopupOpticalMinimized(true)}
-                aria-label="Minimize popup"
+                onClick={() => setPopupOpticalMinimized(!popupOpticalMinimized)}
+                aria-label={popupOpticalMinimized ? 'Maximize popup' : 'Minimize popup'}
                 style={{
                   cursor: 'pointer',
                   fontSize: '20px',
@@ -751,25 +679,7 @@ export default function App() {
                   userSelect: 'none',
                 }}
               >
-                —
-              </button>
-              <button
-                onClick={() => setPopupOpticalMinimized(false)}
-                aria-label="Fullscreen popup"
-                style={{
-                  cursor: 'pointer',
-                  fontSize: '20px',
-                  background: '#bbb',
-                  border: '1px solid #888',
-                  borderRadius: '4px',
-                  padding: '0 8px',
-                  minWidth: '28px',
-                  height: '28px',
-                  marginRight: '10px',
-                  userSelect: 'none',
-                }}
-              >
-                ⬜
+                {popupOpticalMinimized ? '⬜' : '—'}
               </button>
               <button
                 onClick={() => {
@@ -793,8 +703,6 @@ export default function App() {
               </button>
             </div>
           </div>
-
-          {/* Content Area */}
           <div style={{
             flex: 1,
             overflowY: 'auto',
@@ -813,3 +721,4 @@ export default function App() {
     </>
   )
 }
+
