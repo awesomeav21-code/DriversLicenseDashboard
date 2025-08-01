@@ -230,8 +230,8 @@ function Header({
     setShowSubstationDropdown(false)
   }
 
-  const [isAlternateLogo, setIsAlternateLogo] = useState(false)
-  const toggleLogo = () => setIsAlternateLogo(prev => !prev)
+  // NEW: Logo Selection State
+  const [selectedLogo, setSelectedLogo] = useState('anec')
 
   const AlternateIcon = (
     <svg
@@ -243,7 +243,6 @@ function Header({
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      style={{ cursor: 'pointer' }}
       aria-label="Alternate Icon"
       role="img"
     >
@@ -262,21 +261,14 @@ function Header({
           <div className="divider-container" style={{ height: '100%' }}>
             <div className="divider" style={{ height: '100%', alignSelf: 'stretch' }} />
           </div>
+          {/* Logo now just displays based on settings */}
           <div
             className="logo transparent-logo"
-            onClick={toggleLogo}
-            role="button"
             tabIndex={0}
-            aria-label="Toggle Logo"
-            onKeyDown={e => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                toggleLogo()
-              }
-            }}
-            style={{ cursor: 'pointer' }}
+            aria-label="Current Logo"
+            style={{ cursor: 'default' }}
           >
-            {isAlternateLogo ? AlternateIcon : (
+            {selectedLogo === 'alternate' ? AlternateIcon : (
               <img
                 src={ANECLogo}
                 alt="ANEC Logo"
@@ -410,7 +402,6 @@ function Header({
               </div>
             )}
           </div>
-
         </div>
 
         <div className="header-icons">
@@ -714,6 +705,43 @@ function Header({
                     <span className="slider" />
                   </label>
                 </div>
+
+                {/* === NEW LOGO SELECTOR SECTION === */}
+                <div className="setting-item" style={{ color: settingsTextColor }}>
+                  <div className="setting-text" style={{ color: settingsTextColor }}>
+                    <div className="setting-name" style={{ color: settingsTextColor }}>
+                      Logo Display
+                    </div>
+                    <div className="setting-description" style={{ color: settingsTextColor }}>
+                      Select which logo to show in the header
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: 14 }}>
+                      <input
+                        type="radio"
+                        name="logoType"
+                        value="anec"
+                        checked={selectedLogo === 'anec'}
+                        onChange={() => setSelectedLogo('anec')}
+                        style={{ marginRight: 8 }}
+                      />
+                      ANEC Logo
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: 14 }}>
+                      <input
+                        type="radio"
+                        name="logoType"
+                        value="alternate"
+                        checked={selectedLogo === 'alternate'}
+                        onChange={() => setSelectedLogo('alternate')}
+                        style={{ marginRight: 8 }}
+                      />
+                      Alternate Icon
+                    </label>
+                  </div>
+                </div>
+                {/* === END LOGO SELECTOR === */}
               </div>
             )}
           </div>

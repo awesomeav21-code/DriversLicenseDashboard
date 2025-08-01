@@ -6,9 +6,9 @@ export default function SidebarPanel({
   isDarkMode,
   onDatePick,
   visibleZones = [],
-  zones = [],   // kept for compatibility
-  history = [], // full history [{ time: Date, readings: { zoneName: temp } }]
-  zoneCameraMap = {}, // NEW: mapping zoneName => camera ('planck_1' or 'planck_2')
+  zones = [],
+  history = [],
+  zoneCameraMap = {},
   startDate,
   setStartDate,
   endDate,
@@ -64,16 +64,21 @@ export default function SidebarPanel({
     if (onDatePick) onDatePick(startDate, endDate);
   }, [startDate, endDate, onDatePick]);
 
+  // Only include zones that are mapped to a camera
+  const mappedVisibleZones = visibleZones.filter(zoneName => zoneCameraMap[zoneName]);
+
   // Use zoneCameraMap to get camera label here:
   const formatZoneInfo = (zoneName, reading) => {
     const temp = reading != null ? `${reading}°` : 'N/A';
-    const cameraRaw = zoneCameraMap[zoneName] || '';
-    const cameraLabel =
-      cameraRaw === 'planck_1'
-        ? 'Left Camera'
-        : cameraRaw === 'planck_2'
-        ? 'Right Camera'
-        : cameraRaw || 'Unknown Camera';
+    const cameraRaw = zoneCameraMap[zoneName];
+    let cameraLabel;
+    if (cameraRaw === 'planck_1') {
+      cameraLabel = 'Left Camera';
+    } else if (cameraRaw === 'planck_2') {
+      cameraLabel = 'Right Camera';
+    } else {
+      cameraLabel = cameraRaw;
+    }
     return `Zone: ${zoneName}, Temperature: ${temp}, Camera: ${cameraLabel}`;
   };
 
@@ -84,14 +89,14 @@ export default function SidebarPanel({
           if (!(entry.time instanceof Date) || isNaN(entry.time)) return false;
           const entryDateStr = formatDateISO(entry.time);
           if (entryDateStr < startDate || entryDateStr > endDate) return false;
-          return visibleZones.some(zoneName => entry.readings && entry.readings[zoneName] != null);
+          return mappedVisibleZones.some(zoneName => entry.readings && entry.readings[zoneName] != null);
         })
       : [];
 
   // Find latest reading for each visible zone (most recent time)
   const latestReadingsMap = new Map();
   filteredHistory.forEach(entry => {
-    visibleZones.forEach(zoneName => {
+    mappedVisibleZones.forEach(zoneName => {
       const val = entry.readings?.[zoneName];
       if (val != null) {
         const prev = latestReadingsMap.get(zoneName);
@@ -114,7 +119,7 @@ export default function SidebarPanel({
 
   // Entries for previous readings (exclude latest timestamps per zone)
   const previousEntries = filteredHistory.flatMap(entry =>
-    visibleZones.flatMap(zoneName => {
+    mappedVisibleZones.flatMap(zoneName => {
       const val = entry.readings?.[zoneName];
       if (
         val != null &&
@@ -137,10 +142,10 @@ export default function SidebarPanel({
       return;
     }
 
-    const headers = ['Index', 'Timestamp', ...visibleZones];
+    const headers = ['Index', 'Timestamp', ...mappedVisibleZones];
     const rows = filteredHistory.map((entry, index) => {
       const row = [index + 1, entry.time.toLocaleString()];
-      visibleZones.forEach(zoneName => {
+      mappedVisibleZones.forEach(zoneName => {
         const val = entry.readings && entry.readings[zoneName];
         row.push(val != null ? `${val}°` : 'N/A');
       });
@@ -288,7 +293,7 @@ SidebarPanel.propTypes = {
   visibleZones: PropTypes.array,
   zones: PropTypes.array,
   history: PropTypes.array,
-  zoneCameraMap: PropTypes.object,  // NEW: mapping zoneName -> camera
+  zoneCameraMap: PropTypes.object,
   startDate: PropTypes.string,
   setStartDate: PropTypes.func,
   endDate: PropTypes.string,
