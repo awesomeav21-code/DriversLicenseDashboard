@@ -10,6 +10,7 @@ import FixedPopup from './components/FixedPopup'
 import './styles/videofeed.css'
 import './App.css'
 
+// === UTILS START ===
 function pickZonesAtLeastOnePerCameraUniqueNames(allZonesArr, count) {
   const cameras = ['planck_1', 'planck_2']
   const byName = new Map()
@@ -135,6 +136,7 @@ function HamburgerMenu({
     </div>
   )
 }
+// === UTILS END ===
 
 export default function App() {
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('activeTab') || 'dashboard')
@@ -186,6 +188,14 @@ export default function App() {
     return saved === null ? true : saved === 'true'
   })
 
+  // Track window width for dynamic style
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth)
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   useEffect(() => {
     localStorage.setItem('hamburgerLocked', hamburgerLocked)
     localStorage.setItem('eventLogsVisible', eventLogsVisible)
@@ -208,12 +218,10 @@ export default function App() {
     document.body.classList.toggle('light-mode', !isDarkMode)
   }, [activeTab, isDarkMode])
 
-  // Persist history in localStorage every update
   useEffect(() => {
     localStorage.setItem('thermalHistory', JSON.stringify(history))
   }, [history])
 
-  // Build zoneCameraMap to pass to SidebarPanel
   const zoneCameraMap = {}
   zones.forEach(z => {
     if (z.name && z.camera) {
@@ -253,7 +261,6 @@ export default function App() {
 
         setAllZones(selectedZonesArr)
 
-        // Merge all zone names from history and selectedZonesArr to keep visibleZones comprehensive
         const allZoneNames = new Set([
           ...selectedZonesArr.map(z => z.name),
           ...history.flatMap(entry => Object.keys(entry.readings || {})),
@@ -394,6 +401,38 @@ export default function App() {
     })
   }
 
+  // === DYNAMIC DASHBOARD STYLE ===
+  let dashboardStyle = undefined
+
+  if (windowWidth >= 1700 && windowWidth <= 4000) {
+    const minWidth = 1300
+    const maxWidth = 1400
+    const progress = (windowWidth - 1700) / (4000 - 1700) // 0 to 1
+    const width = minWidth + progress * (maxWidth - minWidth)
+    dashboardStyle = {
+      maxWidth: `${width}px`,
+      width: `${width}px`,
+      marginLeft: "auto",
+      marginRight: "auto",
+      transition: "max-width 0.3s, width 0.3s",
+      borderRadius: 18,
+      paddingLeft: 32,
+      paddingRight: 32,
+    }
+  } else if (windowWidth > 4000) {
+    dashboardStyle = {
+      maxWidth: `1400px`,
+      width: `1400px`,
+      marginLeft: "auto",
+      marginRight: "auto",
+      transition: "max-width 0.3s, width 0.3s",
+      borderRadius: 18,
+      paddingLeft: 32,
+      paddingRight: 32,
+    }
+  }
+  // For widths below 1700px, dashboardStyle remains undefined (no width styles)
+
   return (
     <>
       <Header isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} tempUnit={tempUnit} setTempUnit={setTempUnit} />
@@ -433,7 +472,10 @@ export default function App() {
           <div className="content-area">
             <div className="scroll-container">
               {activeTab === 'dashboard' && (
-                <div className={`big-dashboard-container${!eventLogsVisible ? ' big-dashboard-container--fullwidth' : ''}`}>
+                <div
+                  className={`big-dashboard-container${!eventLogsVisible ? ' big-dashboard-container--fullwidth' : ''}`}
+                  style={dashboardStyle}
+                >
                   <div>
                     <VideoFeed
                       isDarkMode={isDarkMode}

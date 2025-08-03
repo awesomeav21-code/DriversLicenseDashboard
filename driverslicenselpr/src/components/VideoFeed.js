@@ -10,8 +10,7 @@ export default function VideoFeed({
   tempUnit,
   camera1Zones = [],
   camera2Zones = [],
-  center = false, // <-- NEW
-  // Camera panel control props added here
+  center = false,
   show360Popup,
   setShow360Popup,
   selectedThermalCamera,
@@ -24,6 +23,23 @@ export default function VideoFeed({
   setIsHoveringOptical,
   filterZonesByCamera,
 }) {
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Only for 1400-1500px: move right camera left by 15px
+  const rightCameraDynamicStyle =
+    windowWidth >= 1400 && windowWidth <= 1500
+      ? {
+          position: 'relative',
+          left: '-1px',
+          transition: 'left 0.2s'
+        }
+      : {};
+
   const [isAlertOn, setIsAlertOn] = useState(() => {
     const saved = localStorage.getItem('isAlertOn');
     return saved === 'true';
@@ -48,7 +64,12 @@ export default function VideoFeed({
           />
         </div>
 
-        <div className={`cameras-row${center ? ' center' : ''}`}>
+        <div className={`cameras-row${center ? ' center' : ''}`} style={{
+          display: 'flex',
+          flexDirection: 'row',
+          width: '100%',
+          alignItems: 'stretch',
+        }}>
           <div className="camera-section">
             <div className="camera-header">
               <span className="section-title">Left Camera</span>
@@ -68,7 +89,8 @@ export default function VideoFeed({
             </div>
           </div>
 
-          <div className="camera-section right-camera">
+          {/* RIGHT CAMERA SECTION (dynamic left shift 1400-1500px only) */}
+          <div className="camera-section right-camera" style={rightCameraDynamicStyle}>
             <div className="camera-header">
               <span className="section-title">Right Camera</span>
               <span className="status-dot"></span>

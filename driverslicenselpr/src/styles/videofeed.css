@@ -10,6 +10,7 @@
   100% { background-color: #16a34a; opacity: 1; box-shadow: 0 0 6px 2px rgba(22,163,74,0.4);}
 }
 
+
 .video-feed-wrapper.dark-video .live-data-wrapper {
   background-color: #0f172a !important;
   border-color: #444 !important;
@@ -335,19 +336,7 @@ body.dark-mode .live-data-wrapper {
 /* MEDIA QUERIES */
 
 /* 1500px - 1600px adjustments */
-@media (min-width: 1500px) and (max-width: 1600px) {
-  .camera-section.right {
-    max-width: calc(1010px + 50px) !important; /* Expand width */
-    transform: none !important; 
-    margin-right: 30px !important;
-    z-index: 2;
-  }
 
-  .camera-section.left {
-    transform: translateX(-34px);
-    z-index: 1;
-  }
-}
 
 /* 1700px - 1800px drastic increase for camera-section using vh */
 @media (min-width: 1700px) and (max-width: 1800px) {
