@@ -699,7 +699,6 @@ const SurveillanceStreams = ({
       }
       if (nextDate) {
         setTimeout(() => {
-          alert(`No events for ${selectedDate}. Moving to next date with data: ${nextDate}`);
           setSelectedDate(nextDate);
         }, 200);
       }

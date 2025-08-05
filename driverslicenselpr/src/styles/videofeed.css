@@ -10,7 +10,6 @@
   100% { background-color: #16a34a; opacity: 1; box-shadow: 0 0 6px 2px rgba(22,163,74,0.4);}
 }
 
-
 .video-feed-wrapper.dark-video .live-data-wrapper {
   background-color: #0f172a !important;
   border-color: #444 !important;
@@ -18,11 +17,10 @@
   color: #eee;
 }
 
-/* MAIN WRAPPER */
 .video-feed-wrapper {
   position: relative;
   width: 100%;
-  max-width: 1400px;
+  max-width: none;
   left: 0;
   min-height: 0;
   height: auto;
@@ -36,7 +34,7 @@
   flex-direction: column;
   overflow: visible;
   border-radius: 10px;
-  flex-grow: 1;
+  flex-grow: 0;
   flex-shrink: 0;
   top: -19px;
 }
@@ -46,10 +44,9 @@
   color: #e2e8f0;
 }
 
-/* LIVE DATA WRAPPER */
 .live-data-wrapper {
   width: 100%;
-  max-width: 1400px;
+  max-width: none;
   background-color: #ffffff;
   margin: 0 2px 0 0;
   border: none;
@@ -59,7 +56,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  z-index: 10;
+  z-index: 10; /* higher so it overlaps live-data-wrapper */
   box-shadow: none;
   position: relative;
   margin-left: auto;
@@ -125,11 +122,11 @@ body.dark-mode .live-data-wrapper {
   min-height: 0;
 }
 
-/* Camera panels grow/shrink dynamically */
 .camera-section {
-  flex: 1 1 45%;
-  min-width: 550px;
-  max-width: 1010px;
+  flex: none;
+  width: 100% !important; /* Override default auto to respect inline styles */
+  min-width: 320px;
+  max-width: none;
   background-color: #ffffff;
   border: 1px solid #d1d5db;
   border-radius: 5px !important;
@@ -139,10 +136,12 @@ body.dark-mode .live-data-wrapper {
   display: flex;
   flex-direction: column;
   overflow: visible;
-  transform: translateX(-34px);
   height: auto !important;
   min-height: 0;
   max-height: none !important;
+  flex-shrink: 0;
+  left: 0 !important;
+  z-index: 100 !important; 
 }
 
 .dark-video .camera-section {
@@ -209,7 +208,7 @@ body.dark-mode .live-data-wrapper {
   align-items: start;
   width: 100%;
   max-width: 800px;
-  margin-left: auto;
+  margin-left: 0; /* Changed from auto to 0 to keep flush left */
   margin-right: auto;
   box-sizing: border-box;
   padding: 28px;
@@ -236,33 +235,34 @@ body.dark-mode .live-data-wrapper {
 }
 
 .dark-mode .camera-streams-panel {
-  border: solid 1px #fff !important; 
+  border: solid 1px #fff !important;
 }
 
-/* CAMERA PANELS CONTAINER */
 .camera-streams-panel {
-  margin-top: 20px;
+  overflow-y: hidden !important;  /* no vertical scroll, clip overflow */
+  
+  /* Keep your other styles unchanged */
   display: flex;
   flex-wrap: nowrap;
-  justify-content: space-between; /* Spread evenly */
+  justify-content: center;
   gap: 24px;
-  width: calc(100% + 43px);
-  max-width: calc(1400px + 4px);
+  width: 100%;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 20px;
   box-sizing: border-box;
-  background-color: transparent;
-  overflow: hidden;
-  z-index: 4000;
   border: 1px solid #d1d5db;
   border-radius: 5px;
-  padding: 20px 17px;
   box-shadow: 0 0 15px rgba(0,0,0,0.1);
-  margin-left: -17px;
-  margin-right: -1px !important;
-  transform: translateY(-90px); 
-  min-height: 350px;
+  position: relative;
+  z-index: 10;
+  transform: none;
+  top: -75px !important; 
+  flex-grow: 1;
+  flex-shrink: 0;
+  flex-basis: auto;
 }
-
-/* Remove individual background and border from stream-groups */
 .stream-group {
   flex: 1;
   display: flex;
@@ -332,98 +332,3 @@ body.dark-mode .live-data-wrapper {
 .dark-video .camera-btn:hover {
   background-color: #22c55e;
 }
-
-/* MEDIA QUERIES */
-
-/* 1500px - 1600px adjustments */
-
-
-/* 1700px - 1800px drastic increase for camera-section using vh */
-@media (min-width: 1700px) and (max-width: 1800px) {
-  .camera-section {
-    max-width: 900px !important;  /* fixed max-width */
-    min-width: 710px !important;   /* fixed min-width */
-    flex: 1 1 60% !important;    /* Even bigger flex-basis */
-  }
-}
-
-/* 1900px - 2000px adjustments */
-@media (min-width: 1900px) and (max-width: 2000px) {
-  .section-livedata-tite{
-    position: relative !important; 
-    left: -112px !important; 
-  }
-  .live-data-dot{
-    position: relative !important; 
-    left: -115px !important; 
-  }
-  .camera-section {
-    max-width: 1300px !important;  
-    min-width: 785px !important;
-    flex: 1 1 60% !important;
-  }
-  .camera-section:nth-of-type(1) {
-    width: 100% !important;
-    margin-right: 0 !important;
-    margin-left: -40px !important; 
-    position: relative; 
-    left: -10px !important; 
-    box-sizing: border-box;
-  }
-  .camera-section:nth-of-type(2) {
-    width: calc(100% + 50px) !important;
-    margin-right: -78px !important;
-    box-sizing: border-box;
-    position: relative;
-    z-index: 2;
-  }
-}
-
-/* 1200px - 1300px adjustments */
-@media (min-width: 1200px) and (max-width: 1300px) {
-  .camera-section{
-    background-color: green !important;
-    flex: none !important;
-    width: 490px !important;
-    max-width: none !important;
-    min-width: 0 !important;
-    overflow: hidden;
-    box-sizing: border-box;
-  }
-  .zone-card {
-    transform: scale(0.7);
-    transform-origin: center center;
-    position: relative; 
-    left: -15px;
-  }
-  .sidebar-panel {
-    transform: scale(0.8) translateX(15px);
-    transform-origin: top left;
-    font-size: 0.9rem;
-    padding: 8px;
-    margin-right: 8px;
-    box-sizing: border-box;
-    flex: none;
-  }
-}
-
-/* max-width 900px adjustments */
-@media (max-width: 900px) {
-  body {
-    background: #ffeb3b;
-  }
-}
-
-/* Ultra wide adjustments */
-@media (min-width: 3000px) and (max-width: 3100px) {
-  .camera-section {
-    background: pink !important;
-  }
-}
-@media (min-width: 2100px) and (max-width: 2200px) {
-  .zone-grid {
-    max-width: 900px !important; /* Slightly wider than the default 800px */
-    gap: 16px !important; /* Optional: reduce gap a little to keep it tight */
-  }
-}
-

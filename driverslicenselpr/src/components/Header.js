@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import '../styles/header.css'
-import ANECLogo from './images/ANEEC.png'
+import ANECLogo from './images/ANEEC 2.png'
 import AssetLogo from './images/Assetlogo.png'
 import SettingsIcon from './images/settings.png'
 
@@ -73,6 +73,7 @@ function Header({
   const settingsMouseInside = useRef(false)
   const profileMouseInside = useRef(false)
 
+  // Load saved profile
   useEffect(() => {
     const savedProfile = localStorage.getItem('userProfile')
     if (savedProfile) {
@@ -87,6 +88,13 @@ function Header({
     }
   }, [])
 
+  // Load uploaded logo from localStorage on mount
+  const [uploadedLogo, setUploadedLogo] = useState(localStorage.getItem('uploadedLogo') || null)
+  
+  // Ref for file input to reset value after upload
+  const logoInputRef = useRef(null)
+
+  // Close dropdowns/modals on outside click
   useEffect(() => {
     function handleClickOutside(event) {
       if (helpRef.current && !helpRef.current.contains(event.target)) {
@@ -108,6 +116,7 @@ function Header({
     }
   }, [])
 
+  // Hover handlers
   const onHelpEnter = () => {
     helpMouseInside.current = true
     setShowHelp(true)
@@ -138,6 +147,8 @@ function Header({
       if (!profileMouseInside.current) setShowProfileMenu(false)
     }, 100)
   }
+
+  // Profile menu actions
   const handleEditProfile = () => {
     setFirstName('')
     setLastName('')
@@ -173,6 +184,7 @@ function Header({
 
   const profileInitial = profileName ? profileName.charAt(0).toUpperCase() : 'O'
 
+  // Theme‐based styling values
   const helpTextColor = isDarkMode ? '#f9fafb' : '#1f2937'
   const helpHeadingColor = isDarkMode ? '#f3f4f6' : '#111827'
   const helpBorderColor = isDarkMode ? '#334155' : '#ccc'
@@ -188,6 +200,7 @@ function Header({
     ? '0 8px 24px rgba(0, 0, 0, 0.8)'
     : '0 8px 24px rgba(0, 0, 0, 0.12)'
 
+  // Icons/components
   const DropdownArrow = ({ open }) => (
     <svg
       style={{
@@ -230,28 +243,21 @@ function Header({
     setShowSubstationDropdown(false)
   }
 
-  // NEW: Logo Selection State
-  const [selectedLogo, setSelectedLogo] = useState('anec')
-
-  const AlternateIcon = (
-    <svg
-      width="40"
-      height="40"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={isDarkMode ? 'white' : 'black'}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-label="Alternate Icon"
-      role="img"
-    >
-      <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
-      <line x1="4" y1="12" x2="20" y2="12" />
-    </svg>
-  )
-
-  return (
+  // Logo upload handler with localStorage persistence and input reset
+  const handleLogoUpload = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) return
+  
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = reader.result
+      localStorage.setItem('uploadedLogo', result)
+      setUploadedLogo(result)
+    }
+    reader.readAsDataURL(file)
+  }
+          return (
     <>
       <header className="header">
         <div className="logo-container" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -261,22 +267,28 @@ function Header({
           <div className="divider-container" style={{ height: '100%' }}>
             <div className="divider" style={{ height: '100%', alignSelf: 'stretch' }} />
           </div>
-          {/* Logo now just displays based on settings */}
+
+          {/* Logo display area */}
           <div
             className="logo transparent-logo"
             tabIndex={0}
             aria-label="Current Logo"
-            style={{ cursor: 'default' }}
+            style={{ cursor: 'default', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
           >
-            {selectedLogo === 'alternate' ? AlternateIcon : (
-              <img
-                src={ANECLogo}
-                alt="ANEC Logo"
-                className="logo-image anec-filter"
-              />
+<img
+  src={uploadedLogo ? `${uploadedLogo}?${Date.now()}` : ANECLogo}
+  alt="ANEC Logo"
+  className="logo-image anec-filter"
+  style={{ maxHeight: '60px', objectFit: 'contain' }}
+/>
+            {uploadedLogo && (
+              <span style={{ marginTop: 4, fontSize: 12, color: isDarkMode ? '#a5b4fc' : '#4b5563' }}>
+                Image uploaded
+              </span>
             )}
           </div>
 
+          {/* Substation dropdown */}
           <div
             ref={substationDropdownRef}
             style={{ position: 'relative', zIndex: 1000 }}
@@ -298,30 +310,23 @@ function Header({
                 marginTop: '10px',
                 display: 'flex',
                 alignItems: 'center',
-                flexWrap: 'nowrap',
                 backgroundColor: showSubstationDropdown
                   ? (isDarkMode ? '#1c2336' : '#e0f0ff')
                   : (isDarkMode ? '#2f3747' : '#f0f4f8'),
                 borderRadius: '12px',
                 padding: '12px 16px',
                 cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
                 color: showSubstationDropdown
                   ? (isDarkMode ? '#a5b4fc' : '#1c3a70')
                   : (isDarkMode ? 'white' : 'black'),
                 fontWeight: '600',
                 fontSize: '14px',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
                 userSelect: 'none',
                 transition: 'background-color 0.3s, color 0.3s',
               }}
               aria-label="Select Substation"
             >
-              <span><strong>Substation:&nbsp;</strong>{currentSubstation?.name || 'N/A'}</span>
+              <span><strong>Substation:&nbsp;</strong>{currentSubstation.name}</span>
               <DropdownArrow open={showSubstationDropdown} />
             </div>
 
@@ -331,14 +336,13 @@ function Header({
                 style={{
                   position: 'absolute',
                   top: '74px',
-                  left: '0',
+                  left: 0,
                   backgroundColor: isDarkMode ? '#1c2336' : 'white',
                   borderRadius: 8,
                   boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
                   border: isDarkMode ? '1px solid #2a3346' : '1px solid #e5eaf0',
                   marginTop: 6,
                   zIndex: 2000,
-                  overflow: 'hidden',
                 }}
               >
                 {substations.map(s => (
@@ -356,23 +360,28 @@ function Header({
                     style={{
                       padding: '14px 18px',
                       cursor: 'pointer',
-                      backgroundColor: s.id === selectedSubstationId ? (isDarkMode ? '#233151' : '#eaf6ff') : 'transparent',
-                      color: s.id === selectedSubstationId ? (isDarkMode ? '#cbd5e1' : '#444') : (isDarkMode ? '#8b93a8' : '#888'),
+                      backgroundColor: s.id === selectedSubstationId
+                        ? (isDarkMode ? '#233151' : '#eaf6ff')
+                        : 'transparent',
+                      color: s.id === selectedSubstationId
+                        ? (isDarkMode ? '#cbd5e1' : '#444')
+                        : (isDarkMode ? '#8b93a8' : '#888'),
                       fontWeight: s.id === selectedSubstationId ? 700 : 500,
                       fontSize: 15,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      borderBottom: s.id !== substations[substations.length - 1].id ? (isDarkMode ? '1px solid #2a3346' : '1px solid #f1f3f6') : 'none',
+                      borderBottom:
+                        s.id !== substations[substations.length - 1].id
+                          ? (isDarkMode ? '1px solid #2a3346' : '1px solid #f1f3f6')
+                          : 'none',
                       userSelect: 'none',
-                      outline: 'none',
                     }}
                   >
                     <span>{s.name}</span>
                     <StatusDot active={s.id === selectedSubstationId} />
                   </div>
                 ))}
-
                 <div
                   style={{
                     padding: '12px 18px',
@@ -394,7 +403,6 @@ function Header({
                       cursor: 'pointer',
                       userSelect: 'none',
                     }}
-                    tabIndex={-1}
                   >
                     + Test Connectivity
                   </button>
@@ -405,6 +413,7 @@ function Header({
         </div>
 
         <div className="header-icons">
+          {/* Help icon */}
           <div
             className="icon-container dropdown-parent"
             ref={helpRef}
@@ -442,176 +451,101 @@ function Header({
                   border: `1px solid ${helpBorderColor}`,
                   color: helpTextColor,
                   boxShadow: helpShadow,
+                  padding: '16px',
+                  borderRadius: '8px',
+                  maxWidth: '320px',
                 }}
               >
-                <h3
-                  className="settings-title"
-                  style={{ color: helpHeadingColor }}
-                >
-                  Help Manual
-                </h3>
+                <h3 style={{ color: helpHeadingColor, marginBottom: '12px' }}>Help Manual</h3>
 
-                <div className="manual-section" style={{ color: helpTextColor }}>
-                  <h4
-                    className="setting-name"
-                    style={{ color: helpHeadingColor }}
-                  >
-                    Dashboard Overview
-                  </h4>
-                  <div className="help-feature" style={{ color: helpTextColor }}>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
+                {/* Dashboard Overview */}
+                <div style={{ marginBottom: '12px' }}>
+                  <h4 style={{ color: helpHeadingColor, marginBottom: '8px' }}>Dashboard Overview</h4>
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                      fill="none" stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'} strokeWidth="2"
+                      strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
                       <path d="M12 2a5 5 0 0 0-5 5v5a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5z" />
                     </svg>
                     <span>Monitor real-time temperature data from different zones</span>
                   </div>
-                  <div className="help-feature" style={{ color: helpTextColor }}>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                      fill="none" stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'} strokeWidth="2"
+                      strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
                       <path d="M23 7l-7 5 7 5V7z M1 5h16v14H1V5z" />
                     </svg>
                     <span>View live camera feeds from PTZ, thermal, and normal cameras</span>
                   </div>
-                  <div className="help-feature" style={{ color: helpTextColor }}>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                      fill="none" stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'} strokeWidth="2"
+                      strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
                       <path d="M12 2c4 0 8 4 8 8s-4 8-8 8-8-4-8-8 4-8 8-8z" />
                     </svg>
                     <span>Track AI-powered animal detection alerts</span>
                   </div>
                 </div>
 
-                <div className="manual-section" style={{ color: helpTextColor }}>
-                  <h4 className="setting-name" style={{ color: helpHeadingColor }}>
-                    Temperature Monitoring
-                  </h4>
-                  <div className="help-feature" style={{ color: helpTextColor }}>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
+                {/* Temperature Monitoring */}
+                <div style={{ marginBottom: '12px' }}>
+                  <h4 style={{ color: helpHeadingColor, marginBottom: '8px' }}>Temperature Monitoring</h4>
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                      fill="none" stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'} strokeWidth="2"
+                      strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
                       <path d="M10.29 3.86L1.82 18a1 1 0 0 0 .86 1.5h18.64a1 1 0 0 0 .86-1.5L13.71 3.86a1 1 0 0 0-1.72 0z" />
                     </svg>
                     <span>Red indicators show when temperatures exceed thresholds</span>
                   </div>
-                  <div className="help-feature" style={{ color: helpTextColor }}>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                      fill="none" stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'} strokeWidth="2"
+                      strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
                       <path d="M4 12h16 M12 4v16" />
                     </svg>
                     <span>Toggle between Fahrenheit and Celsius in settings</span>
                   </div>
                 </div>
 
-                <div className="manual-section" style={{ color: helpTextColor }}>
-                  <h4 className="setting-name" style={{ color: helpHeadingColor }}>
-                    Event Logs
-                  </h4>
-                  <div className="help-feature" style={{ color: helpTextColor }}>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
+                {/* Event Logs */}
+                <div style={{ marginBottom: '12px' }}>
+                  <h4 style={{ color: helpHeadingColor, marginBottom: '8px' }}>Event Logs</h4>
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                      fill="none" stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'} strokeWidth="2"
+                      strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
                       <path d="M8 7V3H4a2 2 0 0 0-2 2v4h6z" />
                     </svg>
                     <span>Filter events by date range</span>
                   </div>
-                  <div className="help-feature" style={{ color: helpTextColor }}>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                      fill="none" stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'} strokeWidth="2"
+                      strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M17 8l4 4-4 4 M7 8l-4 4 4 4" />
                     </svg>
                     <span>Download logs for selected date range</span>
                   </div>
                 </div>
 
-                <div className="manual-section" style={{ color: helpTextColor }}>
-                  <h4 className="setting-name" style={{ color: helpHeadingColor }}>
-                    Troubleshooting
-                  </h4>
-                  <div className="help-feature" style={{ color: helpTextColor }}>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
+                {/* Troubleshooting */}
+                <div>
+                  <h4 style={{ color: helpHeadingColor, marginBottom: '8px' }}>Troubleshooting</h4>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                      fill="none" stroke={isDarkMode ? '#a5b4fc' : '#1c7ed6'} strokeWidth="2"
+                      strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
                       <path d="M4.05 4.05a9 9 0 1 1 0 12.73 M1 1l22 22" />
                     </svg>
-                    <span>
-                      If temperature shows “--°”, check network connection and
-                      refresh the page.
-                    </span>
+                    <span>If temperature shows “--°”, check network connection and refresh the page.</span>
                   </div>
                 </div>
               </div>
             )}
           </div>
 
+          {/* Alert icon */}
           <div className={`icon-container alert-toggle ${isAlertOn ? 'on' : ''}`}>
             <button
               className="alert-button"
@@ -629,6 +563,7 @@ function Header({
             </button>
           </div>
 
+          {/* Settings dropdown (with Upload Logo) */}
           <div
             className="icon-container dropdown-parent settings-icon-container"
             ref={settingsRef}
@@ -657,21 +592,14 @@ function Header({
                   border: `1px solid ${settingsBorderColor}`,
                 }}
               >
-                <div
-                  className="settings-title"
-                  style={{ color: settingsTextColor }}
-                >
+                <div className="settings-title" style={{ color: settingsTextColor }}>
                   Settings
                 </div>
 
                 <div className="setting-item" style={{ color: settingsTextColor }}>
-                  <div className="setting-text" style={{ color: settingsTextColor }}>
-                    <div className="setting-name" style={{ color: settingsTextColor }}>
-                      Temperature Unit
-                    </div>
-                    <div className="setting-description" style={{ color: settingsTextColor }}>
-                      Switch between Fahrenheit and Celsius
-                    </div>
+                  <div className="setting-text">
+                    <div className="setting-name">Temperature Unit</div>
+                    <div className="setting-description">Switch between Fahrenheit and Celsius</div>
                   </div>
                   <div className="toggle-row">
                     <span>F°</span>
@@ -688,13 +616,9 @@ function Header({
                 </div>
 
                 <div className="setting-item" style={{ color: settingsTextColor }}>
-                  <div className="setting-text" style={{ color: settingsTextColor }}>
-                    <div className="setting-name" style={{ color: settingsTextColor }}>
-                      Dark Mode
-                    </div>
-                    <div className="setting-description" style={{ color: settingsTextColor }}>
-                      Switch between light and dark theme
-                    </div>
+                  <div className="setting-text">
+                    <div className="setting-name">Dark Mode</div>
+                    <div className="setting-description">Switch between light and dark theme</div>
                   </div>
                   <label className="switch">
                     <input
@@ -706,45 +630,45 @@ function Header({
                   </label>
                 </div>
 
-                {/* === NEW LOGO SELECTOR SECTION === */}
-                <div className="setting-item" style={{ color: settingsTextColor }}>
-                  <div className="setting-text" style={{ color: settingsTextColor }}>
-                    <div className="setting-name" style={{ color: settingsTextColor }}>
-                      Logo Display
-                    </div>
-                    <div className="setting-description" style={{ color: settingsTextColor }}>
-                      Select which logo to show in the header
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
-                    <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: 14 }}>
-                      <input
-                        type="radio"
-                        name="logoType"
-                        value="anec"
-                        checked={selectedLogo === 'anec'}
-                        onChange={() => setSelectedLogo('anec')}
-                        style={{ marginRight: 8 }}
-                      />
-                      ANEC Logo
-                    </label>
-                    <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: 14 }}>
-                      <input
-                        type="radio"
-                        name="logoType"
-                        value="alternate"
-                        checked={selectedLogo === 'alternate'}
-                        onChange={() => setSelectedLogo('alternate')}
-                        style={{ marginRight: 8 }}
-                      />
-                      Alternate Icon
-                    </label>
-                  </div>
+                <div
+                  className="setting-item"
+                  style={{
+                    color: settingsTextColor,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    padding: '12px 16px',
+                  }}
+                >
+                  <div className="setting-name" style={{ marginBottom: 6 }}>Upload Logo</div>
+                  <label
+  style={{
+    padding: '6px 12px',
+    backgroundColor: '#4a7a3f',
+    color: 'white',
+    fontWeight: '600',
+    borderRadius: 6,
+    cursor: 'pointer',
+    userSelect: 'none',
+    fontSize: 14,
+  }}
+>
+  Choose File
+  <input
+    type="file"
+    accept="image/*"
+    style={{ display: 'none' }}
+    onChange={handleLogoUpload}
+    ref={logoInputRef}
+  />
+</label>
+
                 </div>
-                {/* === END LOGO SELECTOR === */}
               </div>
             )}
           </div>
+
+          {/* Profile dropdown */}
           <div
             className="dropdown-parent"
             ref={profileRef}
@@ -768,7 +692,13 @@ function Header({
               </span>
             </button>
             {showProfileMenu && (
-              <div className="dropdown profile-dropdown" style={{ backgroundColor: isDarkMode ? '#0f172a' : 'white', color: isDarkMode ? 'white' : 'black' }}>
+              <div
+                className="dropdown profile-dropdown"
+                style={{
+                  backgroundColor: isDarkMode ? '#0f172a' : 'white',
+                  color: isDarkMode ? 'white' : 'black',
+                }}
+              >
                 <ul className="profile-menu-list">
                   <li
                     className="profile-menu-item"
@@ -793,6 +723,7 @@ function Header({
         </div>
       </header>
 
+      {/* Profile edit/view modal */}
       {modalContent && (
         <div
           className="modal-overlay"
@@ -840,6 +771,7 @@ function Header({
             >
               &times;
             </button>
+
             {modalContent === 'edit' && (
               <>
                 <h2>Edit Profile</h2>
@@ -938,6 +870,7 @@ function Header({
                 </form>
               </>
             )}
+
             {modalContent === 'view' && (
               <>
                 <h2>View Profile</h2>

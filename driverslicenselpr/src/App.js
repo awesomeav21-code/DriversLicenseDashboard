@@ -10,7 +10,6 @@ import FixedPopup from './components/FixedPopup'
 import './styles/videofeed.css'
 import './App.css'
 
-// === UTILS START ===
 function pickZonesAtLeastOnePerCameraUniqueNames(allZonesArr, count) {
   const cameras = ['planck_1', 'planck_2']
   const byName = new Map()
@@ -136,7 +135,6 @@ function HamburgerMenu({
     </div>
   )
 }
-// === UTILS END ===
 
 export default function App() {
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('activeTab') || 'dashboard')
@@ -188,10 +186,14 @@ export default function App() {
     return saved === null ? true : saved === 'true'
   })
 
-  // Track window width for dynamic style
   const [windowWidth, setWindowWidth] = useState(window.innerWidth)
+  const [windowHeight, setWindowHeight] = useState(window.innerHeight)
+
   useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth)
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth)
+      setWindowHeight(window.innerHeight)
+    }
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
@@ -401,37 +403,160 @@ export default function App() {
     })
   }
 
-  // === DYNAMIC DASHBOARD STYLE ===
+  // Dashboard container style logic
+
   let dashboardStyle = undefined
 
-  if (windowWidth >= 1700 && windowWidth <= 4000) {
-    const minWidth = 1300
-    const maxWidth = 1400
-    const progress = (windowWidth - 1700) / (4000 - 1700) // 0 to 1
-    const width = minWidth + progress * (maxWidth - minWidth)
+  if (windowWidth >= 1400 && windowWidth <= 1500) {
+    // Keep original 1400-1500 logic unchanged
+    const baseWidth = 1150
+    const growthMultiplier = (1300 - 1150) / (1500 - 1400) // 1.5px per px
+    const extraWidth = (windowWidth - 1400) * growthMultiplier
+    const width = baseWidth + extraWidth - 40 // decrease by 40px here
+
+    dashboardStyle = {
+      maxWidth: `${width}px`,
+      width: `${width}px`, // enforce exact width
+      marginLeft: 'auto',
+      marginRight: 'auto',
+      transition: 'max-width 0.3s, width 0.3s',
+      borderRadius: 18,
+      paddingLeft: 32,
+      paddingRight: 32,
+      display: 'flex',
+      justifyContent: 'center',
+    }
+  } else if (windowWidth > 1500 && windowWidth <= 1600) {
+    // Same original scaling after 1500px (no change here)
+    const baseWidth = 1300
+    const minWidth = 400
+    const width = Math.max(minWidth, baseWidth - (windowWidth - 1500) * 0.1)
+
     dashboardStyle = {
       maxWidth: `${width}px`,
       width: `${width}px`,
-      marginLeft: "auto",
-      marginRight: "auto",
-      transition: "max-width 0.3s, width 0.3s",
+      marginLeft: 'auto',
+      marginRight: 'auto',
       borderRadius: 18,
       paddingLeft: 32,
       paddingRight: 32,
+      display: 'flex',
+      justifyContent: 'center',
+      transition: 'max-width 0.3s, width 0.3s',
     }
-  } else if (windowWidth > 4000) {
+  } else if (windowWidth > 1600) {
+    // Continue decreasing after 1600px by 0.1px per px starting from 1280px at 1600px
+    const baseWidth = 1280
+    const minWidth = 400
+    const width = Math.max(minWidth, baseWidth - (windowWidth - 1600) * 0.1)
+
     dashboardStyle = {
-      maxWidth: `1400px`,
-      width: `1400px`,
-      marginLeft: "auto",
-      marginRight: "auto",
-      transition: "max-width 0.3s, width 0.3s",
+      maxWidth: `${width}px`,
+      width: `${width}px`,
+      marginLeft: 'auto',
+      marginRight: 'auto',
       borderRadius: 18,
       paddingLeft: 32,
       paddingRight: 32,
+      display: 'flex',
+      justifyContent: 'center',
+      transition: 'max-width 0.3s, width 0.3s',
+    }
+  } else {
+    // Fixed width below 1400px
+    dashboardStyle = {
+      maxWidth: '1300px',
+      width: '100%',
+      marginLeft: 'auto',
+      marginRight: 'auto',
+      borderRadius: 18,
+      paddingLeft: 32,
+      paddingRight: 32,
+      display: 'flex',
+      justifyContent: 'center',
+      transition: 'max-width 0.3s, width 0.3s',
     }
   }
-  // For widths below 1700px, dashboardStyle remains undefined (no width styles)
+
+  // Camera streams panel style logic — UPDATED for combined 1500-1600px rule
+
+  let cameraStreamsPanelStyle = undefined
+
+  if (windowWidth >= 1400 && windowWidth <= 1500) {
+    cameraStreamsPanelStyle = {
+      maxWidth: '1300px',
+      width: '100%',
+      marginLeft: 'auto',
+      marginRight: 'auto',
+      transition: 'max-width 0.3s, width 0.3s',
+    }
+  } else if (windowWidth > 1500 && windowWidth <= 1600) {
+    // Combined single decrease by 60px smoothly between 1500px and 1600px
+    const baseWidth = 1300
+    const decreaseStart = 1500
+    const decreaseEnd = 1600
+    const maxDecrease = 60
+    const progress = (windowWidth - decreaseStart) / (decreaseEnd - decreaseStart)
+    const width = baseWidth - progress * maxDecrease
+
+    cameraStreamsPanelStyle = {
+      maxWidth: `${width}px`,
+      width: `${width}px`,
+      marginLeft: 'auto',
+      marginRight: 'auto',
+      transition: 'max-width 0.3s, width 0.3s',
+    }
+  } else if (windowWidth > 1600) {
+    // Fixed minimum width at 1240px after 1600px
+    cameraStreamsPanelStyle = {
+      maxWidth: '1240px',
+      width: '1240px',
+      marginLeft: 'auto',
+      marginRight: 'auto',
+      transition: 'max-width 0.3s, width 0.3s',
+    }
+  } else {
+    // Fixed width below 1400px
+    cameraStreamsPanelStyle = {
+      maxWidth: '1300px',
+      width: '100%',
+      marginLeft: 'auto',
+      marginRight: 'auto',
+      transition: 'max-width 0.3s, width 0.3s',
+    }
+  }
+
+  // Background color logic (unchanged)
+  function calculateBackgroundColor(width) {
+    return 'transparent'
+  }
+  const backgroundColor = calculateBackgroundColor(windowWidth)
+  const bigDashboardBackgroundStyle = { backgroundColor }
+
+  // Height style logic unchanged
+  let dashboardHeightStyle = undefined
+  const baseHeight = 850
+
+  if (windowWidth > 1600 && windowWidth < 2000) {
+    const growthMultiplierHeight = 0.4
+    const extraHeight = (windowWidth - 1600) * growthMultiplierHeight
+    const height = baseHeight + extraHeight
+    dashboardHeightStyle = {
+      maxHeight: `${height}px`,
+      height: `${height}px`,
+      transition: 'max-height 0.3s, height 0.3s',
+    }
+  } else if (windowWidth >= 2000) {
+    const heightAt2000 = baseHeight + (2000 - 1600) * 0.4
+    const drasticGrowthMultiplier = 1.2
+    const extraHeight = (windowWidth - 2000) * drasticGrowthMultiplier
+    const height = heightAt2000 + extraHeight
+    dashboardHeightStyle = {
+      maxHeight: `${height}px`,
+      height: `${height}px`,
+      transition: 'max-height 0.3s, height 0.3s',
+    }
+  }
 
   return (
     <>
@@ -474,7 +599,7 @@ export default function App() {
               {activeTab === 'dashboard' && (
                 <div
                   className={`big-dashboard-container${!eventLogsVisible ? ' big-dashboard-container--fullwidth' : ''}`}
-                  style={dashboardStyle}
+                  style={{ ...dashboardStyle, ...bigDashboardBackgroundStyle, ...dashboardHeightStyle }}
                 >
                   <div>
                     <VideoFeed
@@ -514,14 +639,17 @@ export default function App() {
                   history={history}
                 />
               )}
-              {activeTab === 'streams' && <SurveillanceStreams camera1Zones={camera1Zones} camera2Zones={camera2Zones} />}
+              {activeTab === 'streams' && (
+                <div style={cameraStreamsPanelStyle}>
+                  <SurveillanceStreams camera1Zones={camera1Zones} camera2Zones={camera2Zones} />
+                </div>
+              )}
             </div>
           </div>
         </div>
         <Footer />
       </div>
 
-      {/* 360° Camera Popup */}
       {show360Popup && (
         <FixedPopup
           style={{
@@ -540,20 +668,21 @@ export default function App() {
             flexDirection: 'column',
           }}
         >
-          {/* Control Bar */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            backgroundColor: '#ddd',
-            padding: '8px 12px',
-            userSelect: 'none',
-            flexShrink: 0,
-            borderBottom: '1px solid #ccc',
-            position: 'sticky',
-            top: 0,
-            zIndex: 100001,
-          }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              backgroundColor: '#ddd',
+              padding: '8px 12px',
+              userSelect: 'none',
+              flexShrink: 0,
+              borderBottom: '1px solid #ccc',
+              position: 'sticky',
+              top: 0,
+              zIndex: 100001,
+            }}
+          >
             <div style={{ fontWeight: 'bold' }}>360° Camera 1</div>
             <div>
               <button
@@ -596,8 +725,6 @@ export default function App() {
               </button>
             </div>
           </div>
-
-          {/* Content Area */}
           <div style={{ flex: 1, overflow: 'auto', background: '#000' }}>
             <video
               src="https://www.w3schools.com/html/mov_bbb.mp4"
@@ -613,7 +740,6 @@ export default function App() {
         </FixedPopup>
       )}
 
-      {/* Thermal Camera Popup */}
       {selectedThermalCamera && (
         <FixedPopup
           style={{
@@ -632,20 +758,21 @@ export default function App() {
             flexDirection: 'column',
           }}
         >
-          {/* Control Bar */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            backgroundColor: '#ddd',
-            padding: '8px 12px',
-            userSelect: 'none',
-            flexShrink: 0,
-            borderBottom: '1px solid #ccc',
-            position: 'sticky',
-            top: 0,
-            zIndex: 100001,
-          }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              backgroundColor: '#ddd',
+              padding: '8px 12px',
+              userSelect: 'none',
+              flexShrink: 0,
+              borderBottom: '1px solid #ccc',
+              position: 'sticky',
+              top: 0,
+              zIndex: 100001,
+            }}
+          >
             <div style={{ fontWeight: 'bold' }}>Thermal Camera</div>
             <div>
               <button
@@ -688,17 +815,17 @@ export default function App() {
               </button>
             </div>
           </div>
-
-          {/* Content Area */}
-          <div style={{
-            flex: 1,
-            overflowY: 'auto',
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: '#fff',
-          }}>
+          <div
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: '#fff',
+            }}
+          >
             {filterZonesByCamera(selectedThermalCamera).map(zone => (
               <ZoneVideoFeed key={zone.name} zone={zone} />
             ))}
@@ -706,7 +833,6 @@ export default function App() {
         </FixedPopup>
       )}
 
-      {/* Optical Camera Popup */}
       {selectedOpticalCamera && (
         <FixedPopup
           style={{
@@ -725,20 +851,21 @@ export default function App() {
             flexDirection: 'column',
           }}
         >
-          {/* Control Bar */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            backgroundColor: '#ddd',
-            padding: '8px 12px',
-            userSelect: 'none',
-            flexShrink: 0,
-            borderBottom: '1px solid #ccc',
-            position: 'sticky',
-            top: 0,
-            zIndex: 100001,
-          }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              backgroundColor: '#ddd',
+              padding: '8px 12px',
+              userSelect: 'none',
+              flexShrink: 0,
+              borderBottom: '1px solid #ccc',
+              position: 'sticky',
+              top: 0,
+              zIndex: 100001,
+            }}
+          >
             <div style={{ fontWeight: 'bold' }}>Optical Camera</div>
             <div>
               <button
@@ -781,17 +908,17 @@ export default function App() {
               </button>
             </div>
           </div>
-
-          {/* Content Area */}
-          <div style={{
-            flex: 1,
-            overflowY: 'auto',
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: '#fff',
-          }}>
+          <div
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: '#fff',
+            }}
+          >
             {filterZonesByCamera(selectedOpticalCamera).map(zone => (
               <ZoneVideoFeed key={zone.name} zone={zone} />
             ))}
@@ -801,3 +928,4 @@ export default function App() {
     </>
   )
 }
+
