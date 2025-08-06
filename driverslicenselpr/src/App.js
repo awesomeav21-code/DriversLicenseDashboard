@@ -188,6 +188,7 @@ export default function App() {
 
   const [windowWidth, setWindowWidth] = useState(window.innerWidth)
   const [windowHeight, setWindowHeight] = useState(window.innerHeight)
+  const expandFullWidth = !eventLogsVisible;
 
   useEffect(() => {
     const handleResize = () => {
@@ -403,70 +404,77 @@ export default function App() {
     })
   }
 
-  // Dashboard container style logic
+  // Cap the windowWidth at 9000px for calculations
+  const cappedWindowWidth = Math.min(windowWidth, 9000)
 
   let dashboardStyle = undefined
 
-  if (windowWidth >= 1400 && windowWidth <= 1500) {
-    // Keep original 1400-1500 logic unchanged
+  if (cappedWindowWidth >= 1400 && cappedWindowWidth <= 1500) {
+    // KEEP THIS EXACTLY AS YOU HAD IT
     const baseWidth = 1150
     const growthMultiplier = (1300 - 1150) / (1500 - 1400) // 1.5px per px
-    const extraWidth = (windowWidth - 1400) * growthMultiplier
+    const extraWidth = (cappedWindowWidth - 1400) * growthMultiplier
     const width = baseWidth + extraWidth - 40 // decrease by 40px here
 
     dashboardStyle = {
-      maxWidth: `${width}px`,
-      width: `${width}px`, // enforce exact width
       marginLeft: 'auto',
       marginRight: 'auto',
-      transition: 'max-width 0.3s, width 0.3s',
       borderRadius: 18,
-      paddingLeft: 32,
+      paddingLeft: 22,
       paddingRight: 32,
+      background: '#fff',
       display: 'flex',
+      width: expandFullWidth ? '1570px' : '1160px',
+      maxWidth: 'none',
       justifyContent: 'center',
+      maxHeight: expandFullWidth ? '1000px' : 'none',
+      height: expandFullWidth ? '900px' : '900px',
+      ...(expandFullWidth ? { transform: 'translateX(60px)' } : {})
     }
-  } else if (windowWidth > 1500 && windowWidth <= 1600) {
-    // Same original scaling after 1500px (no change here)
-    const baseWidth = 1300
-    const minWidth = 400
-    const width = Math.max(minWidth, baseWidth - (windowWidth - 1500) * 0.1)
+  } else if (cappedWindowWidth > 1500 && cappedWindowWidth <= 1600) {
+    // Controlled jump: width decreases from 1350px at 1500px to 1270px at 1600px (80px decrease)
+    const widthStart = 1350
+    const widthEnd = 1270
+    const progress = (cappedWindowWidth - 1500) / 100
+    const width = widthStart + (widthEnd - widthStart) * progress
 
     dashboardStyle = {
-      maxWidth: `${width}px`,
+      boxSizing: 'border-box',
       width: `${width}px`,
       marginLeft: 'auto',
       marginRight: 'auto',
       borderRadius: 18,
       paddingLeft: 32,
       paddingRight: 32,
+      background: '#fff',
       display: 'flex',
       justifyContent: 'center',
-      transition: 'max-width 0.3s, width 0.3s',
     }
-  } else if (windowWidth > 1600) {
-    // Continue decreasing after 1600px by 0.1px per px starting from 1280px at 1600px
-    const baseWidth = 1280
-    const minWidth = 400
-    const width = Math.max(minWidth, baseWidth - (windowWidth - 1600) * 0.1)
+  } else if (cappedWindowWidth > 1600) {
+    // Smooth linear growth starting at 1270px at 1600px (50px per 100px window width)
+    const baseWidthAt1600 = 1270
+    const maxWindowWidth = 9000
+    const effectiveWidth = Math.min(cappedWindowWidth, maxWindowWidth)
+    const extraWidth = effectiveWidth - 1600
+    const width = baseWidthAt1600 + (extraWidth * 50) / 100
 
     dashboardStyle = {
-      maxWidth: `${width}px`,
+      boxSizing: 'border-box',
       width: `${width}px`,
       marginLeft: 'auto',
       marginRight: 'auto',
       borderRadius: 18,
       paddingLeft: 32,
       paddingRight: 32,
+      background: '#fff',
       display: 'flex',
       justifyContent: 'center',
-      transition: 'max-width 0.3s, width 0.3s',
     }
   } else {
-    // Fixed width below 1400px
+    // Default style for below 1400px
     dashboardStyle = {
-      maxWidth: '1300px',
-      width: '100%',
+      boxSizing: 'border-box',
+      width: '1300px',
       marginLeft: 'auto',
       marginRight: 'auto',
       borderRadius: 18,
@@ -474,87 +482,51 @@ export default function App() {
       paddingRight: 32,
       display: 'flex',
       justifyContent: 'center',
-      transition: 'max-width 0.3s, width 0.3s',
     }
   }
 
-  // Camera streams panel style logic — UPDATED for combined 1500-1600px rule
-
-  let cameraStreamsPanelStyle = undefined
-
-  if (windowWidth >= 1400 && windowWidth <= 1500) {
-    cameraStreamsPanelStyle = {
-      maxWidth: '1300px',
+  if (!eventLogsVisible && dashboardStyle) {
+    dashboardStyle = {
+      ...dashboardStyle,
       width: '100%',
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      transition: 'max-width 0.3s, width 0.3s',
-    }
-  } else if (windowWidth > 1500 && windowWidth <= 1600) {
-    // Combined single decrease by 60px smoothly between 1500px and 1600px
-    const baseWidth = 1300
-    const decreaseStart = 1500
-    const decreaseEnd = 1600
-    const maxDecrease = 60
-    const progress = (windowWidth - decreaseStart) / (decreaseEnd - decreaseStart)
-    const width = baseWidth - progress * maxDecrease
-
-    cameraStreamsPanelStyle = {
-      maxWidth: `${width}px`,
-      width: `${width}px`,
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      transition: 'max-width 0.3s, width 0.3s',
-    }
-  } else if (windowWidth > 1600) {
-    // Fixed minimum width at 1240px after 1600px
-    cameraStreamsPanelStyle = {
-      maxWidth: '1240px',
-      width: '1240px',
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      transition: 'max-width 0.3s, width 0.3s',
-    }
-  } else {
-    // Fixed width below 1400px
-    cameraStreamsPanelStyle = {
-      maxWidth: '1300px',
-      width: '100%',
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      transition: 'max-width 0.3s, width 0.3s',
+      marginLeft: 0,
+      marginRight: 0,
+      paddingLeft: 16,
+      paddingRight: 16,
     }
   }
 
-  // Background color logic (unchanged)
   function calculateBackgroundColor(width) {
     return 'transparent'
   }
-  const backgroundColor = calculateBackgroundColor(windowWidth)
-  const bigDashboardBackgroundStyle = { backgroundColor }
 
-  // Height style logic unchanged
+  const backgroundColor = calculateBackgroundColor(cappedWindowWidth)
+
+  const bigDashboardBackgroundStyle = {
+    backgroundColor,
+  }
+
   let dashboardHeightStyle = undefined
   const baseHeight = 850
 
-  if (windowWidth > 1600 && windowWidth < 2000) {
+  if (cappedWindowWidth > 1600 && cappedWindowWidth < 2000) {
     const growthMultiplierHeight = 0.4
-    const extraHeight = (windowWidth - 1600) * growthMultiplierHeight
+    const extraHeight = (cappedWindowWidth - 1600) * growthMultiplierHeight
     const height = baseHeight + extraHeight
     dashboardHeightStyle = {
       maxHeight: `${height}px`,
       height: `${height}px`,
-      transition: 'max-height 0.3s, height 0.3s',
+      transition: 'max-height 0.3s ease, height 0.3s ease',
     }
-  } else if (windowWidth >= 2000) {
+  } else if (cappedWindowWidth >= 2000) {
     const heightAt2000 = baseHeight + (2000 - 1600) * 0.4
     const drasticGrowthMultiplier = 1.2
-    const extraHeight = (windowWidth - 2000) * drasticGrowthMultiplier
+    const extraHeight = (cappedWindowWidth - 2000) * drasticGrowthMultiplier
     const height = heightAt2000 + extraHeight
     dashboardHeightStyle = {
       maxHeight: `${height}px`,
       height: `${height}px`,
-      transition: 'max-height 0.3s, height 0.3s',
+      transition: 'max-height 0.3s ease, height 0.3s ease',
     }
   }
 
@@ -616,6 +588,7 @@ export default function App() {
                       selectedOpticalCamera={selectedOpticalCamera}
                       setSelectedOpticalCamera={setSelectedOpticalCamera}
                       isHoveringOptical={false}
+                      expandFullWidth={!eventLogsVisible}
                       setIsHoveringOptical={() => {}}
                       filterZonesByCamera={filterZonesByCamera}
                     />
@@ -639,11 +612,7 @@ export default function App() {
                   history={history}
                 />
               )}
-              {activeTab === 'streams' && (
-                <div style={cameraStreamsPanelStyle}>
-                  <SurveillanceStreams camera1Zones={camera1Zones} camera2Zones={camera2Zones} />
-                </div>
-              )}
+              {activeTab === 'streams' && <SurveillanceStreams camera1Zones={camera1Zones} camera2Zones={camera2Zones} />}
             </div>
           </div>
         </div>
@@ -928,4 +897,3 @@ export default function App() {
     </>
   )
 }
-

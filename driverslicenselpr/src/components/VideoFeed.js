@@ -22,6 +22,7 @@ export default function VideoFeed({
   isHoveringOptical,
   setIsHoveringOptical,
   filterZonesByCamera,
+  expandFullWidth = false,
 }) {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
@@ -33,18 +34,92 @@ export default function VideoFeed({
 
   const shiftRight = windowWidth >= 1400 && windowWidth <= 1500;
 
+  const MAX_WINDOW_WIDTH = 8000;
+  const BASE_WIDTH = 1250;
+  const STEP_SIZE_WIDTH = 50;
+  const STEP_INTERVAL_WIDTH = 50;
+  const BASE_HEIGHT = 300;
+  const STEP_SIZE_HEIGHT = 150;
+  const STEP_INTERVAL_HEIGHT = 1000;
+
+  const cameraStreamsWidth = shiftRight
+    ? Math.max(300, 1400 - (windowWidth - 1400) * 14.4)
+    : windowWidth > 1500
+    ? (() => {
+        const cappedWidth = Math.min(windowWidth, MAX_WINDOW_WIDTH);
+        const extraWidth = ((cappedWidth - 1500) / STEP_INTERVAL_WIDTH) * STEP_SIZE_WIDTH;
+        return BASE_WIDTH + extraWidth;
+      })()
+    : '100%';
+
+  const cameraStreamsHeight = (() => {
+    if (windowWidth <= 2000) return BASE_HEIGHT;
+    const cappedWidth = Math.min(windowWidth, MAX_WINDOW_WIDTH);
+    const extraHeight = ((cappedWidth - 2000) / STEP_INTERVAL_HEIGHT) * STEP_SIZE_HEIGHT;
+    return BASE_HEIGHT + extraHeight;
+  })();
+
+  const extraWidth = typeof cameraStreamsWidth === 'number' ? cameraStreamsWidth - BASE_WIDTH : 0;
+  const leftShift = extraWidth > 0 ? -extraWidth / 2 : 0;
+
+  const cameraStreamsPanelStyle = {
+    marginTop: '20px',
+    position: 'relative',
+    left: '17px',
+    marginLeft: 'auto',
+    marginRight: 0,
+    width: typeof cameraStreamsWidth === 'number'
+      ? (expandFullWidth ? `${cameraStreamsWidth + 465}px` : `${cameraStreamsWidth + 240}px`)
+      : cameraStreamsWidth,
+
+    transform: expandFullWidth
+      ? `translateX(calc(${leftShift}px - 30px))`
+      : `translateX(calc(${leftShift}px - 20px))`,
+
+    overflowY: 'auto',
+
+    height:
+      windowWidth >= 1400 && windowWidth <= 1500
+        ? expandFullWidth
+          ? '360px'
+          : '350px'
+        : expandFullWidth
+        ? '400px'
+        : '300px',
+  };
+
+  // -- WIDTHS increased by 15px only in expandFullWidth --
   const cameraSectionStyle = {
     flexShrink: 0,
     boxSizing: 'border-box',
-    maxWidth: 'calc(50% - 8px + 18px)',
-    minWidth: '238px',
+    maxWidth: expandFullWidth
+      ? 'calc(50% - 44px + 15px)'
+      : 'calc(50% - 8px + 18px)',
+    minWidth: expandFullWidth
+      ? 'calc(45% - 40px + 15px)'
+      : '240px',
+    width: expandFullWidth
+      ? 'calc(100% - 40px + 15px)'
+      : undefined,
     overflow: 'hidden',
     display: 'flex',
+    flexWrap: 'wrap',
     flexDirection: 'column',
-    height: windowWidth >= 1400 && windowWidth <= 1500 ? '260px' : 'auto',
+    height: shiftRight ? '260px' : 'auto',
     position: 'relative',
     zIndex: 1000,
+    ...(expandFullWidth && { marginLeft: '20px' }),
   };
+
+  const zoneGridStyle = {
+    flex: '1 1 auto',
+    overflowY: 'auto',
+    width: expandFullWidth
+      ? 'calc(100% - 40px + 15px)'
+      : '100%',
+    ...(expandFullWidth && { marginLeft: '20px' }),
+  };
+  // -- END CHANGES --
 
   const zoneGridWrapperStyle = {
     marginLeft: 'auto',
@@ -53,30 +128,41 @@ export default function VideoFeed({
     flex: '1 1 auto',
     display: 'flex',
     flexDirection: 'column',
-    height: windowWidth >= 1400 && windowWidth <= 1500 ? 'calc(100% - 40px)' : 'auto',
+    height: shiftRight ? 'calc(100% - 40px)' : 'auto',
     position: 'relative',
     zIndex: 1000,
-  };
-
-  const zoneGridStyle = {
-    flex: '1 1 auto',
-    overflowY: 'auto',
+    width: expandFullWidth ? '100%' : 'auto',
   };
 
   const liveDataWrapperStyle = {
     width:
-      windowWidth >= 1400 && windowWidth <= 1500
+      shiftRight
         ? `${1200 - (windowWidth - 1400) * 5 + 13}px`
         : windowWidth > 1500
         ? `${1200 + 13}px`
         : '100%',
-    height: windowWidth >= 1400 && windowWidth <= 1500 ? '260px' : 'auto',
+    height: shiftRight ? '260px' : 'auto',
     overflow: 'visible',
     marginLeft: 'auto',
     marginRight: 'auto',
     position: 'relative',
-    transition: 'width 0.3s ease, transform 0.3s ease, height 0.3s ease',
-    transform: shiftRight ? 'translateX(-20px)' : 'none',
+    transform: expandFullWidth ? 'translateX(-20px)' : 'none',
+  };
+
+  // -- ADD marginLeft: '10px' ONLY if expandFullWidth is true --
+  const liveDataHeaderStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    transform: expandFullWidth ? 'translateX(-150px)' : 'translateX(-43px)',
+    ...(expandFullWidth && { marginLeft: '10px' }),
+  };
+  // -- END CHANGE --
+
+  const statusDotStyle = {
+    cursor: 'pointer',
+    marginLeft: 0,
+    transition: 'margin-left 0.3s ease',
   };
 
   const videoFeedWrapperStyle = {
@@ -93,44 +179,17 @@ export default function VideoFeed({
   const camerasRowStyle = {
     display: 'flex',
     flexDirection: 'row',
-    width: '100%',
+    width: expandFullWidth ? 'calc(100% + 380px)' : 'calc(100% + 100px)',
+    minWidth: expandFullWidth ? 'auto' : '1000px',
     alignItems: 'stretch',
     gap: '16px',
     justifyContent: center ? 'center' : 'flex-start',
     flexWrap: 'nowrap',
-    transform: 'translateX(-15px)',
+    transform: expandFullWidth ? 'translateX(-200px)' : 'translateX(-85px)',
     height: '100%',
     position: 'relative',
+    left: '0',
     zIndex: 1000,
-  };
-
-  // Your requested cameraStreamsPanelStyle with smooth decrease only in 1500-1600px range
-  const cameraStreamsPanelStyle = {
-    marginTop: '20px',
-    width: (() => {
-      if (windowWidth >= 1400 && windowWidth <= 1500) {
-        // Keep original 1400-1500 logic untouched
-        return `${Math.max(300, 1400 - (windowWidth - 1400) * 14.4)}px`;
-      } else if (windowWidth > 1500 && windowWidth <= 1600) {
-        // Smoothly decrease width from 1300px down to 1240px between 1500 and 1600px
-        const baseWidth = 1300;
-        const maxDecrease = 60;
-        const progress = (windowWidth - 1500) / 100; // 0 to 1
-        return `${baseWidth - progress * maxDecrease}px`;
-      } else if (windowWidth > 1600) {
-        // Fix width at 1240px after 1600px
-        return '1240px';
-      } else {
-        // Below 1400px full width
-        return '100%';
-      }
-    })(),
-    maxWidth: '1400px',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    overflowY: 'auto',
-    transition: 'width 0.3s ease, transform 0.3s ease',
-    transform: 'translateX(-14px)',
   };
 
   const [isAlertOn, setIsAlertOn] = useState(() => {
@@ -152,27 +211,15 @@ export default function VideoFeed({
       <div className="live-data-wrapper" style={liveDataWrapperStyle}>
         <div
           className="live-data-header"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            transform: 'translateX(10px)',
-            transition: 'transform 0.3s ease',
-          }}
+          style={liveDataHeaderStyle}
         >
-          <span
-            className="section-livedata-tite"
-            style={shiftRight ? { transform: 'translateX(15px)', transition: 'transform 0.3s ease' } : {}}
-          >
+          <span className="section-livedata-tite">
             Live Data
           </span>
           <span
             className={`status-dot live-data-dot ${isAlertOn ? 'alert-on' : 'alert-off'}`}
             onClick={toggleAlert}
-            style={{
-              cursor: 'pointer',
-              marginLeft: shiftRight ? '15px' : '0',
-              transition: 'margin-left 0.3s ease',
-            }}
+            style={statusDotStyle}
             title="Toggle Alert"
           />
         </div>
@@ -184,7 +231,7 @@ export default function VideoFeed({
             style={{
               ...cameraSectionStyle,
               transform: 'translateX(10px)',
-              transition: 'transform 0.3s ease',
+              transition: 'transform 0.3s ease, width 0.2s cubic-bezier(.42,0,.58,1)',
             }}
           >
             <div className="camera-header">
@@ -199,7 +246,13 @@ export default function VideoFeed({
                 transition: 'transform 0.3s ease',
               }}
             >
-              <div className="zone-grid" style={zoneGridStyle}>
+              <div
+                className="zone-grid"
+                style={{
+                  ...zoneGridStyle,
+                  ...(shiftRight ? { transform: 'translateX(-10px)' } : {}),
+                }}
+              >
                 {camera1Zones.map((zone) => (
                   <ZoneCard
                     key={`${zone.camera}-${zone.name}`}
@@ -220,7 +273,7 @@ export default function VideoFeed({
             style={{
               ...cameraSectionStyle,
               transform: 'translateX(10px)',
-              transition: 'transform 0.3s ease',
+              transition: 'transform 0.3s ease, width 0.2s cubic-bezier(.42,0,.58,1)',
             }}
           >
             <div className="camera-header">
@@ -232,10 +285,15 @@ export default function VideoFeed({
               style={{
                 ...zoneGridWrapperStyle,
                 transform: 'translateX(10px)',
-                transition: 'transform 0.3s ease',
               }}
             >
-              <div className="zone-grid" style={zoneGridStyle}>
+              <div
+                className="zone-grid"
+                style={{
+                  ...zoneGridStyle,
+                  ...(shiftRight ? { transform: 'translateX(-10px)' } : {}),
+                }}
+              >
                 {camera2Zones.map((zone) => (
                   <ZoneCard
                     key={`${zone.camera}-${zone.name}`}
@@ -356,3 +414,4 @@ export default function VideoFeed({
     </div>
   );
 }
+
