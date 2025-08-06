@@ -1,5 +1,8 @@
 .zone-card {
   width: 140px;
+  transform-origin: center;
+  transition: transform 0.3s ease;
+
   max-width: 170px;
   aspect-ratio: 1 / 1;         /* Always square */
   position: relative;
@@ -9,6 +12,8 @@
   box-sizing: border-box;
   cursor: pointer;
   align-items: start; /* prevents stretching cards vertically */
+  flex-basis: 160px; /* or whatever size */
+  max-width: 170px;
 
   transition: box-shadow 0.3s ease;
   overflow: hidden;
@@ -85,4 +90,10 @@
 .zone-card.dark-zone .zone-last,
 .zone-card.dark-zone .zone-status {
   color: #f9fafb; /* ensure all text is white */
+}
+.zone-card--expanded {
+  width: 300px !important;      /* Important to override */
+  max-width: none !important;
+  flex-basis: auto !important;
+  aspect-ratio: auto !important;
 }

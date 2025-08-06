@@ -112,7 +112,6 @@ body.dark-mode .live-data-wrapper {
   gap: 12px;
   flex-wrap: nowrap;
   justify-content: flex-start;
-  width: 100%;
   box-sizing: border-box;
   position: relative;
   overflow: visible;
@@ -123,9 +122,9 @@ body.dark-mode .live-data-wrapper {
 }
 
 .camera-section {
-  flex: none;
-  width: 100% !important; /* Override default auto to respect inline styles */
-  min-width: 320px;
+  flex: 0 0 auto; /* equivalent to flex-shrink:0; flex-grow:0; flex-basis:auto */
+  /* Remove this line to allow JS inline styles to control width */
+  width: 100%; 
   max-width: none;
   background-color: #ffffff;
   border: 1px solid #d1d5db;
@@ -143,7 +142,6 @@ body.dark-mode .live-data-wrapper {
   left: 0 !important;
   z-index: 100 !important; 
 }
-
 .dark-video .camera-section {
   background-color: #0f172a;
   border: 1px solid #fff !important;
@@ -198,16 +196,19 @@ body.dark-mode .live-data-wrapper {
   height: auto !important;
   min-height: 0;
 }
-
+.zone-grid-wrapper{
+  position: relative !important; 
+  left: -10px !important; 
+  border-radius: 10px !important; 
+}
 /* Zone grid */
 .zone-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 25px;
   justify-items: stretch;
   align-items: start;
   width: 100%;
-  max-width: 800px;
   margin-left: 0; /* Changed from auto to 0 to keep flush left */
   margin-right: auto;
   box-sizing: border-box;

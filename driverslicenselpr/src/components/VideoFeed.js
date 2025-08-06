@@ -65,17 +65,17 @@ export default function VideoFeed({
   const cameraStreamsPanelStyle = {
     marginTop: '20px',
     position: 'relative',
-    left: '17px',
+    left: '9px',
     marginLeft: 'auto',
     marginRight: 0,
     width: typeof cameraStreamsWidth === 'number'
-      ? (expandFullWidth ? `${cameraStreamsWidth + 465}px` : `${cameraStreamsWidth + 240}px`)
+      ? (expandFullWidth ? `${cameraStreamsWidth + 465}px` : `${cameraStreamsWidth + 235}px`)
       : cameraStreamsWidth,
 
-    transform: expandFullWidth
-      ? `translateX(calc(${leftShift}px - 30px))`
-      : `translateX(calc(${leftShift}px - 20px))`,
-
+      transform: expandFullWidth
+      ? `translateX(calc(${leftShift}px - 40px + 17px))`  // also subtract 10px as you want
+      : `translateX(calc(${leftShift}px - 20px - 1px))`,
+    
     overflowY: 'auto',
 
     height:
@@ -88,18 +88,18 @@ export default function VideoFeed({
         : '300px',
   };
 
-  // -- WIDTHS increased by 15px only in expandFullWidth --
+  // Increase width by 10px only when expandFullWidth true
   const cameraSectionStyle = {
     flexShrink: 0,
     boxSizing: 'border-box',
     maxWidth: expandFullWidth
-      ? 'calc(50% - 44px + 15px)'
+      ? 'calc(50.2% - 44px + 15px + 10px)'  // +10px added width
       : 'calc(50% - 8px + 18px)',
     minWidth: expandFullWidth
-      ? 'calc(45% - 40px + 15px)'
+      ? 'calc(45% - 40px + 15px + 10px)'    // +10px added width
       : '240px',
     width: expandFullWidth
-      ? 'calc(100% - 40px + 15px)'
+      ? 'calc(100% - 40px + 15px + 10px)'   // +10px added width
       : undefined,
     overflow: 'hidden',
     display: 'flex',
@@ -111,15 +111,38 @@ export default function VideoFeed({
     ...(expandFullWidth && { marginLeft: '20px' }),
   };
 
-  const zoneGridStyle = {
-    flex: '1 1 auto',
-    overflowY: 'auto',
-    width: expandFullWidth
-      ? 'calc(100% - 40px + 15px)'
-      : '100%',
-    ...(expandFullWidth && { marginLeft: '20px' }),
+  // Decrease gap by 10px only when expandFullWidth true (from ~15px to 0.5px)
+  const camerasRowStyle = {
+    display: 'flex',
+    flexDirection: 'row',
+    width: expandFullWidth ? 'calc(100% + 380px)' : 'calc(100% + 100px)',
+    minWidth: expandFullWidth ? 'auto' : '1000px',
+    alignItems: 'stretch',
+    gap: expandFullWidth ? '0.5px' : undefined,  // reduced gap when true
+    justifyContent: center ? 'center' : 'flex-start',
+    flexWrap: 'nowrap',
+    transform: expandFullWidth ? 'translateX(-200px)' : 'translateX(-85px)',
+    height: '100%',
+    position: 'relative',
+    left: '0',
+    zIndex: 1000,
   };
-  // -- END CHANGES --
+
+  const zoneGridStyle = expandFullWidth
+    ? {
+        flex: '1 1 auto',
+        overflowY: 'auto',
+        width: 'calc(100% - 40px + 15px)',
+        marginLeft: '20px',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '10px 30px', // you can keep or tweak this independently
+      }
+    : {
+        flex: '1 1 auto',
+        overflowY: 'auto',
+        width: '100%',
+      };
 
   const zoneGridWrapperStyle = {
     marginLeft: 'auto',
@@ -149,7 +172,6 @@ export default function VideoFeed({
     transform: expandFullWidth ? 'translateX(-20px)' : 'none',
   };
 
-  // -- ADD marginLeft: '10px' ONLY if expandFullWidth is true --
   const liveDataHeaderStyle = {
     display: 'flex',
     alignItems: 'center',
@@ -157,7 +179,6 @@ export default function VideoFeed({
     transform: expandFullWidth ? 'translateX(-150px)' : 'translateX(-43px)',
     ...(expandFullWidth && { marginLeft: '10px' }),
   };
-  // -- END CHANGE --
 
   const statusDotStyle = {
     cursor: 'pointer',
@@ -174,22 +195,6 @@ export default function VideoFeed({
     transform: shiftRight ? 'translateX(15px)' : 'none',
     height: 'auto',
     overflow: 'visible',
-  };
-
-  const camerasRowStyle = {
-    display: 'flex',
-    flexDirection: 'row',
-    width: expandFullWidth ? 'calc(100% + 380px)' : 'calc(100% + 100px)',
-    minWidth: expandFullWidth ? 'auto' : '1000px',
-    alignItems: 'stretch',
-    gap: '16px',
-    justifyContent: center ? 'center' : 'flex-start',
-    flexWrap: 'nowrap',
-    transform: expandFullWidth ? 'translateX(-200px)' : 'translateX(-85px)',
-    height: '100%',
-    position: 'relative',
-    left: '0',
-    zIndex: 1000,
   };
 
   const [isAlertOn, setIsAlertOn] = useState(() => {
@@ -209,13 +214,8 @@ export default function VideoFeed({
       style={videoFeedWrapperStyle}
     >
       <div className="live-data-wrapper" style={liveDataWrapperStyle}>
-        <div
-          className="live-data-header"
-          style={liveDataHeaderStyle}
-        >
-          <span className="section-livedata-tite">
-            Live Data
-          </span>
+        <div className="live-data-header" style={liveDataHeaderStyle}>
+          <span className="section-livedata-tite">Live Data</span>
           <span
             className={`status-dot live-data-dot ${isAlertOn ? 'alert-on' : 'alert-off'}`}
             onClick={toggleAlert}
@@ -250,6 +250,7 @@ export default function VideoFeed({
                 className="zone-grid"
                 style={{
                   ...zoneGridStyle,
+                  backgroundColor: expandFullWidth ? 'yellow' : undefined,
                   ...(shiftRight ? { transform: 'translateX(-10px)' } : {}),
                 }}
               >
@@ -261,7 +262,8 @@ export default function VideoFeed({
                     isDarkMode={isDarkMode}
                     isAlertOn={isAlertOn}
                     extraClass={zone.name.toLowerCase() === 'global' ? 'global-zone' : ''}
-                  />
+                    style={expandFullWidth ? { minWidth: '300px', border: '3px solid red' } : undefined}
+                    />
                 ))}
               </div>
             </div>
@@ -272,7 +274,8 @@ export default function VideoFeed({
             className="camera-section right-camera"
             style={{
               ...cameraSectionStyle,
-              transform: 'translateX(10px)',
+              // Shift left by 2px ONLY when expandFullWidth is true
+              transform: expandFullWidth ? 'translateX(-2px)' : 'translateX(10px)',
               transition: 'transform 0.3s ease, width 0.2s cubic-bezier(.42,0,.58,1)',
             }}
           >
@@ -291,6 +294,7 @@ export default function VideoFeed({
                 className="zone-grid"
                 style={{
                   ...zoneGridStyle,
+                  backgroundColor: expandFullWidth ? 'yellow' : undefined,
                   ...(shiftRight ? { transform: 'translateX(-10px)' } : {}),
                 }}
               >
@@ -302,6 +306,11 @@ export default function VideoFeed({
                     isDarkMode={isDarkMode}
                     isAlertOn={isAlertOn}
                     extraClass={zone.name.toLowerCase() === 'global' ? 'global-zone' : ''}
+                    style={
+                      expandFullWidth
+                        ? { minWidth: '280px', height: 'auto' }
+                        : undefined
+                    }
                   />
                 ))}
               </div>
@@ -414,4 +423,3 @@ export default function VideoFeed({
     </div>
   );
 }
-
