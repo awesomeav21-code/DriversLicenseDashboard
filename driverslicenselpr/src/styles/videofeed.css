@@ -1,3 +1,12 @@
+/* ADDED: Fullwidth variants that are truly responsive */
+.camera-section--fullwidth,
+.zone-grid-wrapper--fullwidth,
+.zone-grid--fullwidth {
+  width: 100% !important;
+  max-width: 100% !important;
+  flex-basis: 100% !important;
+}
+
 @keyframes pulse-red {
   0% { background-color: #dc2626; opacity: 1; box-shadow: none; }
   50% { background-color: #dc2626; opacity: 0.2; box-shadow: none; }
@@ -17,26 +26,48 @@
   color: #eee;
 }
 
+/* REVERSED: Gap shrinks on larger screens */
+.zone-grid--fullwidth {
+  gap: clamp(0.5cqw, 1.5cqw, 2cqw) !important; /* Min is smaller, max is larger */
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: clamp(0.5cqw, 2cqw, 3cqw) !important; /* Min is smaller */
+}
+
 .video-feed-wrapper {
   position: relative;
   width: 100%;
-  max-width: none;
+  max-width: 100%;
   left: 0;
   min-height: 0;
   height: auto;
   box-sizing: border-box;
-  padding: 8px 8px 0 0;
-  margin-top: 10px;
+  padding: clamp(0.3cqw, 0.8cqw, 1cqw) clamp(0.3cqw, 0.8cqw, 1cqw) 0 0; /* Smaller on large screens */
+  margin-top: clamp(0.4cqw, 0.85cqw, 1cqw); /* Smaller on large screens */
   margin-left: auto;
   margin-right: auto;
   background-color: none;
   display: flex;
   flex-direction: column;
   overflow: visible;
-  border-radius: 10px;
+  border-radius: clamp(0.3cqw, 0.5cqw, 0.7cqw); /* Smaller border radius on large screens */
   flex-grow: 0;
   flex-shrink: 0;
-  top: -19px;
+  top: clamp(-1.4cqw, -1.2cqw, -0.8cqw); /* Less negative offset on large screens */
+}
+
+.video-feed-wrapper {
+  display: flex;
+  flex-wrap: nowrap;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.video-feed-wrapper > .live-data-wrapper {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .video-feed-wrapper.dark-video {
@@ -46,22 +77,22 @@
 
 .live-data-wrapper {
   width: 100%;
-  max-width: none;
-  background-color: #ffffff;
-  margin: 0 2px 0 0;
+  max-width: 100%;
+  background-color: transparent;
+  margin: 0 clamp(0.05cqw, 0.15cqw, 0.25cqw) 0 0; /* Smaller margin on large screens */
   border: none;
-  border-radius: 10px !important;
-  padding: 34px 24px 65px 16px;
+  border-radius: clamp(0.3cqw, 0.5cqw, 0.7cqw) !important; /* Smaller border radius */
+  padding: clamp(1.5cqw, 4cqw, 6cqw) clamp(0.8cqw, 1.7cqw, 2cqw) clamp(0.8cqw, 3cqw, 5cqw) clamp(0.8cqw, 1.7cqw, 2cqw); /* Smaller padding on large screens */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  z-index: 10; /* higher so it overlaps live-data-wrapper */
+  gap: clamp(0.8cqw, 1.5cqw, 2cqw); /* Smaller gap on large screens */
+  z-index: 2;
   box-shadow: none;
   position: relative;
   margin-left: auto;
   margin-right: auto;
-  top: -19px;
+  top: clamp(-1.4cqw, -1.2cqw, -0.8cqw); /* Less negative offset */
   height: auto !important;
   min-height: 0;
   max-height: none !important;
@@ -76,30 +107,40 @@ body.dark-mode .live-data-wrapper {
 .live-data-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 20px;
+  gap: clamp(0.2cqw, 0.6cqw, 0.8cqw); /* Smaller gap on large screens */
+  font-size: clamp(0.8cqw, 1.4cqw, 1.6cqw); /* Smaller font on large screens */
   font-weight: 600;
   color: #1f2937;
+  padding: clamp(0.2cqw, 0.6cqw, 0.8cqw) clamp(0.4cqw, 1cqw, 1.2cqw); /* Smaller padding */
 }
 
 .dark-video .live-data-header {
   color: #e2e8f0;
 }
 
+/* REVERSED: Status dot shrinks on larger screens */
 .live-data-header .status-dot {
-  width: 8px;
-  height: 8px;
+  width: clamp(0.4cqw, 0.8cqw, 1cqw); /* Smaller on large screens */
+  height: clamp(0.4cqw, 0.8cqw, 1cqw);
+  position: relative; 
+  left: 0;
+  top: 0; 
   border-radius: 50%;
   background-color: #dc2626;
   animation: pulse-red 1.5s infinite ease-in-out;
 }
 
+.live-data-header .status-dot--fullwidth{
+  position: relative !important; 
+  left: 0 !important;
+}
+
 .live-data-dot {
   position: relative;
-  left: -32px;
-  top: 1px;
-  width: 6px !important;
-  height: 6px !important;
+  left: 0 !important;
+  top: 0;
+  width: clamp(0.2cqw, 0.5cqw, 0.6cqw) !important; /* Smaller on large screens */
+  height: clamp(0.2cqw, 0.5cqw, 0.6cqw) !important;
   border-radius: 50%;
 }
 
@@ -107,62 +148,105 @@ body.dark-mode .live-data-wrapper {
   user-select: none;
 }
 
+/* REVERSED: Fullwidth cameras row shrinks on larger screens */
+.cameras-row--fullwidth {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+  gap: clamp(0.8cqw, 2cqw, 3cqw) !important; /* Smaller gap on large screens */
+  padding: 0 clamp(0.3cqw, 1cqw, 2cqw) !important; /* Smaller padding on large screens */
+  box-sizing: border-box !important;
+  position: relative !important;
+  left: 0 !important;
+  transform: none !important;
+}
+.cameras-wrapper {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 0;
+  width: 100% !important;
+  border: 1px solid gray; 
+}
+
+/* REVERSED: Camera row shrinks on larger screens */
 .cameras-row {
   display: flex;
-  gap: 12px;
+  column-gap: clamp(1cqw, 2cqw, 2.5cqw) !important; /* Responsive gap using cqw */
+  max-width: none;
+  position: relative ;
+
+  left: clamp(-1.5cqw, -1cqw, -0.5cqw) ; /* Responsive position using cqw */
   flex-wrap: nowrap;
   justify-content: flex-start;
   box-sizing: border-box;
-  position: relative;
   overflow: visible;
-  flex-grow: 1;
-    top: -8px;
-  height: auto !important;
+  border: 1px solid #d1d5db; 
+  border-radius: clamp(0.3cqw, 0.5cqw, 0.7cqw); /* Responsive border radius using cqw */
+  flex-shrink: 0 ;
+  top: 0;
+  height: auto ;
   min-height: 0;
+  max-height: none ;
 }
 
+@supports not (height: 1cqw) {
+  .cameras-row {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+}
+
+.big-dashboard-container {
+  container-type: inline-size;
+  container-name: dashboard;
+  width: 90vw; /* Fixed viewport width instead of responsive cqw */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* REVERSED: Camera section shrinks significantly on larger screens */
 .camera-section {
-  flex: 0 0 auto; /* equivalent to flex-shrink:0; flex-grow:0; flex-basis:auto */
-  /* Remove this line to allow JS inline styles to control width */
-  width: 100%; 
-  max-width: none;
+  flex: 0 0 auto;
+
   background-color: #ffffff;
-  border: 1px solid #d1d5db;
-  border-radius: 5px !important;
-  padding: 12px;
+  border: clamp(0.03cqw, 0.07cqw, 0.1cqw) solid #d1d5db ; /* Thinner border on large screens */
+  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw); /* Smaller border radius on large screens */
+  padding: clamp(0.5cqw, 1cqw, 1.2cqw); /* Smaller padding on large screens */
+  left: clamp(-1.5cqw, -1.2cqw, -0.8cqw); /* Less negative offset on large screens */
   box-sizing: border-box;
+  
   position: relative;
   display: flex;
   flex-direction: column;
   overflow: visible;
-  height: auto !important;
+  height: auto ;
   min-height: 0;
-  max-height: none !important;
+  max-height: none ;
   flex-shrink: 0;
-  left: 0 !important;
-  z-index: 100 !important; 
+  z-index: 100;
+  margin-top: clamp(0.8cqw, 1.6cqw, 2cqw); /* Smaller margin on large screens */
 }
 .dark-video .camera-section {
   background-color: #0f172a;
-  border: 1px solid #fff !important;
+  border: clamp(0.03cqw, 0.07cqw, 0.1cqw) solid #fff !important;
 }
 
 .camera-header {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: clamp(0.3cqw, 0.7cqw, 0.8cqw); /* Smaller gap on large screens */
+  margin-bottom: clamp(0.5cqw, 1cqw, 1.2cqw); /* Smaller margin on large screens */
 }
 
 .section-livedata-tite {
-  position: relative;
-  left: -31px;
-  font-size: 1.00rem;
+  position: relative !important;
+  left: 0 !important;
+  font-size: clamp(0.4cqw, 0.85cqw, 1cqw); /* Smaller font on large screens */
 }
 
 .section-title {
-  font-size: 16px;
+  font-size: clamp(0.8cqw, 1.4cqw, 1.6cqw); /* Smaller font on large screens */
   font-weight: 600;
   color: #1f2937;
   position: relative;
@@ -173,10 +257,10 @@ body.dark-mode .live-data-wrapper {
 }
 
 .camera-header .status-dot {
-  width: 6px;
-  height: 6px;
+  width: clamp(0.2cqw, 0.5cqw, 0.6cqw); /* Much smaller on large screens */
+  height: clamp(0.2cqw, 0.5cqw, 0.6cqw);
   border-radius: 50%;
-  border: 2px solid #16a34a;
+  border: clamp(0.08cqw, 0.15cqw, 0.2cqw) solid #16a34a; /* Thinner border on large screens */
   background-color: transparent;
   animation: pulse-green 1.5s infinite ease-in-out;
 }
@@ -186,44 +270,75 @@ body.dark-mode .live-data-wrapper {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: clamp(0.5cqw, 1cqw, 1.2cqw); /* Smaller gap on large screens */
   box-sizing: border-box;
   padding: 0;
   background-color: transparent;
-  border-radius: 10px;
+  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw); /* Smaller border radius on large screens */
   overflow: visible !important;
   flex-grow: 1;
   height: auto !important;
   min-height: 0;
 }
-.zone-grid-wrapper{
-  position: relative !important; 
-  left: -10px !important; 
-  border-radius: 10px !important; 
+
+.zone-grid--fullwidth {
+  background-color: #f3f4f6 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  position: relative !important;
+  left: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(clamp(6cqw, 12cqw, 16cqw), 1fr)) !important; /* Smaller grid items on large screens */
+  gap: clamp(0.3cqw, 1cqw, 1.5cqw) !important; /* Smaller gap on large screens */
+  padding: clamp(0.6cqw, 2cqw, 3cqw) !important; /* Smaller padding on large screens */
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw) !important; /* Smaller border radius */
 }
-/* Zone grid */
+
+.zone-grid-wrapper {
+  position: relative !important; 
+  left: 0 !important;
+  width: clamp(35cqw, 50cqw, 60cqw); /* Smaller on large screens */
+  max-width: 100%;
+  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw) !important; /* Smaller border radius */
+}
+
+.zone-grid-wrapper--fullwidth {
+  position: relative !important; 
+  left: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw) !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
 .zone-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 25px;
+  gap: clamp(0.6cqw, 1.8cqw, 2cqw); /* Smaller gap on large screens */
+  position: relative; 
+  left: 0;
   justify-items: stretch;
   align-items: start;
-  width: 100%;
-  margin-left: 0; /* Changed from auto to 0 to keep flush left */
+  width: clamp(35cqw, 50cqw, 60cqw); /* Smaller on large screens */
+  max-width: 100%;
+  margin-left: 0;
   margin-right: auto;
   box-sizing: border-box;
-  padding: 28px;
+  padding: clamp(0.6cqw, 2cqw, 3cqw); /* Smaller padding on large screens */
   background-color: #f3f4f6;
-  border-radius: 10px;
-  overflow: hidden;
-  height: auto !important;
-  min-height: 0;
-  max-height: none !important;
+  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw); /* Smaller border radius */
+  overflow-y: auto;
+  height: clamp(15cqw, 30cqw, 42cqw); /* Much smaller height on large screens */
+  min-height: clamp(15cqw, 30cqw, 42cqw);
+  max-height: clamp(15cqw, 30cqw, 42cqw);
 }
 
 .zone-grid > * {
-  min-height: 120px;
-  padding: 22px 14px;
+  min-height: clamp(6cqw, 10cqw, 12cqw); /* Smaller items on large screens */
+  padding: clamp(0.6cqw, 1.6cqw, 2cqw) clamp(0.3cqw, 1cqw, 1.5cqw); /* Smaller padding */
   aspect-ratio: 1 / 1;
 }
 
@@ -236,38 +351,72 @@ body.dark-mode .live-data-wrapper {
 }
 
 .dark-mode .camera-streams-panel {
-  border: solid 1px #fff !important;
+  border: clamp(0.03cqw, 0.07cqw, 0.1cqw) solid #fff !important; /* Thinner border */
 }
 
+.camera-streams-panel--fullwidth {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: none !important;
+  transform: none !important;
+  height: auto !important;
+  min-height: clamp(3cqw, 7cqw, 10cqw) !important; /* Smaller on large screens */
+  padding: clamp(0.3cqw, 1cqw, 2cqw) !important; /* Smaller padding */
+  gap: clamp(0.3cqw, 1cqw, 1.5cqw) !important; /* Smaller gap */
+  position: relative !important;
+  left: 0 !important;
+  margin: clamp(0.3cqw, 1cqw, 2cqw) auto !important; /* Smaller margin */
+  box-sizing: border-box !important;
+}
+
+/* REVERSED: Camera streams panel shrinks significantly on larger screens */
 .camera-streams-panel {
-  overflow-y: hidden !important;  /* no vertical scroll, clip overflow */
-  
-  /* Keep your other styles unchanged */
+  flex: 0 0 auto;
+  min-width: 0;
+  width: clamp(45cqw, 80cqw, 90cqw); /* Much smaller on large screens */
+  max-width: 100%;
+  overflow-y: hidden !important;
+  background-color: #fff;
   display: flex;
   flex-wrap: nowrap;
   justify-content: center;
-  gap: 24px;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  padding: 20px;
+  gap: clamp(0.5cqw, 2cqw, 3cqw); /* Smaller gap on large screens */
+  padding: clamp(0.6cqw, 2cqw, 3cqw); /* Smaller padding on large screens */
   box-sizing: border-box;
-  border: 1px solid #d1d5db;
-  border-radius: 5px;
-  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  border: clamp(0.03cqw, 0.07cqw, 0.1cqw) solid #d1d5db; /* Thinner border */
+  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw); /* Smaller border radius */
+  margin-left: auto !important;
+  margin-right: auto;
+  box-shadow: 0 0 clamp(0.3cqw, 0.7cqw, 1cqw) rgba(0,0,0,0.1); /* Smaller shadow */
   position: relative;
+  left: 0;
   z-index: 10;
-  transform: none;
-  top: -75px !important; 
-  flex-grow: 1;
-  flex-shrink: 0;
-  flex-basis: auto;
+  height: clamp(12cqw, 30cqw, 40cqw) !important; /* Much smaller height on large screens */
+  min-height: clamp(60px, 13cqw, 200px) !important;
+  margin-top: clamp(0.8cqw, 1.6cqw, 2cqw); /* Smaller margin */
 }
+
+.section-livedata-tite--fullwidth {
+  color: black !important; 
+  position: relative !important; 
+  left: 0 !important;
+  font-size: clamp(0.3cqw, 0.7cqw, 1cqw) !important; /* Smaller font on large screens */
+  margin: 0 !important;
+}
+
+.live-data-header .status-dot--fullwidth {
+  position: relative !important; 
+  left: 0 !important;
+  width: clamp(0.2cqw, 0.6cqw, 0.8cqw) !important; /* Smaller on large screens */
+  height: clamp(0.2cqw, 0.6cqw, 0.8cqw) !important;
+}
+
 .stream-group {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: clamp(0.3cqw, 0.8cqw, 1cqw); /* Smaller gap on large screens */
   box-sizing: border-box;
   padding: 0;
   background-color: transparent;
@@ -278,9 +427,9 @@ body.dark-mode .live-data-wrapper {
 }
 
 .stream-group h3 {
-  font-size: 1.1rem;
+  font-size: clamp(0.5cqw, 0.85cqw, 1cqw); /* Smaller font on large screens */
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: clamp(0.3cqw, 0.8cqw, 1cqw); /* Smaller margin on large screens */
   color: #1f2937;
 }
 
@@ -288,35 +437,36 @@ body.dark-mode .live-data-wrapper {
   color: #e2e8f0;
 }
 
+/* REVERSED: Images shrink significantly on larger screens */
 .stream-group img {
-  width: 180px;
-  height: 180px;
+  width: clamp(8cqw, 14cqw, 16cqw); /* Much smaller on large screens */
+  height: clamp(8cqw, 14cqw, 16cqw);
   border-radius: 50%;
-  margin-bottom: 8px;
+  margin-bottom: clamp(0.3cqw, 0.8cqw, 1cqw); /* Smaller margin */
   background-color: #e7ffe7;
   object-fit: cover;
-  box-shadow: 0 0 6px rgba(22, 163, 74, 0.3);
+  box-shadow: 0 0 clamp(0.2cqw, 0.4cqw, 0.6cqw) rgba(22, 163, 74, 0.3); /* Smaller shadow */
 }
 
 .stream-group > div {
   display: flex;
   justify-content: center;
-  gap: 8px;
+  gap: clamp(0.3cqw, 0.8cqw, 1cqw); /* Smaller gap on large screens */
   padding: 0;
   margin: 0;
   width: 100%;
 }
 
+/* REVERSED: Buttons shrink on larger screens */
 .camera-btn {
   background-color: #16a34a;
   border: none;
   color: white;
-  padding: 8px 14px;
-  border-radius: 6px;
+  padding: clamp(0.3cqw, 0.8cqw, 1cqw) clamp(0.6cqw, 1.2cqw, 1.4cqw); /* Smaller padding on large screens */
+  border-radius: clamp(0.2cqw, 0.4cqw, 0.6cqw); /* Smaller border radius on large screens */
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.9rem;
-  transition: background-color 0.3s ease;
+  font-size: clamp(0.4cqw, 0.7cqw, 0.8cqw); /* Smaller font on large screens */
 }
 
 .camera-btn:hover {

@@ -1,9 +1,68 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import ZoneCard from './ZoneCard';
 import Surveillance from '../components/images/Surveillance.png';
 import Thermal from '../components/images/Thermal.png';
 import '../styles/zonecards.css';
 import '../styles/videofeed.css';
+
+function useDeviceInfo() {
+  const [deviceInfo, setDeviceInfo] = useState({
+    isHighDPI: false,
+    screenType: 'desktop',
+    pixelRatio: 1,
+    screenSize: 'large',
+    browserZoom: 1
+  });
+
+  useEffect(() => {
+    const updateDeviceInfo = () => {
+      const pixelRatio = window.devicePixelRatio || 1;
+      const viewportWidth = window.innerWidth;
+
+      let screenSize = 'large';
+      if (viewportWidth < 768) screenSize = 'small';
+      else if (viewportWidth < 1024) screenSize = 'medium';
+
+      setDeviceInfo({
+        isHighDPI: pixelRatio > 1.5,
+        screenType: 'desktop',
+        pixelRatio,
+        screenSize,
+        browserZoom: window.outerWidth / window.innerWidth
+      });
+    };
+
+    updateDeviceInfo();
+    window.addEventListener('resize', updateDeviceInfo);
+    return () => window.removeEventListener('resize', updateDeviceInfo);
+  }, []);
+
+  return deviceInfo;
+}
+
+function useConsistentSizing() {
+  const [sizing, setSizing] = useState({
+    baseUnit: 16,
+    cardWidth: 200,
+    cardHeight: 120,
+    fontSize: 14,
+    spacing: 8
+  });
+
+  useEffect(() => {
+    const baseUnit = 16;
+    const scale = 1;
+    setSizing({
+      baseUnit,
+      cardWidth: Math.round(200 * scale),
+      cardHeight: Math.round(120 * scale),
+      fontSize: Math.round(14 * scale),
+      spacing: Math.round(8 * scale)
+    });
+  }, []);
+
+  return sizing;
+}
 
 export default function VideoFeed({
   isDarkMode,
@@ -21,10 +80,151 @@ export default function VideoFeed({
   setSelectedOpticalCamera,
   isHoveringOptical,
   setIsHoveringOptical,
-  filterZonesByCamera,
   expandFullWidth = false,
 }) {
+  const cameraStreamsRef = useRef(null);
+  const leftGridRef = useRef(null);
+  const rightGridRef = useRef(null);
+  const leftHeaderRef = useRef(null);
+  const rightHeaderRef = useRef(null);
+  const leftCameraSectionRef = useRef(null);
+  const rightCameraSectionRef = useRef(null);
+  const camerasRowRef = useRef(null);
+
+  const sizing = useConsistentSizing();
+  const [cameraSectionHeight, setCameraSectionHeight] = useState(null);
+  const [isAlertOn, setIsAlertOn] = useState(() => {
+    const saved = localStorage.getItem('isAlertOn');
+    return saved === 'true';
+  });
+
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  const getProportionalScale = () => {
+    if (windowWidth >= 1424) {
+      const extraPixels = windowWidth - 1424;
+      const baseScale = 1;
+      const scaleReduction = extraPixels * 0.00005;
+      return baseScale - scaleReduction;
+    }
+    return 1;
+  };
+
+  const getDynamicWidth = () => {
+    if (windowWidth >= 2136) {
+      const extraPixels = windowWidth - 2136;
+      const baseWidth = 100;
+      const growthRate = 0.05;
+      return `${baseWidth + (extraPixels * growthRate)}%`;
+    } else if (windowWidth >= 1899) {
+      const range = 2136 - 1899;
+      const progress = (windowWidth - 1899) / range;
+      const minWidth = 85;
+      const maxWidth = 100;
+      return `${minWidth + (progress * (maxWidth - minWidth))}%`;
+    } else if (windowWidth >= 1582) {
+      const extraPixels = windowWidth - 1582;
+      const baseWidth = 80;
+      const growthRate = 0.03;
+      return `${baseWidth + (extraPixels * growthRate)}%`;
+    } else if (windowWidth >= 1424) {
+      const range = 1582 - 1424;
+      const progress = (windowWidth - 1424) / range;
+      const minWidth = 75;
+      const maxWidth = 80;
+      return `${minWidth + (progress * (maxWidth - minWidth))}%`;
+    }
+    return 'auto';
+  };
+
+  const getCameraStreamsBgColor = () => {
+    if (windowWidth >= 2136) return 'pink';
+    if (windowWidth >= 1899) return 'red';
+    if (windowWidth >= 1582) return 'green';
+    if (windowWidth >= 1424) return 'yellow';
+    return '';
+  };
+
+  const getDynamicHeight = () => {
+    if (windowWidth >= 2136) {
+      const extraPixels = windowWidth - 2136;
+      const baseHeight = 35;
+      const heightGrowth = extraPixels * 0.01;
+      return `${baseHeight + heightGrowth}vh`;
+    } else if (windowWidth >= 1899) {
+      const range = 2136 - 1899;
+      const progress = (windowWidth - 1899) / range;
+      const minHeight = 30;
+      const maxHeight = 35;
+      return `${minHeight + (progress * (maxHeight - minHeight))}vh`;
+    } else if (windowWidth >= 1582) {
+      const extraPixels = windowWidth - 1582;
+      const baseHeight = 25;
+      const heightGrowth = extraPixels * 0.008;
+      return `${baseHeight + heightGrowth}vh`;
+    } else if (windowWidth >= 1424) {
+      const range = 1582 - 1424;
+      const progress = (windowWidth - 1424) / range;
+      const minHeight = 20;
+      const maxHeight = 25;
+      return `${minHeight + (progress * (maxHeight - minHeight))}vh`;
+    }
+    return 'auto';
+  };
+
+  const getDynamicPadding = () => {
+    if (windowWidth >= 2136) {
+      const extraPixels = windowWidth - 2136;
+      const basePadding = 1.5;
+      const paddingGrowth = extraPixels * 0.001;
+      return `${basePadding + paddingGrowth}rem`;
+    } else if (windowWidth >= 1899) {
+      const range = 2136 - 1899;
+      const progress = (windowWidth - 1899) / range;
+      const minPadding = 1;
+      const maxPadding = 1.5;
+      return `${minPadding + (progress * (maxPadding - minPadding))}rem`;
+    } else if (windowWidth >= 1582) {
+      const extraPixels = windowWidth - 1582;
+      const basePadding = 0.9;
+      const paddingGrowth = extraPixels * 0.0005;
+      return `${basePadding + paddingGrowth}rem`;
+    } else if (windowWidth >= 1424) {
+      const range = 1582 - 1424;
+      const progress = (windowWidth - 1424) / range;
+      const minPadding = 0.8;
+      const maxPadding = 0.9;
+      return `${minPadding + (progress * (maxPadding - minPadding))}rem`;
+    }
+    return '0.8rem';
+  };
+
+  const getDynamicFontScale = () => {
+    if (windowWidth >= 2136) {
+      const extraPixels = windowWidth - 2136;
+      const baseFontSize = 1;
+      const fontGrowth = extraPixels * 0.0002;
+      return baseFontSize + fontGrowth;
+    } else if (windowWidth >= 1899) {
+      const range = 2136 - 1899;
+      const progress = (windowWidth - 1899) / range;
+      const minScale = 0.95;
+      const maxScale = 1;
+      return minScale + (progress * (maxScale - minScale));
+    } else if (windowWidth >= 1582) {
+      const extraPixels = windowWidth - 1582;
+      const baseFontSize = 0.9;
+      const fontGrowth = extraPixels * 0.0001;
+      return baseFontSize + fontGrowth;
+    } else if (windowWidth >= 1424) {
+      const range = 1582 - 1424;
+      const progress = (windowWidth - 1424) / range;
+      const minScale = 0.85;
+      const maxScale = 0.9;
+      return minScale + (progress * (maxScale - minScale));
+    }
+    return 0.85;
+  };
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -32,391 +232,148 @@ export default function VideoFeed({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const shiftRight = windowWidth >= 1400 && windowWidth <= 1500;
-
-  const MAX_WINDOW_WIDTH = 8000;
-  const BASE_WIDTH = 1250;
-  const STEP_SIZE_WIDTH = 50;
-  const STEP_INTERVAL_WIDTH = 50;
-  const BASE_HEIGHT = 300;
-  const STEP_SIZE_HEIGHT = 150;
-  const STEP_INTERVAL_HEIGHT = 1000;
-
-  const cameraStreamsWidth = shiftRight
-    ? Math.max(300, 1400 - (windowWidth - 1400) * 14.4)
-    : windowWidth > 1500
-    ? (() => {
-        const cappedWidth = Math.min(windowWidth, MAX_WINDOW_WIDTH);
-        const extraWidth = ((cappedWidth - 1500) / STEP_INTERVAL_WIDTH) * STEP_SIZE_WIDTH;
-        return BASE_WIDTH + extraWidth;
-      })()
-    : '100%';
-
-  const cameraStreamsHeight = (() => {
-    if (windowWidth <= 2000) return BASE_HEIGHT;
-    const cappedWidth = Math.min(windowWidth, MAX_WINDOW_WIDTH);
-    const extraHeight = ((cappedWidth - 2000) / STEP_INTERVAL_HEIGHT) * STEP_SIZE_HEIGHT;
-    return BASE_HEIGHT + extraHeight;
-  })();
-
-  const extraWidth = typeof cameraStreamsWidth === 'number' ? cameraStreamsWidth - BASE_WIDTH : 0;
-  const leftShift = extraWidth > 0 ? -extraWidth / 2 : 0;
-
-  const cameraStreamsPanelStyle = {
-    marginTop: '20px',
-    position: 'relative',
-    left: '9px',
-    marginLeft: 'auto',
-    marginRight: 0,
-    width: typeof cameraStreamsWidth === 'number'
-      ? (expandFullWidth ? `${cameraStreamsWidth + 465}px` : `${cameraStreamsWidth + 235}px`)
-      : cameraStreamsWidth,
-
-      transform: expandFullWidth
-      ? `translateX(calc(${leftShift}px - 40px + 17px))`  // also subtract 10px as you want
-      : `translateX(calc(${leftShift}px - 20px - 1px))`,
-    
-    overflowY: 'auto',
-
-    height:
-      windowWidth >= 1400 && windowWidth <= 1500
-        ? expandFullWidth
-          ? '360px'
-          : '350px'
-        : expandFullWidth
-        ? '400px'
-        : '300px',
-  };
-
-  // Increase width by 10px only when expandFullWidth true
-  const cameraSectionStyle = {
-    flexShrink: 0,
-    boxSizing: 'border-box',
-    maxWidth: expandFullWidth
-      ? 'calc(50.2% - 44px + 15px + 10px)'  // +10px added width
-      : 'calc(50% - 8px + 18px)',
-    minWidth: expandFullWidth
-      ? 'calc(45% - 40px + 15px + 10px)'    // +10px added width
-      : '240px',
-    width: expandFullWidth
-      ? 'calc(100% - 40px + 15px + 10px)'   // +10px added width
-      : undefined,
-    overflow: 'hidden',
-    display: 'flex',
-    flexWrap: 'wrap',
-    flexDirection: 'column',
-    height: shiftRight ? '260px' : 'auto',
-    position: 'relative',
-    zIndex: 1000,
-    ...(expandFullWidth && { marginLeft: '20px' }),
-  };
-
-  // Decrease gap by 10px only when expandFullWidth true (from ~15px to 0.5px)
-  const camerasRowStyle = {
-    display: 'flex',
-    flexDirection: 'row',
-    width: expandFullWidth ? 'calc(100% + 380px)' : 'calc(100% + 100px)',
-    minWidth: expandFullWidth ? 'auto' : '1000px',
-    alignItems: 'stretch',
-    gap: expandFullWidth ? '0.5px' : undefined,  // reduced gap when true
-    justifyContent: center ? 'center' : 'flex-start',
-    flexWrap: 'nowrap',
-    transform: expandFullWidth ? 'translateX(-200px)' : 'translateX(-85px)',
-    height: '100%',
-    position: 'relative',
-    left: '0',
-    zIndex: 1000,
-  };
-
-  const zoneGridStyle = expandFullWidth
-    ? {
-        flex: '1 1 auto',
-        overflowY: 'auto',
-        width: 'calc(100% - 40px + 15px)',
-        marginLeft: '20px',
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '10px 30px', // you can keep or tweak this independently
-      }
-    : {
-        flex: '1 1 auto',
-        overflowY: 'auto',
-        width: '100%',
-      };
-
-  const zoneGridWrapperStyle = {
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    overflowX: 'auto',
-    flex: '1 1 auto',
-    display: 'flex',
-    flexDirection: 'column',
-    height: shiftRight ? 'calc(100% - 40px)' : 'auto',
-    position: 'relative',
-    zIndex: 1000,
-    width: expandFullWidth ? '100%' : 'auto',
-  };
-
-  const liveDataWrapperStyle = {
-    width:
-      shiftRight
-        ? `${1200 - (windowWidth - 1400) * 5 + 13}px`
-        : windowWidth > 1500
-        ? `${1200 + 13}px`
-        : '100%',
-    height: shiftRight ? '260px' : 'auto',
-    overflow: 'visible',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    position: 'relative',
-    transform: expandFullWidth ? 'translateX(-20px)' : 'none',
-  };
-
-  const liveDataHeaderStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    transform: expandFullWidth ? 'translateX(-150px)' : 'translateX(-43px)',
-    ...(expandFullWidth && { marginLeft: '10px' }),
-  };
-
-  const statusDotStyle = {
-    cursor: 'pointer',
-    marginLeft: 0,
-    transition: 'margin-left 0.3s ease',
-  };
-
-  const videoFeedWrapperStyle = {
-    width: windowWidth > 1400 ? '1400px' : '100%',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    position: 'relative',
-    transition: 'transform 0.3s ease, height 0.3s ease',
-    transform: shiftRight ? 'translateX(15px)' : 'none',
-    height: 'auto',
-    overflow: 'visible',
-  };
-
-  const [isAlertOn, setIsAlertOn] = useState(() => {
-    const saved = localStorage.getItem('isAlertOn');
-    return saved === 'true';
-  });
-
   useEffect(() => {
     localStorage.setItem('isAlertOn', isAlertOn);
   }, [isAlertOn]);
 
-  const toggleAlert = () => setIsAlertOn((prev) => !prev);
+  useLayoutEffect(() => {
+    const measure = () => {
+      const lGridH = leftGridRef.current?.scrollHeight || 0;
+      const rGridH = rightGridRef.current?.scrollHeight || 0;
+      const lHeaderH = leftHeaderRef.current?.offsetHeight || 0;
+      const rHeaderH = rightHeaderRef.current?.offsetHeight || 0;
+      const paddingY = sizing.spacing * 2;
+      const baseMin = expandFullWidth ? 280 : 260;
+      const min = Math.round(baseMin);
+
+      setCameraSectionHeight(Math.max(
+        lHeaderH + lGridH + paddingY,
+        rHeaderH + rGridH + paddingY,
+        min
+      ));
+    };
+
+    measure();
+    const ro = new ResizeObserver(measure);
+    if (leftGridRef.current) ro.observe(leftGridRef.current);
+    if (rightGridRef.current) ro.observe(rightGridRef.current);
+    window.addEventListener('resize', measure);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, [camera1Zones, camera2Zones, expandFullWidth, sizing.spacing]);
+
+  const toggleAlert = () => setIsAlertOn(prev => !prev);
+  const containerStyle = { fontSize: `${sizing.fontSize}px` };
+  const scale = getProportionalScale();
 
   return (
-    <div
-      className={`video-feed-wrapper ${isDarkMode ? 'dark-video' : 'light-video'}`}
-      style={videoFeedWrapperStyle}
-    >
-      <div className="live-data-wrapper" style={liveDataWrapperStyle}>
-        <div className="live-data-header" style={liveDataHeaderStyle}>
-          <span className="section-livedata-tite">Live Data</span>
-          <span
-            className={`status-dot live-data-dot ${isAlertOn ? 'alert-on' : 'alert-off'}`}
-            onClick={toggleAlert}
-            style={statusDotStyle}
-            title="Toggle Alert"
-          />
-        </div>
-
-        <div className={`cameras-row${center ? ' center' : ''}`} style={camerasRowStyle}>
-          {/* Left Camera Section */}
-          <div
-            className="camera-section"
-            style={{
-              ...cameraSectionStyle,
-              transform: 'translateX(10px)',
-              transition: 'transform 0.3s ease, width 0.2s cubic-bezier(.42,0,.58,1)',
-            }}
-          >
-            <div className="camera-header">
-              <span className="section-title">Left Camera</span>
-              <span className="status-dot"></span>
-            </div>
-            <div
-              className="zone-grid-wrapper"
-              style={{
-                ...zoneGridWrapperStyle,
-                transform: 'translateX(10px)',
-                transition: 'transform 0.3s ease',
-              }}
-            >
-              <div
-                className="zone-grid"
-                style={{
-                  ...zoneGridStyle,
-                  backgroundColor: expandFullWidth ? 'yellow' : undefined,
-                  ...(shiftRight ? { transform: 'translateX(-10px)' } : {}),
-                }}
-              >
-                {camera1Zones.map((zone) => (
-                  <ZoneCard
-                    key={`${zone.camera}-${zone.name}`}
-                    zone={zone}
-                    tempUnit={tempUnit}
-                    isDarkMode={isDarkMode}
-                    isAlertOn={isAlertOn}
-                    extraClass={zone.name.toLowerCase() === 'global' ? 'global-zone' : ''}
-                    style={expandFullWidth ? { minWidth: '300px', border: '3px solid red' } : undefined}
-                    />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Camera Section */}
-          <div
-            className="camera-section right-camera"
-            style={{
-              ...cameraSectionStyle,
-              // Shift left by 2px ONLY when expandFullWidth is true
-              transform: expandFullWidth ? 'translateX(-2px)' : 'translateX(10px)',
-              transition: 'transform 0.3s ease, width 0.2s cubic-bezier(.42,0,.58,1)',
-            }}
-          >
-            <div className="camera-header">
-              <span className="section-title">Right Camera</span>
-              <span className="status-dot"></span>
-            </div>
-            <div
-              className="zone-grid-wrapper"
-              style={{
-                ...zoneGridWrapperStyle,
-                transform: 'translateX(10px)',
-              }}
-            >
-              <div
-                className="zone-grid"
-                style={{
-                  ...zoneGridStyle,
-                  backgroundColor: expandFullWidth ? 'yellow' : undefined,
-                  ...(shiftRight ? { transform: 'translateX(-10px)' } : {}),
-                }}
-              >
-                {camera2Zones.map((zone) => (
-                  <ZoneCard
-                    key={`${zone.camera}-${zone.name}`}
-                    zone={zone}
-                    tempUnit={tempUnit}
-                    isDarkMode={isDarkMode}
-                    isAlertOn={isAlertOn}
-                    extraClass={zone.name.toLowerCase() === 'global' ? 'global-zone' : ''}
-                    style={
-                      expandFullWidth
-                        ? { minWidth: '280px', height: 'auto' }
-                        : undefined
-                    }
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="video-feed-inner-wrapper" style={{ width: '100%' }}>
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        background: 'black',
+        color: 'white',
+        padding: '4px 8px',
+        fontSize: '12px',
+        zIndex: 9999
+      }}>
+        Width: {windowWidth}px
       </div>
 
-      <div className="camera-streams-panel" style={cameraStreamsPanelStyle}>
-        {/* 360 Stream */}
-        <div className="stream-group" style={{ textAlign: 'center' }}>
-          <h3>360° Stream</h3>
-          <img
-            src="/assets/cam-360.png"
-            alt="360 Stream"
-            style={{ width: '180px', borderRadius: '50%', marginBottom: '12px', background: '#e7ffe7' }}
-          />
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'center',
-              gap: '8px',
-              padding: 0,
-              margin: 0,
-            }}
-          >
-            <button className="camera-btn" onClick={() => setShow360Popup(true)}>
-              Camera 1
-            </button>
+      <div className={`video-feed-wrapper ${isDarkMode ? 'dark-video' : 'light-video'}`} style={containerStyle}>
+        <div className={`live-data-wrapper ${expandFullWidth ? 'fullwidth' : ''}`}>
+          <div className="live-data-header">
+            <span className="section-livedata-title">Live Data</span>
+            <span className={`status-dot ${isAlertOn ? 'alert-on' : 'alert-off'}`} onClick={toggleAlert} title="Toggle Alert" />
+          </div>
+
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            transform: `scale(${scale})`,
+            transformOrigin: 'top center',
+            transition: 'transform 0.3s ease-in-out'
+          }}>
+            <div
+              ref={camerasRowRef}
+              className={`cameras-row ${center ? 'center' : ''} ${expandFullWidth ? 'fullwidth' : ''}`}
+              style={{
+                gap: '0',
+                width: `${100 / scale}%`,
+                transition: 'width 0.3s ease-in-out'
+              }}
+            >
+              <div ref={leftCameraSectionRef} className="camera-section" style={{ flex: 1, minWidth: '50%' }}>
+                <div className="camera-header" ref={leftHeaderRef}>
+                  <span className="section-title">Left Camera</span>
+                  <span className="status-dot" />
+                </div>
+                <div className="zone-grid-wrapper">
+                  <div ref={leftGridRef} className="zone-grid">
+                    {camera1Zones.map(zone => (
+                      <ZoneCard key={`${zone.camera}-${zone.name}`} zone={zone} tempUnit={tempUnit} isDarkMode={isDarkMode} expandFullWidth={expandFullWidth} isAlertOn={isAlertOn} extraClass={zone.name.toLowerCase() === 'global' ? 'global-zone' : ''} sizing={sizing} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div ref={rightCameraSectionRef} className="camera-section right-camera" style={{ flex: 1, minWidth: '50%' }}>
+                <div className="camera-header" ref={rightHeaderRef}>
+                  <span className="section-title">Right Camera</span>
+                  <span className="status-dot" />
+                </div>
+                <div className="zone-grid-wrapper">
+                  <div ref={rightGridRef} className="zone-grid">
+                    {camera2Zones.map(zone => (
+                      <ZoneCard key={`${zone.camera}-${zone.name}`} zone={zone} tempUnit={tempUnit} isDarkMode={isDarkMode} expandFullWidth={expandFullWidth} isAlertOn={isAlertOn} extraClass={zone.name.toLowerCase() === 'global' ? 'global-zone' : ''} sizing={sizing} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Thermal Stream */}
-        <div
-          className="stream-group"
-          style={{ textAlign: 'center', position: 'relative' }}
-          onMouseEnter={() => setIsHoveringThermal(true)}
-          onMouseLeave={() => setIsHoveringThermal(false)}
+        <div 
+          ref={cameraStreamsRef} 
+          className="camera-streams-panel"
+          style={{ 
+            backgroundColor: getCameraStreamsBgColor(),
+            width: getDynamicWidth(),
+            height: getDynamicHeight(),
+            padding: getDynamicPadding(),
+            fontSize: `${getDynamicFontScale()}rem`,
+            transition: 'all 0.3s ease-in-out',
+            boxSizing: 'border-box'
+          }}
         >
-          <h3>Thermal Stream</h3>
-          <img
-            src={Thermal}
-            alt="Thermal Stream"
-            style={{ width: '180px', borderRadius: '50%', marginBottom: '12px', background: '#e7ffe7' }}
-          />
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'center',
-              gap: '8px',
-              padding: 0,
-              margin: 0,
-            }}
-          >
-            <button
-              className="camera-btn"
-              onClick={() => setSelectedThermalCamera((prev) => (prev === 'planck_1' ? null : 'planck_1'))}
-            >
-              Left Camera
-            </button>
-            <button
-              className="camera-btn"
-              onClick={() => setSelectedThermalCamera((prev) => (prev === 'planck_2' ? null : 'planck_2'))}
-            >
-              Right Camera
-            </button>
+          <div className="stream-group">
+            <h3>360° Stream</h3>
+            <img src="/assets/cam-360.png" alt="360 Stream" />
+            <div>
+              <button className="camera-btn" onClick={() => setShow360Popup(true)}>Camera 1</button>
+            </div>
           </div>
-        </div>
 
-        {/* Optical Stream */}
-        <div
-          className="stream-group"
-          style={{ textAlign: 'center', position: 'relative' }}
-          onMouseEnter={() => setIsHoveringOptical(true)}
-          onMouseLeave={() => setIsHoveringOptical(false)}
-        >
-          <h3>Optical Stream</h3>
-          <img
-            src={Surveillance}
-            alt="Optical Stream"
-            style={{ width: '180px', borderRadius: '50%', marginBottom: '12px', background: '#e7ffe7' }}
-          />
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'center',
-              gap: '8px',
-              padding: 0,
-              margin: 0,
-            }}
-          >
-            <button
-              className="camera-btn"
-              onClick={() => setSelectedOpticalCamera((prev) => (prev === 'planck_1' ? null : 'planck_1'))}
-            >
-              Left Camera
-            </button>
-            <button
-              className="camera-btn"
-              onClick={() => setSelectedOpticalCamera((prev) => (prev === 'planck_2' ? null : 'planck_2'))}
-            >
-              Right Camera
-            </button>
+          <div className="stream-group" onMouseEnter={() => setIsHoveringThermal(true)} onMouseLeave={() => setIsHoveringThermal(false)}>
+            <h3>Thermal Stream</h3>
+            <img src={Thermal} alt="Thermal Stream" />
+            <div>
+              <button className="camera-btn" onClick={() => setShow360Popup(true)}>Left Camera</button>
+            </div>
+          </div>
+
+          <div className="stream-group" onMouseEnter={() => setIsHoveringOptical(true)} onMouseLeave={() => setIsHoveringOptical(false)}>
+            <h3>Optical Stream</h3>
+            <img src={Surveillance} alt="Optical Stream" />
+            <div>
+              <button className="camera-btn" onClick={() => setSelectedOpticalCamera(prev => (prev === 'planck_1' ? null : 'planck_1'))}>Left Camera</button>
+              <button className="camera-btn" onClick={() => setSelectedOpticalCamera(prev => (prev === 'planck_2' ? null : 'planck_2'))}>Right Camera</button>
+            </div>
           </div>
         </div>
       </div>

@@ -47,20 +47,22 @@ export default function ZoneCard({
     return `${month}/${day}/${year}, ${hours}:${minutes}:${seconds}`;
   };
 
+  // Add the --fullwidth class conditionally here like you did for zone-grid-wrapper
+  const zoneCardClassName = `zone-card ${extraClass} ${isDarkMode ? 'dark-zone' : ''}${
+    expandFullWidth ? ' zone-card--fullwidth' : ''
+  }`;
+
   return (
     <div
-      className={`zone-card ${extraClass} ${isDarkMode ? 'dark-zone' : ''} ${
-        expandFullWidth ? 'zone-card--expanded' : ''
-      }`}
+      className={zoneCardClassName}
       style={{
         flexShrink: 0,
         flexGrow: 0,
         boxSizing: 'border-box',
-        transform: expandFullWidth ? 'scaleX(1.6)' : 'scaleX(1.1)',
+        transform: expandFullWidth ? 'scaleX(1.05)' : 'scaleX(1.1)',
         transformOrigin: expandFullWidth ? 'initial' : 'left center',
-        transition: 'transform 0.3s ease',
+        position: 'relative',
       }}
-      
     >
       <div className="zone-card-inner">
         <h4 className="zone-name">{zone.name}</h4>

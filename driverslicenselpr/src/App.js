@@ -10,6 +10,28 @@ import FixedPopup from './components/FixedPopup'
 import './styles/videofeed.css'
 import './App.css'
 
+// Hook to detect if device is a laptop or monitor
+function useDeviceType() {
+  const [isLaptop, setIsLaptop] = useState(false)
+
+  useEffect(() => {
+    const updateDeviceType = () => {
+      const pixelRatio = window.devicePixelRatio || 1
+      const screenWidth = window.screen.width
+      const screenHeight = window.screen.height
+      const isHighDPI = pixelRatio > 1.5
+      const isLaptopDevice = isHighDPI && screenWidth <= 1920 && screenHeight <= 1200
+      setIsLaptop(isLaptopDevice)
+    }
+
+    updateDeviceType()
+    window.addEventListener('resize', updateDeviceType)
+    return () => window.removeEventListener('resize', updateDeviceType)
+  }, [])
+
+  return isLaptop
+}
+
 function pickZonesAtLeastOnePerCameraUniqueNames(allZonesArr, count) {
   const cameras = ['planck_1', 'planck_2']
   const byName = new Map()
@@ -49,23 +71,14 @@ function pickZonesAtLeastOnePerCameraUniqueNames(allZonesArr, count) {
 
 function ZoneVideoFeed({ zone }) {
   return (
-    <div
-      style={{
-        margin: 8,
-        border: '1px solid #ccc',
-        borderRadius: 6,
-        padding: 4,
-        width: 320,
-        textAlign: 'center',
-      }}
-    >
-      <div style={{ fontWeight: 'bold', marginBottom: 4 }}>{zone.name}</div>
+    <div className="zone-video-feed">
+      <div className="zone-video-title">{zone.name}</div>
       <video
+        className="zone-video-player"
         src={zone.videoFeedUrl || 'https://www.w3schools.com/html/mov_bbb.mp4'}
         controls
         width="300"
         height="170"
-        style={{ borderRadius: 6, background: '#000' }}
         autoPlay
         muted
         loop
@@ -94,13 +107,7 @@ function LeftArrowIcon({ size = 24, color = "#233046" }) {
   )
 }
 
-function HamburgerMenu({
-  show,
-  locked,
-  onHover,
-  onUnhover,
-  onClick,
-}) {
+function HamburgerMenu({ show, locked, onHover, onUnhover, onClick }) {
   const visible = show || locked
   return (
     <div
@@ -115,20 +122,6 @@ function HamburgerMenu({
           onClick()
         }}
         title="Show/Hide Event Logs"
-        style={{
-          backgroundColor: 'white',
-          borderRadius: '4px',
-          padding: '4px',
-          width: '40px',
-          height: '40px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 0 4px rgba(0,0,0,0.15)',
-          cursor: 'pointer',
-          position: 'relative',
-          top: '-25px'
-        }}
       >
         <LeftArrowIcon size={24} color="#233046" />
       </div>
@@ -162,20 +155,15 @@ export default function App() {
     const saved = localStorage.getItem('selectedCamera')
     return saved || 'planck_1'
   })
-
   const [show360Popup, setShow360Popup] = useState(false)
   const [popup360Minimized, setPopup360Minimized] = useState(false)
-
   const [selectedThermalCamera, setSelectedThermalCamera] = useState(null)
   const [popupThermalMinimized, setPopupThermalMinimized] = useState(false)
-
   const [selectedOpticalCamera, setSelectedOpticalCamera] = useState(null)
   const [popupOpticalMinimized, setPopupOpticalMinimized] = useState(false)
-
   const [startDate, setStartDate] = useState(() => localStorage.getItem('logStartDate') || '')
   const [endDate, setEndDate] = useState(() => localStorage.getItem('logEndDate') || '')
   const [filteredLogs, setFilteredLogs] = useState([])
-
   const [hamburgerHovered, setHamburgerHovered] = useState(false)
   const [hamburgerLocked, setHamburgerLocked] = useState(() => {
     const saved = localStorage.getItem('hamburgerLocked')
@@ -185,10 +173,10 @@ export default function App() {
     const saved = localStorage.getItem('eventLogsVisible')
     return saved === null ? true : saved === 'true'
   })
-
   const [windowWidth, setWindowWidth] = useState(window.innerWidth)
   const [windowHeight, setWindowHeight] = useState(window.innerHeight)
   const expandFullWidth = !eventLogsVisible;
+  const isLaptop = useDeviceType()
 
   useEffect(() => {
     const handleResize = () => {
@@ -221,8 +209,15 @@ export default function App() {
     document.body.classList.toggle('light-mode', !isDarkMode)
   }, [activeTab, isDarkMode])
 
+  // Changed: prevent quota exceed
   useEffect(() => {
-    localStorage.setItem('thermalHistory', JSON.stringify(history))
+    try {
+      const trimmed = history.slice(-500)
+      localStorage.setItem('thermalHistory', JSON.stringify(trimmed))
+    } catch (e) {
+      console.error('Storage quota exceeded for thermalHistory, clearing old data', e)
+      localStorage.removeItem('thermalHistory')
+    }
   }, [history])
 
   const zoneCameraMap = {}
@@ -234,7 +229,6 @@ export default function App() {
 
   useEffect(() => {
     let mounted = true
-
     fetch('/SSAM.temperature_logs.json')
       .then(res => {
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
@@ -242,9 +236,7 @@ export default function App() {
       })
       .then(json => {
         if (!mounted) return
-
         const recent = Array.isArray(json) ? json.slice(-100) : []
-
         const validZones = []
         recent.forEach((entry) => {
           const camera = entry.camera_id ? entry.camera_id.trim().toLowerCase() : null
@@ -257,20 +249,14 @@ export default function App() {
             }
           })
         })
-
         const zoneCount = Math.floor(Math.random() * 12) + 1
-
         const selectedZonesArr = pickZonesAtLeastOnePerCameraUniqueNames(validZones, zoneCount)
-
         setAllZones(selectedZonesArr)
-
         const allZoneNames = new Set([
           ...selectedZonesArr.map(z => z.name),
           ...history.flatMap(entry => Object.keys(entry.readings || {})),
         ])
-
         setVisibleZones(Array.from(allZoneNames))
-
         const testEntries = [
           {
             time: new Date(new Date().setDate(new Date().getDate() - 2)),
@@ -287,7 +273,6 @@ export default function App() {
             }, {})
           }
         ]
-
         const combinedHistory = [
           ...history,
           ...testEntries,
@@ -303,20 +288,12 @@ export default function App() {
               }
               readings[z.name] = typeof found === 'number' ? Math.round(found) : null
             })
-
             const entryTime = entry.timestamp && entry.timestamp.$date ? new Date(entry.timestamp.$date) : new Date(NaN)
-
-            return {
-              time: entryTime,
-              readings
-            }
+            return { time: entryTime, readings }
           })
         ]
-
         combinedHistory.sort((a, b) => a.time - b.time)
-
         setHistory(combinedHistory)
-
         const curZones = selectedZonesArr.map(z => {
           let value = null
           for (let i = recent.length - 1; i >= 0; i--) {
@@ -340,14 +317,12 @@ export default function App() {
             lastTriggered: new Date().toLocaleString()
           }
         })
-
         setZones(curZones)
       })
       .catch(() => {
         setZones([])
         setAllZones([])
       })
-
     return () => {
       mounted = false
     }
@@ -358,10 +333,8 @@ export default function App() {
       setFilteredLogs([])
       return
     }
-
     const startDateObj = new Date(startDate + 'T00:00:00')
     const endDateObj = new Date(endDate + 'T23:59:59.999')
-
     const filtered = history
       .filter(entry => {
         if (!(entry.time instanceof Date) || isNaN(entry.time)) return false
@@ -376,12 +349,8 @@ export default function App() {
           .filter(zoneName => entry.readings[zoneName] != null)
           .map(zoneName => `${zoneName}: ${entry.readings[zoneName]}`)
           .join('; ')
-        return {
-          timestamp: entry.time.toLocaleString(),
-          message: messageZones || 'No data'
-        }
+        return { timestamp: entry.time.toLocaleString(), message: messageZones || 'No data' }
       })
-
     setFilteredLogs(filtered)
   }, [startDate, endDate, history, visibleZones])
 
@@ -389,145 +358,16 @@ export default function App() {
 
   const camera1Zones = zones.filter(z => z.camera?.trim().toLowerCase() === 'planck_1')
   const camera2Zones = zones.filter(z => z.camera?.trim().toLowerCase() === 'planck_2')
-
   const filterZonesByCamera = cameraName => zones.filter(z => z.camera?.trim().toLowerCase() === cameraName)
 
   const handleHamburgerHover = () => setHamburgerHovered(true)
-  const handleHamburgerUnhover = () => {
-    if (!hamburgerLocked) setHamburgerHovered(false)
-  }
+  const handleHamburgerUnhover = () => { if (!hamburgerLocked) setHamburgerHovered(false) }
   const handleHamburgerClick = () => {
     setHamburgerLocked(prevLocked => {
       const willLock = !prevLocked
       setEventLogsVisible(willLock)
       return willLock
     })
-  }
-
-  // Cap the windowWidth at 9000px for calculations
-  const cappedWindowWidth = Math.min(windowWidth, 9000)
-
-  let dashboardStyle = undefined
-
-  if (cappedWindowWidth >= 1400 && cappedWindowWidth <= 1500) {
-    // KEEP THIS EXACTLY AS YOU HAD IT
-    const baseWidth = 1150
-    const growthMultiplier = (1300 - 1150) / (1500 - 1400) // 1.5px per px
-    const extraWidth = (cappedWindowWidth - 1400) * growthMultiplier
-    const width = baseWidth + extraWidth - 40 // decrease by 40px here
-
-    dashboardStyle = {
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      borderRadius: 18,
-      paddingLeft: 22,
-      paddingRight: 32,
-      background: '#fff',
-      display: 'flex',
-      width: expandFullWidth ? '1570px' : '1160px',
-      maxWidth: 'none',
-      justifyContent: 'center',
-      maxHeight: expandFullWidth ? '1000px' : 'none',
-      height: expandFullWidth ? '900px' : '900px',
-      ...(expandFullWidth ? { transform: 'translateX(60px)' } : {})
-    }
-  } else if (cappedWindowWidth > 1500 && cappedWindowWidth <= 1600) {
-    // Controlled jump: width decreases from 1350px at 1500px to 1270px at 1600px (80px decrease)
-    const widthStart = 1350
-    const widthEnd = 1270
-    const progress = (cappedWindowWidth - 1500) / 100
-    const width = widthStart + (widthEnd - widthStart) * progress
-
-    dashboardStyle = {
-      boxSizing: 'border-box',
-      width: `${width}px`,
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      borderRadius: 18,
-      paddingLeft: 32,
-      paddingRight: 32,
-      background: '#fff',
-      display: 'flex',
-      justifyContent: 'center',
-    }
-  } else if (cappedWindowWidth > 1600) {
-    // Smooth linear growth starting at 1270px at 1600px (50px per 100px window width)
-    const baseWidthAt1600 = 1270
-    const maxWindowWidth = 9000
-    const effectiveWidth = Math.min(cappedWindowWidth, maxWindowWidth)
-    const extraWidth = effectiveWidth - 1600
-    const width = baseWidthAt1600 + (extraWidth * 50) / 100
-
-    dashboardStyle = {
-      boxSizing: 'border-box',
-      width: `${width}px`,
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      borderRadius: 18,
-      paddingLeft: 32,
-      paddingRight: 32,
-      background: '#fff',
-      display: 'flex',
-      justifyContent: 'center',
-    }
-  } else {
-    // Default style for below 1400px
-    dashboardStyle = {
-      boxSizing: 'border-box',
-      width: '1300px',
-      marginLeft: 'auto',
-      marginRight: 'auto',
-      borderRadius: 18,
-      paddingLeft: 32,
-      paddingRight: 32,
-      display: 'flex',
-      justifyContent: 'center',
-    }
-  }
-
-  if (!eventLogsVisible && dashboardStyle) {
-    dashboardStyle = {
-      ...dashboardStyle,
-      width: '100%',
-      marginLeft: 0,
-      marginRight: 0,
-      paddingLeft: 16,
-      paddingRight: 16,
-    }
-  }
-
-  function calculateBackgroundColor(width) {
-    return 'transparent'
-  }
-
-  const backgroundColor = calculateBackgroundColor(cappedWindowWidth)
-
-  const bigDashboardBackgroundStyle = {
-    backgroundColor,
-  }
-
-  let dashboardHeightStyle = undefined
-  const baseHeight = 850
-
-  if (cappedWindowWidth > 1600 && cappedWindowWidth < 2000) {
-    const growthMultiplierHeight = 0.4
-    const extraHeight = (cappedWindowWidth - 1600) * growthMultiplierHeight
-    const height = baseHeight + extraHeight
-    dashboardHeightStyle = {
-      maxHeight: `${height}px`,
-      height: `${height}px`,
-      transition: 'max-height 0.3s ease, height 0.3s ease',
-    }
-  } else if (cappedWindowWidth >= 2000) {
-    const heightAt2000 = baseHeight + (2000 - 1600) * 0.4
-    const drasticGrowthMultiplier = 1.2
-    const extraHeight = (cappedWindowWidth - 2000) * drasticGrowthMultiplier
-    const height = heightAt2000 + extraHeight
-    dashboardHeightStyle = {
-      maxHeight: `${height}px`,
-      height: `${height}px`,
-      transition: 'max-height 0.3s ease, height 0.3s ease',
-    }
   }
 
   return (
@@ -551,10 +391,7 @@ export default function App() {
                   history={history}
                   addZone={addZone}
                   zoneCameraMap={zoneCameraMap}
-                  onDatePick={(start, end) => {
-                    setStartDate(start)
-                    setEndDate(end)
-                  }}
+                  onDatePick={(start, end) => { setStartDate(start); setEndDate(end) }}
                 />
               )}
               <HamburgerMenu
@@ -569,30 +406,26 @@ export default function App() {
           <div className="content-area">
             <div className="scroll-container">
               {activeTab === 'dashboard' && (
-                <div
-                  className={`big-dashboard-container${!eventLogsVisible ? ' big-dashboard-container--fullwidth' : ''}`}
-                  style={{ ...dashboardStyle, ...bigDashboardBackgroundStyle, ...dashboardHeightStyle }}
-                >
-                  <div>
-                    <VideoFeed
-                      isDarkMode={isDarkMode}
-                      tempUnit={tempUnit}
-                      camera1Zones={camera1Zones}
-                      camera2Zones={camera2Zones}
-                      show360Popup={show360Popup}
-                      setShow360Popup={setShow360Popup}
-                      selectedThermalCamera={selectedThermalCamera}
-                      setSelectedThermalCamera={setSelectedThermalCamera}
-                      isHoveringThermal={false}
-                      setIsHoveringThermal={() => {}}
-                      selectedOpticalCamera={selectedOpticalCamera}
-                      setSelectedOpticalCamera={setSelectedOpticalCamera}
-                      isHoveringOptical={false}
-                      expandFullWidth={!eventLogsVisible}
-                      setIsHoveringOptical={() => {}}
-                      filterZonesByCamera={filterZonesByCamera}
-                    />
-                  </div>
+                <div className={expandFullWidth ? 'big-dashboard-container--fullwidth' : 'big-dashboard-container'}>
+                  <VideoFeed
+                    isDarkMode={isDarkMode}
+                    tempUnit={tempUnit}
+                    camera1Zones={camera1Zones}
+                    camera2Zones={camera2Zones}
+                    show360Popup={show360Popup}
+                    setShow360Popup={setShow360Popup}
+                    selectedThermalCamera={selectedThermalCamera}
+                    setSelectedThermalCamera={setSelectedThermalCamera}
+                    isHoveringThermal={false}
+                    setIsHoveringThermal={() => {}}
+                    selectedOpticalCamera={selectedOpticalCamera}
+                    setSelectedOpticalCamera={setSelectedOpticalCamera}
+                    isHoveringOptical={false}
+                    expandFullWidth={expandFullWidth}
+                    setIsHoveringOptical={() => {}}
+                    filterZonesByCamera={filterZonesByCamera}
+                    isLaptop={isLaptop}
+                  />
                 </div>
               )}
               {activeTab === 'thermal' && (
@@ -612,7 +445,9 @@ export default function App() {
                   history={history}
                 />
               )}
-              {activeTab === 'streams' && <SurveillanceStreams camera1Zones={camera1Zones} camera2Zones={camera2Zones} />}
+              {activeTab === 'streams' && (
+                <SurveillanceStreams camera1Zones={camera1Zones} camera2Zones={camera2Zones} />
+              )}
             </div>
           </div>
         </div>
@@ -620,89 +455,18 @@ export default function App() {
       </div>
 
       {show360Popup && (
-        <FixedPopup
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: popup360Minimized ? '400px' : '100vw',
-            height: popup360Minimized ? '240px' : '100vh',
-            backgroundColor: '#fff',
-            border: '2px solid #333',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-            padding: '0',
-            borderRadius: '0',
-            zIndex: 100000,
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              backgroundColor: '#ddd',
-              padding: '8px 12px',
-              userSelect: 'none',
-              flexShrink: 0,
-              borderBottom: '1px solid #ccc',
-              position: 'sticky',
-              top: 0,
-              zIndex: 100001,
-            }}
-          >
-            <div style={{ fontWeight: 'bold' }}>360° Camera 1</div>
+        <FixedPopup className={`popup-360 ${popup360Minimized ? 'minimized' : ''}`}>
+          <div className="popup-header">
+            <div className="popup-title">360° Camera 1</div>
             <div>
-              <button
-                onClick={() => setPopup360Minimized(!popup360Minimized)}
-                aria-label={popup360Minimized ? 'Maximize popup' : 'Minimize popup'}
-                style={{
-                  cursor: 'pointer',
-                  fontSize: '20px',
-                  background: '#bbb',
-                  border: '1px solid #888',
-                  borderRadius: '4px',
-                  padding: '0 8px',
-                  minWidth: '28px',
-                  height: '28px',
-                  marginRight: '10px',
-                  userSelect: 'none',
-                }}
-              >
+              <button onClick={() => setPopup360Minimized(!popup360Minimized)}>
                 {popup360Minimized ? '⬜' : '—'}
               </button>
-              <button
-                onClick={() => {
-                  setShow360Popup(false)
-                  setPopup360Minimized(false)
-                }}
-                aria-label="Close popup"
-                style={{
-                  cursor: 'pointer',
-                  fontSize: '20px',
-                  background: '#bbb',
-                  border: '1px solid #888',
-                  borderRadius: '4px',
-                  padding: '0 8px',
-                  minWidth: '28px',
-                  height: '28px',
-                  userSelect: 'none',
-                }}
-              >
-                ×
-              </button>
+              <button onClick={() => { setShow360Popup(false); setPopup360Minimized(false) }}>×</button>
             </div>
           </div>
-          <div style={{ flex: 1, overflow: 'auto', background: '#000' }}>
-            <video
-              src="https://www.w3schools.com/html/mov_bbb.mp4"
-              controls
-              style={{ width: '100%', height: '100%', borderRadius: 0 }}
-              autoPlay
-              muted
-              loop
-            >
+          <div className="popup-body">
+            <video src="https://www.w3schools.com/html/mov_bbb.mp4" controls autoPlay muted loop>
               Your browser does not support the video tag.
             </video>
           </div>
@@ -710,91 +474,17 @@ export default function App() {
       )}
 
       {selectedThermalCamera && (
-        <FixedPopup
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: popupThermalMinimized ? '400px' : '100vw',
-            height: popupThermalMinimized ? '240px' : '100vh',
-            backgroundColor: '#fff',
-            border: '2px solid #333',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-            padding: '0',
-            borderRadius: '0',
-            zIndex: 100000,
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              backgroundColor: '#ddd',
-              padding: '8px 12px',
-              userSelect: 'none',
-              flexShrink: 0,
-              borderBottom: '1px solid #ccc',
-              position: 'sticky',
-              top: 0,
-              zIndex: 100001,
-            }}
-          >
-            <div style={{ fontWeight: 'bold' }}>Thermal Camera</div>
+        <FixedPopup className={`popup-thermal ${popupThermalMinimized ? 'minimized' : ''}`}>
+          <div className="popup-header">
+            <div className="popup-title">Thermal Camera</div>
             <div>
-              <button
-                onClick={() => setPopupThermalMinimized(!popupThermalMinimized)}
-                aria-label={popupThermalMinimized ? 'Maximize popup' : 'Minimize popup'}
-                style={{
-                  cursor: 'pointer',
-                  fontSize: '20px',
-                  background: '#bbb',
-                  border: '1px solid #888',
-                  borderRadius: '4px',
-                  padding: '0 8px',
-                  minWidth: '28px',
-                  height: '28px',
-                  marginRight: '10px',
-                  userSelect: 'none',
-                }}
-              >
+              <button onClick={() => setPopupThermalMinimized(!popupThermalMinimized)}>
                 {popupThermalMinimized ? '⬜' : '—'}
               </button>
-              <button
-                onClick={() => {
-                  setSelectedThermalCamera(null)
-                  setPopupThermalMinimized(false)
-                }}
-                aria-label="Close popup"
-                style={{
-                  cursor: 'pointer',
-                  fontSize: '20px',
-                  background: '#bbb',
-                  border: '1px solid #888',
-                  borderRadius: '4px',
-                  padding: '0 8px',
-                  minWidth: '28px',
-                  height: '28px',
-                  userSelect: 'none',
-                }}
-              >
-                ×
-              </button>
+              <button onClick={() => { setSelectedThermalCamera(null); setPopupThermalMinimized(false) }}>×</button>
             </div>
           </div>
-          <div
-            style={{
-              flex: 1,
-              overflowY: 'auto',
-              display: 'flex',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-              alignItems: 'center',
-              backgroundColor: '#fff',
-            }}
-          >
+          <div className="popup-body">
             {filterZonesByCamera(selectedThermalCamera).map(zone => (
               <ZoneVideoFeed key={zone.name} zone={zone} />
             ))}
@@ -803,91 +493,17 @@ export default function App() {
       )}
 
       {selectedOpticalCamera && (
-        <FixedPopup
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: popupOpticalMinimized ? '400px' : '100vw',
-            height: popupOpticalMinimized ? '240px' : '100vh',
-            backgroundColor: '#fff',
-            border: '2px solid #333',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-            padding: '0',
-            borderRadius: '0',
-            zIndex: 100000,
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              backgroundColor: '#ddd',
-              padding: '8px 12px',
-              userSelect: 'none',
-              flexShrink: 0,
-              borderBottom: '1px solid #ccc',
-              position: 'sticky',
-              top: 0,
-              zIndex: 100001,
-            }}
-          >
-            <div style={{ fontWeight: 'bold' }}>Optical Camera</div>
+        <FixedPopup className={`popup-optical ${popupOpticalMinimized ? 'minimized' : ''}`}>
+          <div className="popup-header">
+            <div className="popup-title">Optical Camera</div>
             <div>
-              <button
-                onClick={() => setPopupOpticalMinimized(!popupOpticalMinimized)}
-                aria-label={popupOpticalMinimized ? 'Maximize popup' : 'Minimize popup'}
-                style={{
-                  cursor: 'pointer',
-                  fontSize: '20px',
-                  background: '#bbb',
-                  border: '1px solid #888',
-                  borderRadius: '4px',
-                  padding: '0 8px',
-                  minWidth: '28px',
-                  height: '28px',
-                  marginRight: '10px',
-                  userSelect: 'none',
-                }}
-              >
+              <button onClick={() => setPopupOpticalMinimized(!popupOpticalMinimized)}>
                 {popupOpticalMinimized ? '⬜' : '—'}
               </button>
-              <button
-                onClick={() => {
-                  setSelectedOpticalCamera(null)
-                  setPopupOpticalMinimized(false)
-                }}
-                aria-label="Close popup"
-                style={{
-                  cursor: 'pointer',
-                  fontSize: '20px',
-                  background: '#bbb',
-                  border: '1px solid #888',
-                  borderRadius: '4px',
-                  padding: '0 8px',
-                  minWidth: '28px',
-                  height: '28px',
-                  userSelect: 'none',
-                }}
-              >
-                ×
-              </button>
+              <button onClick={() => { setSelectedOpticalCamera(null); setPopupOpticalMinimized(false) }}>×</button>
             </div>
           </div>
-          <div
-            style={{
-              flex: 1,
-              overflowY: 'auto',
-              display: 'flex',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-              alignItems: 'center',
-              backgroundColor: '#fff',
-            }}
-          >
+          <div className="popup-body">
             {filterZonesByCamera(selectedOpticalCamera).map(zone => (
               <ZoneVideoFeed key={zone.name} zone={zone} />
             ))}

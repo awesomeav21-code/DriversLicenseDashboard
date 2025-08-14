@@ -20,7 +20,7 @@ export default function SidebarPanel({
     if (history.length === 0) {
       setTestHistory([
         {
-          time: new Date('2025-07-26T14:30:00'),
+          time: new Date('2025-07-26Txs/4:30:00'),
           readings: { 'Zone A': 72 },
         },
         {
