@@ -169,26 +169,40 @@ body.dark-mode .live-data-wrapper {
 }
 
 /* REVERSED: Camera row shrinks on larger screens */
+/* REVERSED: Camera row shrinks on larger screens */
+/* REVERSED: Camera row shrinks on larger screens */
 .cameras-row {
   display: flex;
-  column-gap: clamp(1cqw, 2cqw, 2.5cqw) !important; /* Responsive gap using cqw */
+  column-gap: clamp(1cqw, 2cqw, 2.5cqw) !important;
   max-width: none;
-  position: relative ;
-
-  left: clamp(-1.5cqw, -1cqw, -0.5cqw) ; /* Responsive position using cqw */
+  position: relative;
+  left: clamp(-1.5cqw, -1cqw, -0.5cqw);
   flex-wrap: nowrap;
-  justify-content: flex-start;
-  box-sizing: border-box;
-  overflow: visible;
-  border: 1px solid #d1d5db; 
-  border-radius: clamp(0.3cqw, 0.5cqw, 0.7cqw); /* Responsive border radius using cqw */
-  flex-shrink: 0 ;
+
+  /* children won’t stretch with the row */
+  justify-content: center;
+  align-items: flex-start;
+  width: calc(100% + 2.4cqw) !important; /* <-- THIS is the missing piece */
+  left: clamp(-5.0cqw, -4.5cqw, -2.5cqw);
+
+  box-sizing: content-box!important;   /* important: width applies to the frame, not to children */
+  flex-shrink: 0;
   top: 0;
-  height: auto ;
+  height: auto;
   min-height: 0;
-  max-height: none ;
+   overflow: visible;
+  /* Frame styling */
+  outline: 1px solid green;
+  outline-offset: 0;
+  border-radius: clamp(0cqw, 0.02cqw, 0.05cqw);
+  /* Horizontal expansion */
+  margin-left: auto;
+  margin-right: auto;
+
 }
 
+
+/* Stop children from stretching */
 @supports not (height: 1cqw) {
   .cameras-row {
     height: auto !important;
@@ -206,13 +220,12 @@ body.dark-mode .live-data-wrapper {
 
 /* REVERSED: Camera section shrinks significantly on larger screens */
 .camera-section {
-  flex: 0 0 auto;
-
-  background-color: #ffffff;
+  flex: 0 0 auto; 
+  background-color: #fff;
   border: clamp(0.03cqw, 0.07cqw, 0.1cqw) solid #d1d5db ; /* Thinner border on large screens */
   border-radius: clamp(0.3cqw, 0.7cqw, 1cqw); /* Smaller border radius on large screens */
   padding: clamp(0.5cqw, 1cqw, 1.2cqw); /* Smaller padding on large screens */
-  left: clamp(-1.5cqw, -1.2cqw, -0.8cqw); /* Less negative offset on large screens */
+  left: clamp(0.04cqw, 0.1cqw, 0.5cqw); /* slightly less rightward push */
   box-sizing: border-box;
   
   position: relative;
@@ -220,7 +233,7 @@ body.dark-mode .live-data-wrapper {
   flex-direction: column;
   overflow: visible;
   height: auto ;
-  min-height: 0;
+  min-height: calc(100% + 5cqh) !important; /* bump outline taller */
   max-height: none ;
   flex-shrink: 0;
   z-index: 100;

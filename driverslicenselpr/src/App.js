@@ -178,6 +178,14 @@ export default function App() {
   const expandFullWidth = !eventLogsVisible;
   const isLaptop = useDeviceType()
 
+  // scaling logic
+  const BASE_WIDTH = 1424
+  const perPxChange = 0.15 / 100
+  const scale = windowWidth < BASE_WIDTH
+  ? 1 + ((BASE_WIDTH - windowWidth) * perPxChange)   // grow when smaller than 1424
+  : windowWidth === BASE_WIDTH
+    ? 1  // exactly 1424px, do not grow or shrink
+    : Math.max(0.1, 1 - (windowWidth - BASE_WIDTH) * perPxChange) // shrink when larger
   useEffect(() => {
     const handleResize = () => {
       setWindowWidth(window.innerWidth)
@@ -209,7 +217,6 @@ export default function App() {
     document.body.classList.toggle('light-mode', !isDarkMode)
   }, [activeTab, isDarkMode])
 
-  // Changed: prevent quota exceed
   useEffect(() => {
     try {
       const trimmed = history.slice(-500)
@@ -406,7 +413,13 @@ export default function App() {
           <div className="content-area">
             <div className="scroll-container">
               {activeTab === 'dashboard' && (
-                <div className={expandFullWidth ? 'big-dashboard-container--fullwidth' : 'big-dashboard-container'}>
+                <div
+                  className={expandFullWidth ? 'big-dashboard-container--fullwidth' : 'big-dashboard-container'}
+                  style={{
+                    transform: `scale(${scale})`,
+                    transformOrigin: 'top center'
+                  }}
+                >
                   <VideoFeed
                     isDarkMode={isDarkMode}
                     tempUnit={tempUnit}
@@ -513,3 +526,4 @@ export default function App() {
     </>
   )
 }
+

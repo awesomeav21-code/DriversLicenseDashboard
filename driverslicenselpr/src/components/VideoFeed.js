@@ -100,130 +100,20 @@ export default function VideoFeed({
 
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
+  // ✅ shrink for both smaller and larger than 1424px
   const getProportionalScale = () => {
-    if (windowWidth >= 1424) {
-      const extraPixels = windowWidth - 1424;
-      const baseScale = 1;
-      const scaleReduction = extraPixels * 0.00005;
-      return baseScale - scaleReduction;
-    }
-    return 1;
-  };
+    const baseWidth = 1424;
+    const minScale = 0.1; // prevent disappearing
 
-  const getDynamicWidth = () => {
-    if (windowWidth >= 2136) {
-      const extraPixels = windowWidth - 2136;
-      const baseWidth = 100;
-      const growthRate = 0.05;
-      return `${baseWidth + (extraPixels * growthRate)}%`;
-    } else if (windowWidth >= 1899) {
-      const range = 2136 - 1899;
-      const progress = (windowWidth - 1899) / range;
-      const minWidth = 85;
-      const maxWidth = 100;
-      return `${minWidth + (progress * (maxWidth - minWidth))}%`;
-    } else if (windowWidth >= 1582) {
-      const extraPixels = windowWidth - 1582;
-      const baseWidth = 80;
-      const growthRate = 0.03;
-      return `${baseWidth + (extraPixels * growthRate)}%`;
-    } else if (windowWidth >= 1424) {
-      const range = 1582 - 1424;
-      const progress = (windowWidth - 1424) / range;
-      const minWidth = 75;
-      const maxWidth = 80;
-      return `${minWidth + (progress * (maxWidth - minWidth))}%`;
-    }
-    return 'auto';
-  };
+    if (windowWidth === baseWidth) return 1;
 
-  const getCameraStreamsBgColor = () => {
-    if (windowWidth >= 2136) return 'pink';
-    if (windowWidth >= 1899) return 'red';
-    if (windowWidth >= 1582) return 'green';
-    if (windowWidth >= 1424) return 'yellow';
-    return '';
-  };
-
-  const getDynamicHeight = () => {
-    if (windowWidth >= 2136) {
-      const extraPixels = windowWidth - 2136;
-      const baseHeight = 35;
-      const heightGrowth = extraPixels * 0.01;
-      return `${baseHeight + heightGrowth}vh`;
-    } else if (windowWidth >= 1899) {
-      const range = 2136 - 1899;
-      const progress = (windowWidth - 1899) / range;
-      const minHeight = 30;
-      const maxHeight = 35;
-      return `${minHeight + (progress * (maxHeight - minHeight))}vh`;
-    } else if (windowWidth >= 1582) {
-      const extraPixels = windowWidth - 1582;
-      const baseHeight = 25;
-      const heightGrowth = extraPixels * 0.008;
-      return `${baseHeight + heightGrowth}vh`;
-    } else if (windowWidth >= 1424) {
-      const range = 1582 - 1424;
-      const progress = (windowWidth - 1424) / range;
-      const minHeight = 20;
-      const maxHeight = 25;
-      return `${minHeight + (progress * (maxHeight - minHeight))}vh`;
+    if (windowWidth < baseWidth) {
+      // smaller screen → scale down
+      return Math.max(minScale, windowWidth / baseWidth);
+    } else {
+      // larger screen → scale down as width grows
+      return Math.max(minScale, baseWidth / windowWidth);
     }
-    return 'auto';
-  };
-
-  const getDynamicPadding = () => {
-    if (windowWidth >= 2136) {
-      const extraPixels = windowWidth - 2136;
-      const basePadding = 1.5;
-      const paddingGrowth = extraPixels * 0.001;
-      return `${basePadding + paddingGrowth}rem`;
-    } else if (windowWidth >= 1899) {
-      const range = 2136 - 1899;
-      const progress = (windowWidth - 1899) / range;
-      const minPadding = 1;
-      const maxPadding = 1.5;
-      return `${minPadding + (progress * (maxPadding - minPadding))}rem`;
-    } else if (windowWidth >= 1582) {
-      const extraPixels = windowWidth - 1582;
-      const basePadding = 0.9;
-      const paddingGrowth = extraPixels * 0.0005;
-      return `${basePadding + paddingGrowth}rem`;
-    } else if (windowWidth >= 1424) {
-      const range = 1582 - 1424;
-      const progress = (windowWidth - 1424) / range;
-      const minPadding = 0.8;
-      const maxPadding = 0.9;
-      return `${minPadding + (progress * (maxPadding - minPadding))}rem`;
-    }
-    return '0.8rem';
-  };
-
-  const getDynamicFontScale = () => {
-    if (windowWidth >= 2136) {
-      const extraPixels = windowWidth - 2136;
-      const baseFontSize = 1;
-      const fontGrowth = extraPixels * 0.0002;
-      return baseFontSize + fontGrowth;
-    } else if (windowWidth >= 1899) {
-      const range = 2136 - 1899;
-      const progress = (windowWidth - 1899) / range;
-      const minScale = 0.95;
-      const maxScale = 1;
-      return minScale + (progress * (maxScale - minScale));
-    } else if (windowWidth >= 1582) {
-      const extraPixels = windowWidth - 1582;
-      const baseFontSize = 0.9;
-      const fontGrowth = extraPixels * 0.0001;
-      return baseFontSize + fontGrowth;
-    } else if (windowWidth >= 1424) {
-      const range = 1582 - 1424;
-      const progress = (windowWidth - 1424) / range;
-      const minScale = 0.85;
-      const maxScale = 0.9;
-      return minScale + (progress * (maxScale - minScale));
-    }
-    return 0.85;
   };
 
   useEffect(() => {
@@ -266,48 +156,41 @@ export default function VideoFeed({
   }, [camera1Zones, camera2Zones, expandFullWidth, sizing.spacing]);
 
   const toggleAlert = () => setIsAlertOn(prev => !prev);
-  const containerStyle = { fontSize: `${sizing.fontSize}px` };
   const scale = getProportionalScale();
 
   return (
-    <div className="video-feed-inner-wrapper" style={{ width: '100%' }}>
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        background: 'black',
-        color: 'white',
-        padding: '4px 8px',
-        fontSize: '12px',
-        zIndex: 9999
-      }}>
-        Width: {windowWidth}px
+    <div 
+      className="video-feed-inner-wrapper"
+      style={{
+        transform: `scale(${scale})`,
+        transformOrigin: 'top center',
+        transition: 'transform 0.6s ease-in-out'
+      }}
+    >
+      <div className="debug-width">
+        Width: {windowWidth}px | Scale: {scale.toFixed(4)}
       </div>
 
-      <div className={`video-feed-wrapper ${isDarkMode ? 'dark-video' : 'light-video'}`} style={containerStyle}>
+      <div className={`video-feed-wrapper ${isDarkMode ? 'dark-video' : 'light-video'}`}>
         <div className={`live-data-wrapper ${expandFullWidth ? 'fullwidth' : ''}`}>
           <div className="live-data-header">
             <span className="section-livedata-title">Live Data</span>
-            <span className={`status-dot ${isAlertOn ? 'alert-on' : 'alert-off'}`} onClick={toggleAlert} title="Toggle Alert" />
+            <span
+              className={`status-dot ${isAlertOn ? 'alert-on' : 'alert-off'}`}
+              onClick={toggleAlert}
+              title="Toggle Alert"
+            />
           </div>
 
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            transform: `scale(${scale})`,
-            transformOrigin: 'top center',
-            transition: 'transform 0.3s ease-in-out'
-          }}>
+          <div className="cameras-scale-wrapper">
             <div
               ref={camerasRowRef}
               className={`cameras-row ${center ? 'center' : ''} ${expandFullWidth ? 'fullwidth' : ''}`}
-              style={{
-                gap: '0',
-                width: `${100 / scale}%`,
-                transition: 'width 0.3s ease-in-out'
-              }}
             >
-              <div ref={leftCameraSectionRef} className="camera-section" style={{ flex: 1, minWidth: '50%' }}>
+              <div 
+                ref={leftCameraSectionRef} 
+                className="camera-section left-camera"
+              >
                 <div className="camera-header" ref={leftHeaderRef}>
                   <span className="section-title">Left Camera</span>
                   <span className="status-dot" />
@@ -315,13 +198,25 @@ export default function VideoFeed({
                 <div className="zone-grid-wrapper">
                   <div ref={leftGridRef} className="zone-grid">
                     {camera1Zones.map(zone => (
-                      <ZoneCard key={`${zone.camera}-${zone.name}`} zone={zone} tempUnit={tempUnit} isDarkMode={isDarkMode} expandFullWidth={expandFullWidth} isAlertOn={isAlertOn} extraClass={zone.name.toLowerCase() === 'global' ? 'global-zone' : ''} sizing={sizing} />
+                      <ZoneCard 
+                        key={`${zone.camera}-${zone.name}`} 
+                        zone={zone} 
+                        tempUnit={tempUnit} 
+                        isDarkMode={isDarkMode} 
+                        expandFullWidth={expandFullWidth} 
+                        isAlertOn={isAlertOn} 
+                        extraClass={zone.name.toLowerCase() === 'global' ? 'global-zone' : ''} 
+                        sizing={sizing} 
+                      />
                     ))}
                   </div>
                 </div>
               </div>
 
-              <div ref={rightCameraSectionRef} className="camera-section right-camera" style={{ flex: 1, minWidth: '50%' }}>
+              <div 
+                ref={rightCameraSectionRef} 
+                className="camera-section right-camera"
+              >
                 <div className="camera-header" ref={rightHeaderRef}>
                   <span className="section-title">Right Camera</span>
                   <span className="status-dot" />
@@ -329,7 +224,16 @@ export default function VideoFeed({
                 <div className="zone-grid-wrapper">
                   <div ref={rightGridRef} className="zone-grid">
                     {camera2Zones.map(zone => (
-                      <ZoneCard key={`${zone.camera}-${zone.name}`} zone={zone} tempUnit={tempUnit} isDarkMode={isDarkMode} expandFullWidth={expandFullWidth} isAlertOn={isAlertOn} extraClass={zone.name.toLowerCase() === 'global' ? 'global-zone' : ''} sizing={sizing} />
+                      <ZoneCard 
+                        key={`${zone.camera}-${zone.name}`} 
+                        zone={zone} 
+                        tempUnit={tempUnit} 
+                        isDarkMode={isDarkMode} 
+                        expandFullWidth={expandFullWidth} 
+                        isAlertOn={isAlertOn} 
+                        extraClass={zone.name.toLowerCase() === 'global' ? 'global-zone' : ''} 
+                        sizing={sizing} 
+                      />
                     ))}
                   </div>
                 </div>
@@ -341,15 +245,6 @@ export default function VideoFeed({
         <div 
           ref={cameraStreamsRef} 
           className="camera-streams-panel"
-          style={{ 
-            backgroundColor: getCameraStreamsBgColor(),
-            width: getDynamicWidth(),
-            height: getDynamicHeight(),
-            padding: getDynamicPadding(),
-            fontSize: `${getDynamicFontScale()}rem`,
-            transition: 'all 0.3s ease-in-out',
-            boxSizing: 'border-box'
-          }}
         >
           <div className="stream-group">
             <h3>360° Stream</h3>
