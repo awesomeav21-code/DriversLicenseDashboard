@@ -1,11 +1,32 @@
-/* ADDED: Fullwidth variants that are truly responsive */
-.camera-section--fullwidth,
+/* Fullwidth variants - maintain responsive behavior */
+.camera-section--fullwidth {
+  flex: 1 1 0; /* Same flex growth as regular mode */
+  min-width: 15% !important; /* Same minimum width as regular mode */
+  max-width: 60% !important; /* Same maximum width as regular mode */
+  width: auto; /* Let flex determine width */
+  height: auto; /* Auto height to fit content */
+  max-height: none; /* Remove maximum height constraint */
+  min-height: calc(18rem * var(--content-scale, 1)); /* Same minimum height as regular mode */
+}
+
+/* Target only the right camera in fullwidth mode */
+.camera-section--fullwidth.right-camera {
+  margin-right: -1rem; /* Extend right margin only */
+}
+
+/* Target only the left camera in fullwidth mode */
+.camera-section--fullwidth.left-camera {
+  margin-left: -1rem; /* Extend left margin only */
+}
+
 .zone-grid-wrapper--fullwidth,
 .zone-grid--fullwidth {
-  width: 100% !important;
-  max-width: 100% !important;
-  flex-basis: 100% !important;
+  width: 100%;
+  max-width: 100%;
+  flex-basis: auto; /* Let flex determine size naturally */
 }
+
+/* Removed conflicting exact-width media query */
 
 @keyframes pulse-red {
   0% { background-color: #dc2626; opacity: 1; box-shadow: none; }
@@ -13,56 +34,80 @@
   100% { background-color: #dc2626; opacity: 1; box-shadow: none; }
 }
 
+@keyframes flash-blue {
+  0% { border-color: #0066ff; }
+  50% { border-color: #0099ff; }
+  100% { border-color: #0066ff; }
+}
+
 @keyframes pulse-green {
-  0% { background-color: #16a34a; opacity: 1; box-shadow: 0 0 6px 2px rgba(22,163,74,0.4);}
+  0% { background-color: #16a34a; opacity: 1; box-shadow: 0 0 clamp(0.3cqw, 0.6cqw, 0.8cqw) clamp(0.1cqw, 0.2cqw, 0.3cqw) rgba(22,163,74,0.4);}
   50% { background-color: #16a34a; opacity: 0.2; box-shadow: none;}
-  100% { background-color: #16a34a; opacity: 1; box-shadow: 0 0 6px 2px rgba(22,163,74,0.4);}
+  100% { background-color: #16a34a; opacity: 1; box-shadow: 0 0 clamp(0.3cqw, 0.6cqw, 0.8cqw) clamp(0.1cqw, 0.2cqw, 0.3cqw) rgba(22,163,74,0.4);}
 }
 
 .video-feed-wrapper.dark-video .live-data-wrapper {
-  background-color: #0f172a !important;
-  border-color: #444 !important;
-  box-shadow: none !important;
+  background-color: #0f172a;
+  border-color: #444;
+  box-shadow: none;
   color: #eee;
 }
 
-/* REVERSED: Gap shrinks on larger screens */
+/* Video feed inner wrapper for proper spacing */
+.video-feed-inner-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* Proper spacing between header and content */
+  box-sizing: border-box;
+  /* No scaling here - let App.js handle container scaling */
+}
+
+/* Cameras scale wrapper - missing CSS rule */
+.cameras-scale-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: visible; /* Allow content to be visible */
+  margin-top: 0; /* Remove negative margin to prevent overlap */
+  z-index: 15; /* Higher than live-data-header to prevent covering */
+}
+
+/* Fixed gaps to maintain 1424px baseline layout */
 .zone-grid--fullwidth {
-  gap: clamp(0.5cqw, 1.5cqw, 2cqw) !important; /* Min is smaller, max is larger */
-  width: 100% !important;
-  max-width: 100% !important;
-  margin: 0 !important;
-  padding: clamp(0.5cqw, 2cqw, 3cqw) !important; /* Min is smaller */
+  gap: 1.5rem; /* Fixed at baseline value */
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 2rem; /* Fixed at baseline value */
 }
 
 .video-feed-wrapper {
   position: relative;
-  width: 100%;
-  max-width: 100%;
-  left: 0;
+  width: 100%; /* Keep within container bounds */
+  max-width: 100%; /* Don't exceed container width */
+  left: 0; /* Don't shift outside container */
   min-height: 0;
   height: auto;
   box-sizing: border-box;
-  padding: clamp(0.3cqw, 0.8cqw, 1cqw) clamp(0.3cqw, 0.8cqw, 1cqw) 0 0; /* Smaller on large screens */
-  margin-top: clamp(0.4cqw, 0.85cqw, 1cqw); /* Smaller on large screens */
+  padding: clamp(0.3cqw, 0.8cqw, 1cqw) 0 0 0; /* Reduced: removed left and right padding to prevent edge coverage */
+  margin-top: 0; /* Remove negative margin to prevent overlap */
+  /* Remove transform scaling from wrapper to prevent overflow */
+  transform: none;
+  transform-origin: top center;
   margin-left: auto;
   margin-right: auto;
-  background-color: none;
+  background-color: transparent; /* Make background transparent */
   display: flex;
   flex-direction: column;
-  overflow: visible;
-  border-radius: clamp(0.3cqw, 0.5cqw, 0.7cqw); /* Smaller border radius on large screens */
+  overflow: visible; /* Allow content to move outside bounds for positioning */
+  border-radius: clamp(0.3cqw, 0.5cqw, 0.7cqw);
   flex-grow: 0;
   flex-shrink: 0;
-  top: clamp(-1.4cqw, -1.2cqw, -0.8cqw); /* Less negative offset on large screens */
-}
-
-.video-feed-wrapper {
-  display: flex;
-  flex-wrap: nowrap;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
+  top: 0;
 }
 
 .video-feed-wrapper > .live-data-wrapper {
@@ -79,68 +124,79 @@
   width: 100%;
   max-width: 100%;
   background-color: transparent;
-  margin: 0 clamp(0.05cqw, 0.15cqw, 0.25cqw) 0 0; /* Smaller margin on large screens */
+  margin: 0; /* Fixed: removed asymmetric margins */
   border: none;
-  border-radius: clamp(0.3cqw, 0.5cqw, 0.7cqw) !important; /* Smaller border radius */
-  padding: clamp(1.5cqw, 4cqw, 6cqw) clamp(0.8cqw, 1.7cqw, 2cqw) clamp(0.8cqw, 3cqw, 5cqw) clamp(0.8cqw, 1.7cqw, 2cqw); /* Smaller padding on large screens */
+  border-radius: clamp(0.3cqw, 0.5cqw, 0.7cqw);
+  padding: clamp(1.5cqw, 4cqw, 6cqw) 0 clamp(0.8cqw, 3cqw, 5cqw) 0; /* Reduced: removed left and right padding */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: clamp(0.8cqw, 1.5cqw, 2cqw); /* Smaller gap on large screens */
+  gap: 1.5rem; /* Fixed at baseline value */
   z-index: 2;
   box-shadow: none;
   position: relative;
   margin-left: auto;
   margin-right: auto;
-  top: clamp(-1.4cqw, -1.2cqw, -0.8cqw); /* Less negative offset */
-  height: auto !important;
+  top: 0; /* Remove negative offset */
+  height: auto;
   min-height: 0;
-  max-height: none !important;
+  max-height: none;
+  overflow: visible; /* Allow content to be visible when moved up */
 }
 
 body.dark-mode .live-data-wrapper {
-  background-color: #0f172a !important;
-  border-color: #ffffff !important;
-  box-shadow: none !important;
+  background-color: #0f172a;
+  border-color: #ffffff;
+  box-shadow: none;
 }
 
 .live-data-header {
   display: flex;
   align-items: center;
-  gap: clamp(0.2cqw, 0.6cqw, 0.8cqw); /* Smaller gap on large screens */
-  font-size: clamp(0.8cqw, 1.4cqw, 1.6cqw); /* Smaller font on large screens */
+  gap: 0.6rem; /* Fixed at baseline value */
+  font-size: clamp(0.8rem, 1cqw, 1.2rem); /* Responsive font size with relative units */
   font-weight: 600;
   color: #1f2937;
-  padding: clamp(0.2cqw, 0.6cqw, 0.8cqw) clamp(0.4cqw, 1cqw, 1.2cqw); /* Smaller padding */
+  position: relative;
+  left: 0;
+  padding: clamp(0.3rem, 0.6cqw, 0.8rem) clamp(0.5rem, 1cqw, 1rem); /* Responsive padding with relative units */
+  z-index: 10; /* Ensure it's above other elements */
+  background-color: transparent; /* Removed test background */
+  margin-bottom: 2rem; /* Increase spacing to push content down */
+  white-space: nowrap; /* Prevent text wrapping */
+  overflow: hidden; /* Hide overflow */
+  text-overflow: ellipsis; /* Show ellipsis for overflow */
+  max-width: 100%; /* Stay within parent bounds */
 }
 
 .dark-video .live-data-header {
   color: #e2e8f0;
 }
 
-/* REVERSED: Status dot shrinks on larger screens */
+/* Responsive status dot that scales with header */
 .live-data-header .status-dot {
-  width: clamp(0.4cqw, 0.8cqw, 1cqw); /* Smaller on large screens */
-  height: clamp(0.4cqw, 0.8cqw, 1cqw);
+  width: clamp(0.5rem, 0.6cqw, 1rem); /* Responsive width with relative units */
+  height: clamp(0.5rem, 0.6cqw, 1rem); /* Responsive height with relative units */
   position: relative; 
   left: 0;
   top: 0; 
   border-radius: 50%;
   background-color: #dc2626;
   animation: pulse-red 1.5s infinite ease-in-out;
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 .live-data-header .status-dot--fullwidth{
-  position: relative !important; 
-  left: 0 !important;
+  position: relative;
+  left: 0;
 }
 
 .live-data-dot {
   position: relative;
-  left: 0 !important;
+  left: 0;
   top: 0;
-  width: clamp(0.2cqw, 0.5cqw, 0.6cqw) !important; /* Smaller on large screens */
-  height: clamp(0.2cqw, 0.5cqw, 0.6cqw) !important;
+  width: clamp(0.2cqw, 0.5cqw, 0.6cqw);
+  height: clamp(0.2cqw, 0.5cqw, 0.6cqw);
   border-radius: 50%;
 }
 
@@ -148,121 +204,130 @@ body.dark-mode .live-data-wrapper {
   user-select: none;
 }
 
-/* REVERSED: Fullwidth cameras row shrinks on larger screens */
+/* Fullwidth cameras row - allow camera sections to grow larger */
 .cameras-row--fullwidth {
-  width: 100% !important;
-  max-width: 100% !important;
-  margin: 0 auto !important;
-  gap: clamp(0.8cqw, 2cqw, 3cqw) !important; /* Smaller gap on large screens */
-  padding: 0 clamp(0.3cqw, 1cqw, 2cqw) !important; /* Smaller padding on large screens */
-  box-sizing: border-box !important;
-  position: relative !important;
-  left: 0 !important;
-  transform: none !important;
-}
-.cameras-wrapper {
-  display: flex !important;
-  justify-content: center !important;
-  gap: 0;
-  width: 100% !important;
-  border: 1px solid gray; 
-}
-
-/* REVERSED: Camera row shrinks on larger screens */
-/* REVERSED: Camera row shrinks on larger screens */
-/* REVERSED: Camera row shrinks on larger screens */
-.cameras-row {
   display: flex;
-  column-gap: clamp(1cqw, 2cqw, 2.5cqw) !important;
-  max-width: none;
+  column-gap: 1.8rem; /* Match regular mode gap */
+  width: 120%; /* Allow container to be wider than parent */
+  max-width: 120%; /* Allow container to be wider than parent */
   position: relative;
-  left: clamp(-1.5cqw, -1cqw, -0.5cqw);
   flex-wrap: nowrap;
-
-  /* children won’t stretch with the row */
+  
+  /* Natural positioning */
+  left: 0;
+  top: 0;
+  
+  /* children won't stretch with the row */
   justify-content: center;
   align-items: flex-start;
-  width: calc(100% + 2.4cqw) !important; /* <-- THIS is the missing piece */
-  left: clamp(-5.0cqw, -4.5cqw, -2.5cqw);
-
-  box-sizing: content-box!important;   /* important: width applies to the frame, not to children */
-  flex-shrink: 0;
-  top: 0;
+  box-sizing: border-box;
+  flex-shrink: 1; /* Allow shrinking */
   height: auto;
   min-height: 0;
-   overflow: visible;
-  /* Frame styling */
-  outline: 1px solid green;
-  outline-offset: 0;
-  border-radius: clamp(0cqw, 0.02cqw, 0.05cqw);
-  /* Horizontal expansion */
+  overflow: visible;
+  margin-left: auto; /* Center like camera streams panel */
+  margin-right: auto; /* Center like camera streams panel */
+  padding: 0 1rem; /* Keep fullwidth padding */
+}
+
+/* Remove problematic media query that causes leftward shift */
+
+.cameras-wrapper {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  width: 100%;
+  /* Removed debug border */
+}
+
+/* FIXED: Camera row with constant gap */
+.cameras-row {
+  display: flex !important; /* Force flex display */
+  column-gap: 0.5rem; /* Very small gap to ensure sections fit on small screens */
+  max-width: 100%; /* Ensure it doesn't overflow container */
+  position: relative;
+  flex-wrap: nowrap !important; /* Force no wrapping */
+  
+  /* Natural positioning */
+  left: 0;
+  top: 0; /* Remove negative offset */
+  
+  /* Responsive width that adapts to container */
+  width: 100%;
+  
+  /* children won't stretch with the row */
+  justify-content: center;
+  align-items: stretch; /* Make both sections the same height */
+  box-sizing: border-box;
+  flex-shrink: 1; /* Allow shrinking */
+  height: auto;
+  min-height: 0;
+  overflow: visible;
   margin-left: auto;
   margin-right: auto;
-
 }
 
+/* Remove conflicting dashboard container styles - handled in App.css */
+/* .big-dashboard-container styles moved to App.css to avoid conflicts */
 
-/* Stop children from stretching */
-@supports not (height: 1cqw) {
-  .cameras-row {
-    height: auto !important;
-    min-height: 0 !important;
-  }
-}
-
-.big-dashboard-container {
-  container-type: inline-size;
-  container-name: dashboard;
-  width: 90vw; /* Fixed viewport width instead of responsive cqw */
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* REVERSED: Camera section shrinks significantly on larger screens */
+/* Camera section with dynamic height scaling */
 .camera-section {
-  flex: 0 0 auto; 
-  background-color: #fff;
-  border: clamp(0.03cqw, 0.07cqw, 0.1cqw) solid #d1d5db ; /* Thinner border on large screens */
-  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw); /* Smaller border radius on large screens */
-  padding: clamp(0.5cqw, 1cqw, 1.2cqw); /* Smaller padding on large screens */
-  left: clamp(0.04cqw, 0.1cqw, 0.5cqw); /* slightly less rightward push */
+  flex: 1 1 0 !important; /* Force flexible layout */
+  min-width: 15% !important; /* Minimum width to prevent too narrow sections */
+  max-width: 60% !important; /* Increased maximum width to prevent too much decrease */
+  background-color: #fff; /* White background */
+  border: 0.1rem solid #d1d5db; /* Normal border with relative units */
+  border-radius: 0.5rem; /* Border radius with relative units */
+  padding: 1rem; /* Fixed padding - no scaling */
+  left: 0;
   box-sizing: border-box;
   
   position: relative;
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* Keep camera section structure vertical */
   overflow: visible;
-  height: auto ;
-  min-height: calc(100% + 5cqh) !important; /* bump outline taller */
-  max-height: none ;
-  flex-shrink: 0;
+  
+  /* Let content determine height instead of fixed height */
+  height: auto; /* Auto height to fit content */
+  min-height: calc(18rem * var(--content-scale, 1)); /* Responsive minimum height with relative units */
+  max-height: none; /* Remove maximum height constraint */
+  
   z-index: 100;
-  margin-top: clamp(0.8cqw, 1.6cqw, 2cqw); /* Smaller margin on large screens */
+  margin-top: -2rem; /* Push up camera sections */
+  transition: margin-top 0.3s ease-in-out; /* Smooth transition for positioning */
 }
+
+/* Removed flashing animation for cleaner appearance */
+
+/* Removed media queries that were causing random shifting */
+
 .dark-video .camera-section {
   background-color: #0f172a;
-  border: clamp(0.03cqw, 0.07cqw, 0.1cqw) solid #fff !important;
+  border: clamp(0.03cqw, 0.07cqw, 0.1cqw) solid #fff;
 }
 
 .camera-header {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: clamp(0.3cqw, 0.7cqw, 0.8cqw); /* Smaller gap on large screens */
-  margin-bottom: clamp(0.5cqw, 1cqw, 1.2cqw); /* Smaller margin on large screens */
+  gap: 0.7rem; /* Fixed gap - no scaling */
+  margin-bottom: 1rem; /* Fixed margin - no scaling */
 }
 
 .section-livedata-tite {
-  position: relative !important;
-  left: 0 !important;
-  font-size: clamp(0.4cqw, 0.85cqw, 1cqw); /* Smaller font on large screens */
+  position: relative;
+  top: 0; /* Fixed: removed negative positioning */
+  left: 0; /* Fixed: removed negative positioning */
+  font-size: calc(clamp(0.4cqw, 0.85cqw, 1cqw) * var(--content-scale, 1)); /* Dynamic shrinking with content scale */
+  transition: font-size 0.3s ease-in-out; /* Smooth transition for font size changes */
 }
 
 .section-title {
-  font-size: clamp(0.8cqw, 1.4cqw, 1.6cqw); /* Smaller font on large screens */
+  font-size: calc(1rem * var(--content-scale, 1)); /* Consistent scaling with other text elements */
   font-weight: 600;
   color: #1f2937;
   position: relative;
+  transition: font-size 0.3s ease-in-out; /* Smooth transition for font size changes */
 }
 
 .dark-mode .section-title {
@@ -270,10 +335,10 @@ body.dark-mode .live-data-wrapper {
 }
 
 .camera-header .status-dot {
-  width: clamp(0.2cqw, 0.5cqw, 0.6cqw); /* Much smaller on large screens */
-  height: clamp(0.2cqw, 0.5cqw, 0.6cqw);
+  width: calc(0.5rem * var(--height-scale, 1)); /* Responsive size */
+  height: calc(0.5rem * var(--height-scale, 1)); /* Responsive size */
   border-radius: 50%;
-  border: clamp(0.08cqw, 0.15cqw, 0.2cqw) solid #16a34a; /* Thinner border on large screens */
+  border: calc(0.125rem * var(--height-scale, 1)) solid #16a34a; /* Responsive border */
   background-color: transparent;
   animation: pulse-green 1.5s infinite ease-in-out;
 }
@@ -283,76 +348,95 @@ body.dark-mode .live-data-wrapper {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: clamp(0.5cqw, 1cqw, 1.2cqw); /* Smaller gap on large screens */
+  gap: 1rem; /* Fixed at baseline value */
   box-sizing: border-box;
   padding: 0;
   background-color: transparent;
-  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw); /* Smaller border radius on large screens */
-  overflow: visible !important;
+  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw);
+  overflow: visible;
   flex-grow: 1;
-  height: auto !important;
+  height: auto;
   min-height: 0;
+  z-index: 5; /* Ensure it's above other elements */
 }
 
 .zone-grid--fullwidth {
-  background-color: #f3f4f6 !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  position: relative !important;
-  left: 0 !important;
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(clamp(6cqw, 12cqw, 16cqw), 1fr)) !important; /* Smaller grid items on large screens */
-  gap: clamp(0.3cqw, 1cqw, 1.5cqw) !important; /* Smaller gap on large screens */
-  padding: clamp(0.6cqw, 2cqw, 3cqw) !important; /* Smaller padding on large screens */
-  box-sizing: border-box !important;
-  overflow: visible !important;
-  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw) !important; /* Smaller border radius */
+  background-color: #f3f4f6; /* Match zone card background color */
+  width: 100%; /* Stay within camera section width */
+  max-width: 100%; /* Don't exceed camera section width */
+  position: relative;
+  left: 0;
+  display: grid; /* Use grid for responsive columns */
+  grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr)); /* Smaller minimum width to fit more columns */
+  gap: 0.25rem; /* Fixed small gap between cards */
+  padding: 0.25rem; /* Fixed small padding */
+  box-sizing: border-box;
+  overflow-x: auto; /* Horizontal scroll */
+  overflow-y: auto; /* Vertical scroll if needed */
+  border-radius: 0.5rem; /* Border radius with relative units */
+  height: auto; /* Let content determine height - no fixed height */
+  min-height: auto; /* No minimum height constraint */
+  max-height: 100%; /* Don't exceed camera section height */
+  flex: 1; /* Take remaining space in camera section */
+  margin: 0 auto; /* Center the grid */
+  align-content: start; /* Position cards at the top */
 }
 
+/* Removed fixed column media queries - using auto-fit instead */
+
+/* Removed conflicting horizontal scroll rule */
+
 .zone-grid-wrapper {
-  position: relative !important; 
-  left: 0 !important;
-  width: clamp(35cqw, 50cqw, 60cqw); /* Smaller on large screens */
+  position: relative;
+  left: 0;
+  width: 100%; /* Use full width of parent */
   max-width: 100%;
-  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw) !important; /* Smaller border radius */
+  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw);
 }
 
 .zone-grid-wrapper--fullwidth {
-  position: relative !important; 
-  left: 0 !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw) !important;
-  margin: 0 !important;
-  box-sizing: border-box !important;
+  position: relative;
+  left: 0;
+  width: 100%;
+  max-width: 100%;
+  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw);
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .zone-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(0.6cqw, 1.8cqw, 2cqw); /* Smaller gap on large screens */
+  display: grid; /* Use grid for responsive columns */
+  grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr)); /* Smaller minimum width to fit more columns */
+  gap: 0.25rem; /* Fixed small gap between cards */
   position: relative; 
   left: 0;
-  justify-items: stretch;
-  align-items: start;
-  width: clamp(35cqw, 50cqw, 60cqw); /* Smaller on large screens */
-  max-width: 100%;
-  margin-left: 0;
-  margin-right: auto;
+  width: 100%; /* Stay within camera section width */
+  max-width: 100%; /* Don't exceed camera section width */
+  margin: 0 auto; /* Center the grid */
   box-sizing: border-box;
-  padding: clamp(0.6cqw, 2cqw, 3cqw); /* Smaller padding on large screens */
-  background-color: #f3f4f6;
-  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw); /* Smaller border radius */
-  overflow-y: auto;
-  height: clamp(15cqw, 30cqw, 42cqw); /* Much smaller height on large screens */
-  min-height: clamp(15cqw, 30cqw, 42cqw);
-  max-height: clamp(15cqw, 30cqw, 42cqw);
+  padding: 0.25rem; /* Fixed small padding */
+  background-color: #f3f4f6; /* Match zone card background color */
+  border-radius: 0.5rem;
+  overflow-x: auto; /* Horizontal scroll for large screens */
+  overflow-y: auto; /* Vertical scroll if needed */
+  height: auto; /* Let content determine height - no fixed height */
+  min-height: auto; /* No minimum height constraint */
+  max-height: 100%; /* Don't exceed camera section height */
+  flex: 1; /* Take remaining space in camera section */
+  align-content: start; /* Position cards at the top */
 }
 
+/* Removed fixed column media queries - using auto-fit instead */
+
+/* Removed conflicting horizontal scroll rule */
+
 .zone-grid > * {
-  min-height: clamp(6cqw, 10cqw, 12cqw); /* Smaller items on large screens */
-  padding: clamp(0.6cqw, 1.6cqw, 2cqw) clamp(0.3cqw, 1cqw, 1.5cqw); /* Smaller padding */
-  aspect-ratio: 1 / 1;
+  /* Remove constraints to allow natural sizing */
+}
+
+/* Ensure zone cards don't change size in fullwidth mode */
+.zone-grid--fullwidth > * {
+  /* Remove constraints to allow natural sizing */
 }
 
 .dark-mode .zone-grid {
@@ -364,122 +448,181 @@ body.dark-mode .live-data-wrapper {
 }
 
 .dark-mode .camera-streams-panel {
-  border: clamp(0.03cqw, 0.07cqw, 0.1cqw) solid #fff !important; /* Thinner border */
+  border: clamp(0.03cqw, 0.07cqw, 0.1cqw) solid #fff;
 }
 
 .camera-streams-panel--fullwidth {
-  width: 100% !important;
-  max-width: 100% !important;
-  min-height: none !important;
-  transform: none !important;
-  height: auto !important;
-  min-height: clamp(3cqw, 7cqw, 10cqw) !important; /* Smaller on large screens */
-  padding: clamp(0.3cqw, 1cqw, 2cqw) !important; /* Smaller padding */
-  gap: clamp(0.3cqw, 1cqw, 1.5cqw) !important; /* Smaller gap */
-  position: relative !important;
-  left: 0 !important;
-  margin: clamp(0.3cqw, 1cqw, 2cqw) auto !important; /* Smaller margin */
-  box-sizing: border-box !important;
-}
-
-/* REVERSED: Camera streams panel shrinks significantly on larger screens */
-.camera-streams-panel {
-  flex: 0 0 auto;
-  min-width: 0;
-  width: clamp(45cqw, 80cqw, 90cqw); /* Much smaller on large screens */
-  max-width: 100%;
-  overflow-y: hidden !important;
-  background-color: #fff;
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: center;
-  gap: clamp(0.5cqw, 2cqw, 3cqw); /* Smaller gap on large screens */
-  padding: clamp(0.6cqw, 2cqw, 3cqw); /* Smaller padding on large screens */
-  box-sizing: border-box;
-  border: clamp(0.03cqw, 0.07cqw, 0.1cqw) solid #d1d5db; /* Thinner border */
-  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw); /* Smaller border radius */
-  margin-left: auto !important;
-  margin-right: auto;
-  box-shadow: 0 0 clamp(0.3cqw, 0.7cqw, 1cqw) rgba(0,0,0,0.1); /* Smaller shadow */
+  width: 100%;
+  max-width: 95%; /* Fixed percentage to prevent random changes */
+  min-height: none;
+  transform: none;
+  height: auto; /* Let content determine height */
+  min-height: 9rem; /* Increased minimum height */
+  padding: 1rem; /* Fixed at baseline value */
+  gap: 1rem; /* Fixed at baseline value */
   position: relative;
   left: 0;
-  z-index: 10;
-  height: clamp(12cqw, 30cqw, 40cqw) !important; /* Much smaller height on large screens */
-  min-height: clamp(60px, 13cqw, 200px) !important;
-  margin-top: clamp(0.8cqw, 1.6cqw, 2cqw); /* Smaller margin */
+  margin: clamp(0.3cqw, 1cqw, 2cqw) auto;
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap; /* Allow wrapping when container is too narrow */
+  justify-content: center;
+  column-gap: 1.8rem;
+  row-gap: 1rem;
+}
+
+/* Removed conflicting exact-width media query */
+
+/* FIXED: Camera streams panel that matches camera section width */
+.camera-streams-panel {
+  flex-shrink: 0 !important; /* Prevent shrinking */
+  flex-grow: 0 !important; /* Prevent growing */
+  min-width: 0;
+
+  /* 100% of parent container width */
+  width: 100% !important; /* 100% of parent container width */
+  max-width: 100% !important; /* 100% of parent container width */
+  min-width: 100% !important; /* 100% of parent container width */
+  margin-left: 0; /* Remove left margin so panel can grow in both directions */
+  margin-right: 0; /* Remove right margin for full width */
+  overflow: visible; /* Allow content to be visible */
+  background-color: transparent; /* Make background transparent */
+  display: flex;
+  flex-wrap: nowrap; /* Force all items to stay on one line */
+  justify-content: center; /* Center items in the container */
+  column-gap: 4rem; /* Increased gap between items for more spacing */
+  row-gap: 0; /* No row gap since items stay on one line */
+  padding: 1rem; /* Symmetric padding for centering */
+  box-sizing: border-box;
+
+  border: none; /* Removed test border */
+  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw);
+
+  box-shadow: none; /* Remove shadow to prevent overlap */
+
+  position: relative;
+  left: 0;
+
+  z-index: 3; /* Higher z-index to ensure visibility */
+
+  /* Responsive height that scales with screen size */
+  height: auto; /* Let content determine height */
+  min-height: 9rem; /* Fixed minimum height to prevent scaling issues */
+  max-height: none; /* Remove maximum height constraint */
+
+  /* Move camera streams panel up */
+  margin-top: -2rem; /* Push up camera streams panel */
+
+  /* Smooth transition for positioning */
+  transition: margin-top 0.3s ease-in-out;
+  
+  /* Ensure visibility */
+  visibility: visible;
+  opacity: 1;
 }
 
 .section-livedata-tite--fullwidth {
-  color: black !important; 
-  position: relative !important; 
-  left: 0 !important;
-  font-size: clamp(0.3cqw, 0.7cqw, 1cqw) !important; /* Smaller font on large screens */
-  margin: 0 !important;
+  color: black;
+  position: relative;
+  left: 0;
+  font-size: clamp(0.3cqw, 0.7cqw, 1cqw);
+  margin: 0;
 }
 
 .live-data-header .status-dot--fullwidth {
-  position: relative !important; 
-  left: 0 !important;
-  width: clamp(0.2cqw, 0.6cqw, 0.8cqw) !important; /* Smaller on large screens */
-  height: clamp(0.2cqw, 0.6cqw, 0.8cqw) !important;
+  position: relative;
+  left: 0;
+  width: clamp(0.2cqw, 0.6cqw, 0.8cqw);
+  height: clamp(0.2cqw, 0.6cqw, 0.8cqw);
 }
 
 .stream-group {
-  flex: 1;
+  flex: 0 0 auto !important; /* Fixed size - don't grow or shrink */
+  width: 200px !important; /* Fixed width in pixels */
+  min-width: 200px !important; /* Fixed minimum width */
+  max-width: 200px !important; /* Fixed maximum width */
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(0.3cqw, 0.8cqw, 1cqw); /* Smaller gap on large screens */
+  gap: 0.75rem; /* Fixed gap */
   box-sizing: border-box;
-  padding: 0;
+  padding: 0.75rem; /* Fixed padding */
   background-color: transparent;
   border: none;
   box-shadow: none;
   cursor: default;
-  transition: none;
+  transition: none !important; /* Remove transitions to prevent movement */
+  overflow: visible; /* Allow content to be visible - don't hide buttons */
+  position: relative !important; /* Fixed positioning */
+  left: 0 !important; /* Fixed left position */
+  top: 0 !important; /* Fixed top position */
+  transform: none !important; /* No transforms */
+  margin: 0 !important; /* No margins */
 }
 
 .stream-group h3 {
-  font-size: clamp(0.5cqw, 0.85cqw, 1cqw); /* Smaller font on large screens */
+  font-size: calc(clamp(0.8rem, 1cqw, 1.2rem) * var(--content-scale, 1)); /* Increased font size */
   font-weight: 600;
-  margin-bottom: clamp(0.3cqw, 0.8cqw, 1cqw); /* Smaller margin on large screens */
+  margin-bottom: calc(0.5rem * var(--content-scale, 1)); /* Increased margin */
   color: #1f2937;
+  text-align: center;
+  white-space: nowrap; /* Prevent text wrapping */
+  overflow: hidden; /* Hide overflow text */
+  text-overflow: ellipsis; /* Show ellipsis for overflow */
+  max-width: calc(8rem * var(--content-scale, 1)); /* Increased max width */
+  min-width: calc(4rem * var(--content-scale, 1)); /* Increased min width */
+  line-height: 1; /* Tighter line height */
+  display: block; /* Ensure proper text containment */
 }
 
 .dark-video .stream-group h3 {
   color: #e2e8f0;
 }
 
-/* REVERSED: Images shrink significantly on larger screens */
+/* Responsive images that stay within bounds */
 .stream-group img {
-  width: clamp(8cqw, 14cqw, 16cqw); /* Much smaller on large screens */
-  height: clamp(8cqw, 14cqw, 16cqw);
+  width: calc(clamp(3rem, 4cqw, 5rem) * var(--content-scale, 1)); /* Increased responsive width */
+  height: calc(clamp(3rem, 4cqw, 5rem) * var(--content-scale, 1)); /* Increased responsive height */
   border-radius: 50%;
-  margin-bottom: clamp(0.3cqw, 0.8cqw, 1cqw); /* Smaller margin */
+  margin-bottom: calc(0.5rem * var(--content-scale, 1)); /* Increased responsive margin */
   background-color: #e7ffe7;
   object-fit: cover;
-  box-shadow: 0 0 clamp(0.2cqw, 0.4cqw, 0.6cqw) rgba(22, 163, 74, 0.3); /* Smaller shadow */
+  box-shadow: 0 0 calc(0.2rem * var(--content-scale, 1)) rgba(22, 163, 74, 0.3); /* Increased responsive shadow */
+  flex-shrink: 1; /* Allow shrinking */
 }
 
 .stream-group > div {
   display: flex;
   justify-content: center;
-  gap: clamp(0.3cqw, 0.8cqw, 1cqw); /* Smaller gap on large screens */
+  gap: 1rem; /* Increased gap between buttons */
   padding: 0;
   margin: 0;
   width: 100%;
+  overflow: visible; /* Don't hide buttons */
+  flex-wrap: nowrap; /* Prevent wrapping to maintain order */
 }
 
-/* REVERSED: Buttons shrink on larger screens */
+/* Fixed-size buttons that maintain consistent layout */
 .camera-btn {
-  background-color: #16a34a;
-  border: none;
-  color: white;
-  padding: clamp(0.3cqw, 0.8cqw, 1cqw) clamp(0.6cqw, 1.2cqw, 1.4cqw); /* Smaller padding on large screens */
-  border-radius: clamp(0.2cqw, 0.4cqw, 0.6cqw); /* Smaller border radius on large screens */
-  cursor: pointer;
-  font-weight: 600;
-  font-size: clamp(0.4cqw, 0.7cqw, 0.8cqw); /* Smaller font on large screens */
+  background-color: #e8f5e8 !important; /* Light pastel green background */
+  border: 0.1rem solid #d1d5db !important; /* Thin light gray border */
+  color: #000000 !important; /* Thin black text to match the image */
+  padding: 0.5rem 1rem !important; /* Increased fixed padding */
+  border-radius: 0.4rem !important; /* Rounded rectangular shape */
+  cursor: pointer !important;
+  font-weight: 600 !important;
+  font-size: 0.6rem !important; /* Increased fixed font size */
+  white-space: nowrap !important; /* Prevent text wrapping */
+  overflow: hidden !important; /* Hide overflow */
+  text-overflow: ellipsis !important; /* Show ellipsis for overflow */
+  width: 7rem !important; /* Increased fixed width */
+  height: 2.5rem !important; /* Increased fixed height */
+  flex-shrink: 0 !important; /* Prevent shrinking */
+  flex-grow: 0 !important; /* Prevent growing */
+  text-align: center !important; /* Center text within button */
+  box-sizing: border-box !important; /* Include padding in width calculation */
+  display: inline-block !important; /* Ensure consistent display */
+  line-height: 1.2 !important; /* Consistent line height */
 }
 
 .camera-btn:hover {
@@ -494,3 +637,11 @@ body.dark-mode .live-data-wrapper {
 .dark-video .camera-btn:hover {
   background-color: #22c55e;
 }
+
+/* Content scaling now handled via CSS custom properties in App.css */
+/* Removed media queries to prevent conflicts with dynamic scaling */
+
+/* Removed media queries that were causing random shifting */
+
+/* Camera streams panel maintains fixed positioning and dimensions regardless of screen size */
+/* No media queries needed - fixed positioning prevents any shifting */

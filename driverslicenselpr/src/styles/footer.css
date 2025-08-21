@@ -3,34 +3,27 @@
   background-color: #0c1424;
   color: #f9fafb;
   padding: 0;
-  height: 100px;
+  height: 6rem; /* Relative height instead of fixed 100px */
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  border-top: 1px solid #2c3e66;
+  border-top: 0.1rem solid #2c3e66; /* Relative border */
   box-sizing: border-box;
-  position: relative;  /* RELATIVE instead of fixed */
-  /* Remove left, right, bottom, top properties */
+  position: relative;  /* RELATIVE to scale with page */
   z-index: 5;
   flex-shrink: 0;
-  font-size: 14px;
-}
-@media (min-width: 1700px) and (max-width: 1800px) {
-  .footer {
-    position: static !important;   /* Default flow: appears after .big-dashboard-container */
-    margin-top: 0 !important;
-  }
-
+  font-size: 0.875rem; /* Relative font size instead of 14px */
+  margin-top: auto; /* Push footer to bottom */
 }
 
 .footer-icon {
   text-align: left; 
-  width: 45px;
-  height: 45px;
+  width: 2.8rem; /* Relative width instead of 45px */
+  height: 2.8rem; /* Relative height instead of 45px */
   display: inline-block;
   position: relative; 
-  left: -40px; 
-  top: -10px; 
+  left: 0; /* Remove negative positioning */
+  top: -0.6rem; /* Relative positioning instead of -10px */
 }
 
 .footer-content {
@@ -38,16 +31,15 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 18px;
-  margin-left: -230px;
+  gap: 1.1rem; /* Relative gap instead of 18px */
+  margin-left: 1.25rem; /* Relative margin instead of 20px */
 }
 
 .footer-text {
   position: relative; 
-  left: 70px;
   font-weight: 500;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.03rem; /* Relative letter spacing instead of 0.5px */
   text-align: left;
-  top: -10px; 
-  left: 13px; 
+  top: -0.6rem; /* Relative positioning instead of -10px */
+  left: 0; /* Remove left positioning that was causing cut-off */
 }

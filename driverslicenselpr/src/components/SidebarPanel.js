@@ -14,13 +14,44 @@ export default function SidebarPanel({
   endDate,
   setEndDate,
 }) {
+  // Dynamic height state and logic
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  
+  // Calculate dynamic height based on window width
+  const calculateDynamicHeight = () => {
+    const BASE_WIDTH = 1424;
+    if (windowWidth <= BASE_WIDTH) {
+      // Use default height when window width is at or below 1424px
+      return 'auto';
+    } else {
+      // Increase height proportionally as width grows above 1424px
+      const extraWidth = windowWidth - BASE_WIDTH;
+      const heightIncreasePerPx = 0.5; // Adjust this value to control height increase rate
+      const baseHeight = 600; // Base height in pixels when width = 1424px
+      const calculatedHeight = baseHeight + (extraWidth * heightIncreasePerPx);
+      return `${calculatedHeight}px`;
+    }
+  };
+
+  const dynamicHeight = calculateDynamicHeight();
+
+  // Window resize listener for dynamic height
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Test fallback if history empty
   const [testHistory, setTestHistory] = useState([]);
   useEffect(() => {
     if (history.length === 0) {
       setTestHistory([
         {
-          time: new Date('2025-07-26Txs/4:30:00'),
+          time: new Date('2025-07-26T14:30:00'),
           readings: { 'Zone A': 72 },
         },
         {
@@ -168,8 +199,29 @@ export default function SidebarPanel({
     URL.revokeObjectURL(url);
   };
 
+  // Calculate scroll container height based on dynamic height
+  const getScrollContainerHeight = () => {
+    if (dynamicHeight === 'auto') {
+      return '340px'; // Default height
+    } else {
+      // Extract numeric value from dynamicHeight and calculate proportional scroll height
+      const totalHeight = parseInt(dynamicHeight);
+      const fixedElementsHeight = 200; // Approximate height of header, inputs, buttons, etc.
+      const scrollHeight = Math.max(340, totalHeight - fixedElementsHeight);
+      return `${scrollHeight}px`;
+    }
+  };
+
+  const scrollContainerHeight = getScrollContainerHeight();
+
   return (
-    <div className={`sidebar-panel ${isDarkMode ? 'dark-panel' : 'light-panel'}`}>
+    <div 
+      className={`sidebar-panel ${isDarkMode ? 'dark-panel' : 'light-panel'}`}
+      style={{ 
+        height: dynamicHeight,
+        minHeight: '600px' // Ensure minimum height
+      }}
+    >
       <div className="sidebar-inner">
         <div className="event-logs">
           <h2 className="log-title">Zone Details</h2>
@@ -230,7 +282,12 @@ export default function SidebarPanel({
 
           <div
             className="logs-scroll-container"
-            style={{ maxHeight: '340px', overflowY: 'auto', marginTop: '10px' }}
+            style={{ 
+              maxHeight: scrollContainerHeight, 
+              overflowY: 'auto', 
+              marginTop: '10px',
+              flex: '1' // Allow it to grow within the container
+            }}
           >
             <div className="log-entries-list">
               {/* Latest entries top */}

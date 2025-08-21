@@ -10,28 +10,6 @@ import FixedPopup from './components/FixedPopup'
 import './styles/videofeed.css'
 import './App.css'
 
-// Hook to detect if device is a laptop or monitor
-function useDeviceType() {
-  const [isLaptop, setIsLaptop] = useState(false)
-
-  useEffect(() => {
-    const updateDeviceType = () => {
-      const pixelRatio = window.devicePixelRatio || 1
-      const screenWidth = window.screen.width
-      const screenHeight = window.screen.height
-      const isHighDPI = pixelRatio > 1.5
-      const isLaptopDevice = isHighDPI && screenWidth <= 1920 && screenHeight <= 1200
-      setIsLaptop(isLaptopDevice)
-    }
-
-    updateDeviceType()
-    window.addEventListener('resize', updateDeviceType)
-    return () => window.removeEventListener('resize', updateDeviceType)
-  }, [])
-
-  return isLaptop
-}
-
 function pickZonesAtLeastOnePerCameraUniqueNames(allZonesArr, count) {
   const cameras = ['planck_1', 'planck_2']
   const byName = new Map()
@@ -109,6 +87,31 @@ function LeftArrowIcon({ size = 24, color = "#233046" }) {
 
 function HamburgerMenu({ show, locked, onHover, onUnhover, onClick }) {
   const visible = show || locked
+  
+  const buttonStyle = {
+    width: '40px',
+    height: '40px',
+    minWidth: '40px',
+    minHeight: '40px',
+    maxWidth: '40px',
+    maxHeight: '40px',
+    borderRadius: '50%', // Make it a perfect circle
+    border: '2px solid #eee',
+    boxShadow: '0 4px 8px rgba(20,30,50,0.11)',
+    marginTop: '8px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    zIndex: 10
+  }
+  
+  const arrowStyle = {
+    width: 'clamp(24px, 2.5vw, 32px)',
+    height: 'clamp(24px, 2.5vw, 32px)'
+  }
+  
   return (
     <div
       className="hamburger-area"
@@ -117,13 +120,15 @@ function HamburgerMenu({ show, locked, onHover, onUnhover, onClick }) {
     >
       <div
         className={`hamburger-menu${visible ? ' open' : ''}${locked ? ' locked' : ''}`}
+        style={buttonStyle}
         onClick={e => {
           e.stopPropagation()
+          console.log('Hamburger menu clicked!')
           onClick()
         }}
         title="Show/Hide Event Logs"
       >
-        <LeftArrowIcon size={24} color="#233046" />
+        <LeftArrowIcon size={24} color="#233046" style={arrowStyle} />
       </div>
     </div>
   )
@@ -173,27 +178,8 @@ export default function App() {
     const saved = localStorage.getItem('eventLogsVisible')
     return saved === null ? true : saved === 'true'
   })
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth)
-  const [windowHeight, setWindowHeight] = useState(window.innerHeight)
-  const expandFullWidth = !eventLogsVisible;
-  const isLaptop = useDeviceType()
 
-  // scaling logic
-  const BASE_WIDTH = 1424
-  const perPxChange = 0.15 / 100
-  const scale = windowWidth < BASE_WIDTH
-  ? 1 + ((BASE_WIDTH - windowWidth) * perPxChange)   // grow when smaller than 1424
-  : windowWidth === BASE_WIDTH
-    ? 1  // exactly 1424px, do not grow or shrink
-    : Math.max(0.1, 1 - (windowWidth - BASE_WIDTH) * perPxChange) // shrink when larger
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth)
-      setWindowHeight(window.innerHeight)
-    }
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
+  
 
   useEffect(() => {
     localStorage.setItem('hamburgerLocked', hamburgerLocked)
@@ -333,7 +319,7 @@ export default function App() {
     return () => {
       mounted = false
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!startDate || !endDate || !history.length) {
@@ -411,14 +397,10 @@ export default function App() {
             </div>
           )}
           <div className="content-area">
-            <div className="scroll-container">
-              {activeTab === 'dashboard' && (
-                <div
-                  className={expandFullWidth ? 'big-dashboard-container--fullwidth' : 'big-dashboard-container'}
-                  style={{
-                    transform: `scale(${scale})`,
-                    transformOrigin: 'top center'
-                  }}
+            {activeTab === 'dashboard' && (
+              <div className="dashboard-wrapper">
+                <div 
+                  className={`big-dashboard-container${!eventLogsVisible ? '--fullwidth' : ''}`}
                 >
                   <VideoFeed
                     isDarkMode={isDarkMode}
@@ -434,34 +416,32 @@ export default function App() {
                     selectedOpticalCamera={selectedOpticalCamera}
                     setSelectedOpticalCamera={setSelectedOpticalCamera}
                     isHoveringOptical={false}
-                    expandFullWidth={expandFullWidth}
                     setIsHoveringOptical={() => {}}
                     filterZonesByCamera={filterZonesByCamera}
-                    isLaptop={isLaptop}
                   />
                 </div>
-              )}
-              {activeTab === 'thermal' && (
-                <ThermalPlot
-                  zones={zones}
-                  visibleZones={visibleZones}
-                  setVisibleZones={setVisibleZones}
-                  allZones={allZones}
-                  tempUnit={tempUnit}
-                  startDate={startDate}
-                  endDate={endDate}
-                  setStartDate={setStartDate}
-                  setEndDate={setEndDate}
-                  isDarkMode={isDarkMode}
-                  selectedCamera={selectedCamera}
-                  setSelectedCamera={setSelectedCamera}
-                  history={history}
-                />
-              )}
-              {activeTab === 'streams' && (
-                <SurveillanceStreams camera1Zones={camera1Zones} camera2Zones={camera2Zones} />
-              )}
-            </div>
+              </div>
+            )}
+            {activeTab === 'thermal' && (
+              <ThermalPlot
+                zones={zones}
+                visibleZones={visibleZones}
+                setVisibleZones={setVisibleZones}
+                allZones={allZones}
+                tempUnit={tempUnit}
+                startDate={startDate}
+                endDate={endDate}
+                setStartDate={setStartDate}
+                setEndDate={setEndDate}
+                isDarkMode={isDarkMode}
+                selectedCamera={selectedCamera}
+                setSelectedCamera={setSelectedCamera}
+                history={history}
+              />
+            )}
+            {activeTab === 'streams' && (
+              <SurveillanceStreams camera1Zones={camera1Zones} camera2Zones={camera2Zones} />
+            )}
           </div>
         </div>
         <Footer />
@@ -526,4 +506,3 @@ export default function App() {
     </>
   )
 }
-

@@ -12,11 +12,13 @@
   box-sizing: border-box;
   position: relative; 
   top: -21px; 
+  left: 50px;                    /* Keep original positioning */
+
   display: flex;
   margin-left: -4px; 
   flex-direction: column;
   gap: 8px !important;
-  z-index: 1;
+  z-index: 0; /* Lower z-index so dashboard appears above it */
   margin: 24px 0 0 0; /* CHANGED: Add margin-top to move down from navbar */
   border-radius: 10px !important;
   background-color: #ffffff;

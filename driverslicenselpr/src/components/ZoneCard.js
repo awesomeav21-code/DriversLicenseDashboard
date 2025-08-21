@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 export default function ZoneCard({
   zone,
@@ -7,13 +7,7 @@ export default function ZoneCard({
   isDarkMode = false,
   expandFullWidth = false,
 }) {
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  // Removed unused windowWidth tracking
 
   const convertTemp = (f) =>
     tempUnit === 'C' ? Math.round((f - 32) * (5 / 9)) : f;
@@ -53,17 +47,7 @@ export default function ZoneCard({
   }`;
 
   return (
-    <div
-      className={zoneCardClassName}
-      style={{
-        flexShrink: 0,
-        flexGrow: 0,
-        boxSizing: 'border-box',
-        transform: expandFullWidth ? 'scaleX(1.05)' : 'scaleX(1.1)',
-        transformOrigin: expandFullWidth ? 'initial' : 'left center',
-        position: 'relative',
-      }}
-    >
+    <div className={zoneCardClassName}>
       <div className="zone-card-inner">
         <h4 className="zone-name">{zone.name}</h4>
         <div className="zone-temp">

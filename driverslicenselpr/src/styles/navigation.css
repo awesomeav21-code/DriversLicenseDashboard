@@ -23,7 +23,6 @@
   left: 0 !important; /* Span full width */
   width: 100% !important;
   height: 1px;
-  background-color: #ccc;
   pointer-events: none;
   z-index: 1000;
 }
