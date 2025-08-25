@@ -14,36 +14,42 @@ export default function SidebarPanel({
   endDate,
   setEndDate,
 }) {
-  // Dynamic height state and logic
+  // Calculate dynamic height based on screen size
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  
-  // Calculate dynamic height based on window width
-  const calculateDynamicHeight = () => {
-    const BASE_WIDTH = 1424;
-    if (windowWidth <= BASE_WIDTH) {
-      // Use default height when window width is at or below 1424px
-      return 'auto';
-    } else {
-      // Increase height proportionally as width grows above 1424px
-      const extraWidth = windowWidth - BASE_WIDTH;
-      const heightIncreasePerPx = 0.5; // Adjust this value to control height increase rate
-      const baseHeight = 600; // Base height in pixels when width = 1424px
-      const calculatedHeight = baseHeight + (extraWidth * heightIncreasePerPx);
-      return `${calculatedHeight}px`;
-    }
-  };
 
-  const dynamicHeight = calculateDynamicHeight();
-
-  // Window resize listener for dynamic height
+  // Add resize listener to update height when window resizes
   useEffect(() => {
     const handleResize = () => {
       setWindowWidth(window.innerWidth);
     };
-    
+
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Calculate dynamic height that increases gradually with screen size
+  const getDynamicHeight = () => {
+    const baseHeight = 600; // Minimum height
+    const maxHeight = 2000; // Maximum height - increased significantly
+    const minWidth = 1200; // Width at which we start increasing height
+    const maxWidth = 2400; // Width at which we reach max height
+    
+    if (windowWidth <= minWidth) {
+      return baseHeight;
+    } else if (windowWidth >= maxWidth) {
+      return maxHeight;
+    } else {
+      // Linear interpolation between min and max
+      const ratio = (windowWidth - minWidth) / (maxWidth - minWidth);
+      return Math.round(baseHeight + (maxHeight - baseHeight) * ratio);
+    }
+  };
+
+  const dynamicHeight = getDynamicHeight();
+
+
+
+
 
   // Test fallback if history empty
   const [testHistory, setTestHistory] = useState([]);
@@ -214,14 +220,26 @@ export default function SidebarPanel({
 
   const scrollContainerHeight = getScrollContainerHeight();
 
+  // Calculate static right margin - doesn't change with screen size
+  const getResponsiveMargin = () => {
+    // Static right margin that doesn't change
+    return '8px'; // Fixed 8px right margin (reduced from 10px)
+  };
+
   return (
     <div 
       className={`sidebar-panel ${isDarkMode ? 'dark-panel' : 'light-panel'}`}
       style={{ 
-        height: dynamicHeight,
-        minHeight: '600px' // Ensure minimum height
+        height: `${dynamicHeight}px`,
+        minHeight: '600px', // Ensure minimum height
+        marginRight: getResponsiveMargin(),
+        transition: 'margin-right 0.3s ease, transform 0.3s ease, height 0.3s ease' // Added height transition
       }}
     >
+
+      
+
+      
       <div className="sidebar-inner">
         <div className="event-logs">
           <h2 className="log-title">Zone Details</h2>

@@ -1,4 +1,4 @@
-.page,
+i .page,
 .archive-page {
   --border-color: #e5e7eb; /* Added CSS variable for border color */
   --font-family: 'Inter', sans-serif; /* Define Inter as the base font */

@@ -1,25 +1,22 @@
 /* Base sidebar-panel styles */
 .sidebar-panel {
-  position: static;
-  min-width: 220px;
-  max-width: 320px;
-  width: 220px;
-  margin-right: 2px !important; 
-  height: auto; 
-  max-height: calc(100vh - 60px); 
+  position: relative;
+  width: 220px; /* Fixed width that stays the same on all screen sizes */
+  
+  /* Fixed consistent height that's the same on all devices */
+  height: 600px;
+  
   overflow-y: auto; 
-  padding: 12px;
+  padding: 0 12px; /* Remove vertical padding, keep horizontal */
   box-sizing: border-box;
-  position: relative; 
   top: -21px; 
-  left: 50px;                    /* Keep original positioning */
+  /* Removed left positioning to let JavaScript control positioning */
 
   display: flex;
-  margin-left: -4px; 
   flex-direction: column;
-  gap: 8px !important;
-  z-index: 0; /* Lower z-index so dashboard appears above it */
-  margin: 24px 0 0 0; /* CHANGED: Add margin-top to move down from navbar */
+  gap: 12px !important;
+  z-index: 0;
+  margin: 24px 0 0 0; /* Keep top margin, let JavaScript control right margin */
   border-radius: 10px !important;
   background-color: #ffffff;
   border: 1px solid #d1d5db;
@@ -52,16 +49,45 @@
   color: #f9fafb;
 }
 
+/* Sidebar inner container */
+.sidebar-inner {
+  margin-top: 10px; /* Move inner border down */
+}
+
 /* Event logs container */
 .event-logs {
   display: flex;
   flex-direction: column;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 16px;
+  padding: 8px 8px 8px 8px;
+  padding-top: 0px;
+  margin-top: -5px; /* Move inner border down slightly */
   background-color: #ffffff;
   box-sizing: border-box;
   height: auto;
+}
+
+/* Move content inside the border down */
+.event-logs h2,
+.event-logs .log-title {
+  margin-top: 10px;
+}
+
+/* Keep content in fixed horizontal position regardless of screen size */
+.event-logs {
+  position: relative;
+}
+
+.event-logs h2,
+.event-logs .log-title,
+.event-logs .date-inputs,
+.event-logs .log-buttons,
+.event-logs .logs-scroll-container {
+  position: relative;
+  left: 0;
+  right: 0;
+  transform: none;
 }
 
 .sidebar-panel.dark-panel .event-logs {
@@ -125,7 +151,7 @@
   display: flex;
   align-items: center;
   height: 40px !important; 
-  gap: 6px;
+  gap: 12px;
   box-sizing: border-box;
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
@@ -162,7 +188,7 @@
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px;
   overflow-y: visible;
   max-height: none;
   padding-right: 0;
@@ -173,7 +199,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: 12px;
   background-color: #ffffff;
   border-radius: 12px;
   padding: 12px 16px;
@@ -239,3 +265,10 @@
   background-color: #0f172a;
   color: #d1d5db;
 }
+
+/* Responsive right margin - now controlled by JavaScript */
+/* Removed CSS media queries to let JavaScript handle margin */
+
+/* Removed rainbow color test borders */
+
+

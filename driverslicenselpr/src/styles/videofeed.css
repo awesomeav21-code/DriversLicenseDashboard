@@ -34,11 +34,7 @@
   100% { background-color: #dc2626; opacity: 1; box-shadow: none; }
 }
 
-@keyframes flash-blue {
-  0% { border-color: #0066ff; }
-  50% { border-color: #0099ff; }
-  100% { border-color: #0066ff; }
-}
+
 
 @keyframes pulse-green {
   0% { background-color: #16a34a; opacity: 1; box-shadow: 0 0 clamp(0.3cqw, 0.6cqw, 0.8cqw) clamp(0.1cqw, 0.2cqw, 0.3cqw) rgba(22,163,74,0.4);}
@@ -59,7 +55,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1rem; /* Proper spacing between header and content */
+  gap: 10px; /* Small fixed gap to keep content below header */
   box-sizing: border-box;
   /* No scaling here - let App.js handle container scaling */
 }
@@ -93,7 +89,7 @@
   min-height: 0;
   height: auto;
   box-sizing: border-box;
-  padding: clamp(0.3cqw, 0.8cqw, 1cqw) 0 0 0; /* Reduced: removed left and right padding to prevent edge coverage */
+  padding: 0 0 0 0; /* Removed top padding to move content up more */
   margin-top: 0; /* Remove negative margin to prevent overlap */
   /* Remove transform scaling from wrapper to prevent overflow */
   transform: none;
@@ -104,7 +100,7 @@
   display: flex;
   flex-direction: column;
   overflow: visible; /* Allow content to move outside bounds for positioning */
-  border-radius: clamp(0.3cqw, 0.5cqw, 0.7cqw);
+  border-radius: 8px; /* Fixed pixel border radius */
   flex-grow: 0;
   flex-shrink: 0;
   top: 0;
@@ -126,18 +122,18 @@
   background-color: transparent;
   margin: 0; /* Fixed: removed asymmetric margins */
   border: none;
-  border-radius: clamp(0.3cqw, 0.5cqw, 0.7cqw);
-  padding: clamp(1.5cqw, 4cqw, 6cqw) 0 clamp(0.8cqw, 3cqw, 5cqw) 0; /* Reduced: removed left and right padding */
+  border-radius: 8px; /* Fixed pixel border radius */
+  padding: 0 0 1rem 0; /* Removed top padding completely to move up significantly */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem; /* Fixed at baseline value */
+  gap: 1.5rem; /* Back to original gap */
   z-index: 2;
   box-shadow: none;
   position: relative;
   margin-left: auto;
   margin-right: auto;
-  top: 0; /* Remove negative offset */
+  top: 0; /* Reset to normal position since we're using gap now */
   height: auto;
   min-height: 0;
   max-height: none;
@@ -153,16 +149,17 @@ body.dark-mode .live-data-wrapper {
 .live-data-header {
   display: flex;
   align-items: center;
-  gap: 0.6rem; /* Fixed at baseline value */
-  font-size: clamp(0.8rem, 1cqw, 1.2rem); /* Responsive font size with relative units */
+  gap: 12px; /* Fixed pixel gap */
+  font-size: 1.2rem; /* Fixed font size - no responsive units */
   font-weight: 600;
   color: #1f2937;
   position: relative;
-  left: 0;
-  padding: clamp(0.3rem, 0.6cqw, 0.8rem) clamp(0.5rem, 1cqw, 1rem); /* Responsive padding with relative units */
+  left: 0; /* Reset to normal position */
+  margin-left: -20px; /* Move further to the left with fixed margin */
+  padding: 12px 20px; /* Fixed pixel padding */
   z-index: 10; /* Ensure it's above other elements */
   background-color: transparent; /* Removed test background */
-  margin-bottom: 2rem; /* Increase spacing to push content down */
+  margin-bottom: 16px; /* Fixed pixel margin */
   white-space: nowrap; /* Prevent text wrapping */
   overflow: hidden; /* Hide overflow */
   text-overflow: ellipsis; /* Show ellipsis for overflow */
@@ -173,13 +170,44 @@ body.dark-mode .live-data-wrapper {
   color: #e2e8f0;
 }
 
-/* Responsive status dot that scales with header */
+/* Dark mode for big dashboard container */
+.dark-video .video-feed-wrapper {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+.dark-video .video-feed-inner-wrapper {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+.dark-video .live-data-wrapper {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+/* Dark mode for camera streams panel */
+.dark-video .camera-streams-panel {
+  background-color: #0f172a;
+  color: #e2e8f0;
+  border-color: #374151;
+}
+
+/* Dark mode for camera streams panel fullwidth */
+.dark-video .camera-streams-panel--fullwidth {
+  background-color: #0f172a;
+  color: #e2e8f0;
+  border-color: #374151;
+}
+
+/* Fixed status dot that doesn't scale with screen size */
 .live-data-header .status-dot {
-  width: clamp(0.5rem, 0.6cqw, 1rem); /* Responsive width with relative units */
-  height: clamp(0.5rem, 0.6cqw, 1rem); /* Responsive height with relative units */
+  width: 6px; /* Even smaller fixed pixel width */
+  height: 6px; /* Even smaller fixed pixel height */
   position: relative; 
   left: 0;
   top: 0; 
+  margin-left: -5px; /* Move slightly to the left */
   border-radius: 50%;
   background-color: #dc2626;
   animation: pulse-red 1.5s infinite ease-in-out;
@@ -276,9 +304,9 @@ body.dark-mode .live-data-wrapper {
   min-width: 15% !important; /* Minimum width to prevent too narrow sections */
   max-width: 60% !important; /* Increased maximum width to prevent too much decrease */
   background-color: #fff; /* White background */
-  border: 0.1rem solid #d1d5db; /* Normal border with relative units */
-  border-radius: 0.5rem; /* Border radius with relative units */
-  padding: 1rem; /* Fixed padding - no scaling */
+  border: 1px solid #d1d5db; /* Fixed pixel border */
+  border-radius: 8px; /* Fixed pixel border radius */
+  padding: 16px; /* Fixed pixel padding */
   left: 0;
   box-sizing: border-box;
   
@@ -287,14 +315,17 @@ body.dark-mode .live-data-wrapper {
   flex-direction: column; /* Keep camera section structure vertical */
   overflow: visible;
   
-  /* Let content determine height instead of fixed height */
-  height: auto; /* Auto height to fit content */
-  min-height: calc(18rem * var(--content-scale, 1)); /* Responsive minimum height with relative units */
-  max-height: none; /* Remove maximum height constraint */
+  /* Flexible height to accommodate zone grid content */
+  height: auto !important; /* Let content determine height */
+  min-height: 288px !important; /* Fixed pixel minimum height */
+  max-height: none !important; /* No maximum height constraint */
   
   z-index: 100;
-  margin-top: -2rem; /* Push up camera sections */
-  transition: margin-top 0.3s ease-in-out; /* Smooth transition for positioning */
+  margin-top: -30px !important; /* Increased negative margin to push up more */
+  transition: none !important; /* Remove transition to prevent any movement */
+  transform: none !important; /* Override any parent scaling */
+  transform-origin: top center !important; /* Reset transform origin */
+  overflow: hidden !important; /* Prevent zone grid from overflowing */
 }
 
 /* Removed flashing animation for cleaner appearance */
@@ -303,6 +334,10 @@ body.dark-mode .live-data-wrapper {
 
 .dark-video .camera-section {
   background-color: #0f172a;
+  border: clamp(0.03cqw, 0.07cqw, 0.1cqw) solid #fff;
+}
+
+.dark-video .camera-streams-panel {
   border: clamp(0.03cqw, 0.07cqw, 0.1cqw) solid #fff;
 }
 
@@ -318,12 +353,12 @@ body.dark-mode .live-data-wrapper {
   position: relative;
   top: 0; /* Fixed: removed negative positioning */
   left: 0; /* Fixed: removed negative positioning */
-  font-size: calc(clamp(0.4cqw, 0.85cqw, 1cqw) * var(--content-scale, 1)); /* Dynamic shrinking with content scale */
+  font-size: calc(clamp(0.4cqw, 0.85cqw, 1cqw) * max(0.8, var(--content-scale, 1))); /* Reduced scaling - minimum 0.8 scale */
   transition: font-size 0.3s ease-in-out; /* Smooth transition for font size changes */
 }
 
 .section-title {
-  font-size: calc(1rem * var(--content-scale, 1)); /* Consistent scaling with other text elements */
+  font-size: calc(1rem * max(0.8, var(--content-scale, 1))); /* Reduced scaling - minimum 0.8 scale */
   font-weight: 600;
   color: #1f2937;
   position: relative;
@@ -338,9 +373,10 @@ body.dark-mode .live-data-wrapper {
   width: calc(0.5rem * var(--height-scale, 1)); /* Responsive size */
   height: calc(0.5rem * var(--height-scale, 1)); /* Responsive size */
   border-radius: 50%;
-  border: calc(0.125rem * var(--height-scale, 1)) solid #16a34a; /* Responsive border */
-  background-color: transparent;
-  animation: pulse-green 1.5s infinite ease-in-out;
+  border: none; /* Remove border */
+  background-color: #16a34a; /* Solid green background */
+  box-shadow: 0 0 8px 2px rgba(22, 163, 74, 0.4); /* Green glow effect */
+  /* Removed pulse animation to make it static */
 }
 
 .cameras-with-overlay {
@@ -448,6 +484,8 @@ body.dark-mode .live-data-wrapper {
 }
 
 .dark-mode .camera-streams-panel {
+  background-color: #0f172a;
+  color: #e2e8f0;
   border: clamp(0.03cqw, 0.07cqw, 0.1cqw) solid #fff;
 }
 
@@ -462,7 +500,7 @@ body.dark-mode .live-data-wrapper {
   gap: 1rem; /* Fixed at baseline value */
   position: relative;
   left: 0;
-  margin: clamp(0.3cqw, 1cqw, 2cqw) auto;
+  margin: 16px auto; /* Fixed pixel margin that won't change with screen size */
   box-sizing: border-box;
   display: flex;
   flex-wrap: wrap; /* Allow wrapping when container is too narrow */
@@ -479,23 +517,23 @@ body.dark-mode .live-data-wrapper {
   flex-grow: 0 !important; /* Prevent growing */
   min-width: 0;
 
-  /* 100% of parent container width */
+  /* Responsive container width */
   width: 100% !important; /* 100% of parent container width */
   max-width: 100% !important; /* 100% of parent container width */
   min-width: 100% !important; /* 100% of parent container width */
   margin-left: 0; /* Remove left margin so panel can grow in both directions */
   margin-right: 0; /* Remove right margin for full width */
-  overflow: visible; /* Allow content to be visible */
+  overflow: hidden; /* Prevent children from overflowing */
   background-color: transparent; /* Make background transparent */
   display: flex;
-  flex-wrap: nowrap; /* Force all items to stay on one line */
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
   justify-content: center; /* Center items in the container */
-  column-gap: 4rem; /* Increased gap between items for more spacing */
-  row-gap: 0; /* No row gap since items stay on one line */
-  padding: 1rem; /* Symmetric padding for centering */
+  column-gap: clamp(20px, 8vw, 120px); /* Responsive gap */
+  row-gap: clamp(10px, 4vw, 20px); /* Responsive row gap */
+  padding: clamp(0.5rem, 2vw, 1rem); /* Responsive padding */
   box-sizing: border-box;
 
-  border: none; /* Removed test border */
+  border: 0.1rem solid #d1d5db; /* Same border as camera sections */
   border-radius: clamp(0.3cqw, 0.7cqw, 1cqw);
 
   box-shadow: none; /* Remove shadow to prevent overlap */
@@ -510,15 +548,43 @@ body.dark-mode .live-data-wrapper {
   min-height: 9rem; /* Fixed minimum height to prevent scaling issues */
   max-height: none; /* Remove maximum height constraint */
 
-  /* Move camera streams panel up */
-  margin-top: -2rem; /* Push up camera streams panel */
+  /* Fixed positioning with camera sections */
+  margin-top: -15px; /* Reduced negative margin to move down */
 
-  /* Smooth transition for positioning */
-  transition: margin-top 0.3s ease-in-out;
+  /* Remove transition to prevent movement */
+  transition: none;
   
   /* Ensure visibility */
   visibility: visible;
   opacity: 1;
+}
+
+/* Responsive behavior for smaller screens - allow vertical stacking */
+@media (max-width: 768px) {
+  .camera-streams-panel {
+    flex-wrap: wrap !important; /* Allow wrapping on smaller screens */
+    flex-direction: column; /* Stack items vertically */
+    align-items: center; /* Center items horizontally */
+    column-gap: 80px; /* Keep uniform horizontal gap */
+    row-gap: 80px; /* Use same uniform gap for vertical spacing */
+    padding: 1.5rem 1rem; /* Increase padding for better spacing */
+    min-height: auto; /* Let content determine height */
+    margin-top: 0; /* Remove negative margin on small screens to prevent overlap */
+  }
+  
+  .camera-streams-panel--fullwidth {
+    flex-wrap: wrap !important; /* Allow wrapping on smaller screens */
+    flex-direction: column; /* Stack items vertically */
+    align-items: center; /* Center items horizontally */
+    column-gap: 80px; /* Keep uniform horizontal gap */
+    row-gap: 80px; /* Use same uniform gap for vertical spacing */
+    padding: 1.5rem 1rem; /* Increase padding for better spacing */
+    margin-top: 0; /* Remove negative margin on small screens to prevent overlap */
+  }
+  
+  .camera-section {
+    margin-top: -30px !important; /* Keep pushed up on all screen sizes */
+  }
 }
 
 .section-livedata-tite--fullwidth {
@@ -536,93 +602,103 @@ body.dark-mode .live-data-wrapper {
   height: clamp(0.2cqw, 0.6cqw, 0.8cqw);
 }
 
+/* Responsive stream group sizing using clamp */
 .stream-group {
-  flex: 0 0 auto !important; /* Fixed size - don't grow or shrink */
-  width: 200px !important; /* Fixed width in pixels */
-  min-width: 200px !important; /* Fixed minimum width */
-  max-width: 200px !important; /* Fixed maximum width */
+  flex: 0 0 auto !important;
+  width: clamp(120px, 12vw, 200px) !important;
+  min-width: clamp(120px, 12vw, 200px) !important;
+  max-width: clamp(120px, 12vw, 200px) !important;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.75rem; /* Fixed gap */
+  align-items: center !important;
+  justify-content: center;
+  gap: clamp(0.2rem, 0.4vw, 0.75rem);
   box-sizing: border-box;
-  padding: 0.75rem; /* Fixed padding */
+  padding: clamp(0.2rem, 0.4vw, 0.75rem);
   background-color: transparent;
   border: none;
   box-shadow: none;
   cursor: default;
-  transition: none !important; /* Remove transitions to prevent movement */
-  overflow: visible; /* Allow content to be visible - don't hide buttons */
-  position: relative !important; /* Fixed positioning */
-  left: 0 !important; /* Fixed left position */
-  top: 0 !important; /* Fixed top position */
-  transform: none !important; /* No transforms */
-  margin: 0 !important; /* No margins */
+  transition: none !important;
+  overflow: visible;
+  position: relative !important;
+  left: 0 !important;
+  top: 0 !important;
+  transform: none !important;
+  margin: 0 !important;
 }
 
 .stream-group h3 {
-  font-size: calc(clamp(0.8rem, 1cqw, 1.2rem) * var(--content-scale, 1)); /* Increased font size */
+  font-size: clamp(0.5rem, 0.7vw, 0.8rem);
   font-weight: 600;
-  margin-bottom: calc(0.5rem * var(--content-scale, 1)); /* Increased margin */
+  margin-bottom: clamp(0.1rem, 0.2vw, 0.5rem);
   color: #1f2937;
   text-align: center;
-  white-space: nowrap; /* Prevent text wrapping */
-  overflow: hidden; /* Hide overflow text */
-  text-overflow: ellipsis; /* Show ellipsis for overflow */
-  max-width: calc(8rem * var(--content-scale, 1)); /* Increased max width */
-  min-width: calc(4rem * var(--content-scale, 1)); /* Increased min width */
-  line-height: 1; /* Tighter line height */
-  display: block; /* Ensure proper text containment */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: clamp(4rem, 5vw, 8rem);
+  min-width: clamp(3rem, 3.5vw, 4rem);
+  line-height: 1;
+  display: block;
 }
 
 .dark-video .stream-group h3 {
   color: #e2e8f0;
 }
 
-/* Responsive images that stay within bounds */
+/* Responsive image sizing using clamp */
 .stream-group img {
-  width: calc(clamp(3rem, 4cqw, 5rem) * var(--content-scale, 1)); /* Increased responsive width */
-  height: calc(clamp(3rem, 4cqw, 5rem) * var(--content-scale, 1)); /* Increased responsive height */
+  width: clamp(80px, 10vw, 300px);
+  height: clamp(60px, 8vw, 280px);
   border-radius: 50%;
-  margin-bottom: calc(0.5rem * var(--content-scale, 1)); /* Increased responsive margin */
+  margin-bottom: clamp(0.1rem, 0.3vw, 0.5rem);
   background-color: #e7ffe7;
   object-fit: cover;
-  box-shadow: 0 0 calc(0.2rem * var(--content-scale, 1)) rgba(22, 163, 74, 0.3); /* Increased responsive shadow */
-  flex-shrink: 1; /* Allow shrinking */
+  box-shadow: 0 0 clamp(0.1rem, 0.2vw, 0.2rem) rgba(22, 163, 74, 0.3);
+  flex-shrink: 1;
+}
+
+@media (max-width: 480px) {
+  .stream-group img {
+    width: 60px;
+    height: 40px;
+  }
 }
 
 .stream-group > div {
   display: flex;
-  justify-content: center;
-  gap: 1rem; /* Increased gap between buttons */
+  justify-content: center !important;
+  align-items: center;
+  gap: clamp(0.2rem, 0.3vw, 0.5rem);
   padding: 0;
   margin: 0;
   width: 100%;
-  overflow: visible; /* Don't hide buttons */
-  flex-wrap: nowrap; /* Prevent wrapping to maintain order */
+  overflow: visible;
+  flex-wrap: nowrap;
 }
 
-/* Fixed-size buttons that maintain consistent layout */
+/* Responsive button sizing using clamp */
 .camera-btn {
-  background-color: #e8f5e8 !important; /* Light pastel green background */
-  border: 0.1rem solid #d1d5db !important; /* Thin light gray border */
-  color: #000000 !important; /* Thin black text to match the image */
-  padding: 0.5rem 1rem !important; /* Increased fixed padding */
-  border-radius: 0.4rem !important; /* Rounded rectangular shape */
+  background-color: #e8f5e8 !important;
+  border: 0.1rem solid #d1d5db !important;
+  color: #000000 !important;
+  padding: clamp(0.2rem, 0.4vw, 0.5rem) clamp(0.4rem, 0.8vw, 1rem) !important;
+  border-radius: 0.4rem !important;
   cursor: pointer !important;
   font-weight: 600 !important;
-  font-size: 0.6rem !important; /* Increased fixed font size */
-  white-space: nowrap !important; /* Prevent text wrapping */
-  overflow: hidden !important; /* Hide overflow */
-  text-overflow: ellipsis !important; /* Show ellipsis for overflow */
-  width: 7rem !important; /* Increased fixed width */
-  height: 2.5rem !important; /* Increased fixed height */
-  flex-shrink: 0 !important; /* Prevent shrinking */
-  flex-grow: 0 !important; /* Prevent growing */
-  text-align: center !important; /* Center text within button */
-  box-sizing: border-box !important; /* Include padding in width calculation */
-  display: inline-block !important; /* Ensure consistent display */
-  line-height: 1.2 !important; /* Consistent line height */
+  font-size: clamp(0.4rem, 0.5vw, 0.6rem) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  width: clamp(4rem, 6vw, 7rem) !important;
+  height: clamp(1.8rem, 2.2vw, 2.5rem) !important;
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+  display: inline-block !important;
+  line-height: 1.2 !important;
 }
 
 .camera-btn:hover {
@@ -638,10 +714,31 @@ body.dark-mode .live-data-wrapper {
   background-color: #22c55e;
 }
 
-/* Content scaling now handled via CSS custom properties in App.css */
-/* Removed media queries to prevent conflicts with dynamic scaling */
+/* All responsive sizing now handled by clamp() functions above */
 
 /* Removed media queries that were causing random shifting */
 
 /* Camera streams panel maintains fixed positioning and dimensions regardless of screen size */
 /* No media queries needed - fixed positioning prevents any shifting */
+
+/* Responsive camera streams panel icons */
+@media (min-width: 1200px) {
+  .stream-group img {
+    width: 200px !important;
+    height: 167px !important;
+  }
+}
+
+@media (min-width: 1600px) {
+  .stream-group img {
+    width: 150px !important;
+    height: 125px !important;
+  }
+}
+
+@media (min-width: 2000px) {
+  .stream-group img {
+    width: 120px !important;
+    height: 100px !important;
+  }
+}

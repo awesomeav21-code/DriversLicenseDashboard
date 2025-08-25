@@ -85,6 +85,24 @@ function LeftArrowIcon({ size = 24, color = "#233046" }) {
   )
 }
 
+function RightArrowIcon({ size = 24, color = "#233046" }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="9 18 15 12 9 6" />
+    </svg>
+  )
+}
+
 function HamburgerMenu({ show, locked, onHover, onUnhover, onClick }) {
   const visible = show || locked
   
@@ -128,7 +146,11 @@ function HamburgerMenu({ show, locked, onHover, onUnhover, onClick }) {
         }}
         title="Show/Hide Event Logs"
       >
-        <LeftArrowIcon size={24} color="#233046" style={arrowStyle} />
+        {locked ? (
+          <RightArrowIcon size={24} color="#233046" style={arrowStyle} />
+        ) : (
+          <LeftArrowIcon size={24} color="#233046" style={arrowStyle} />
+        )}
       </div>
     </div>
   )
@@ -353,6 +375,60 @@ export default function App() {
   const camera2Zones = zones.filter(z => z.camera?.trim().toLowerCase() === 'planck_2')
   const filterZonesByCamera = cameraName => zones.filter(z => z.camera?.trim().toLowerCase() === cameraName)
 
+  // Add responsive margin logic for dashboard container
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [windowHeight, setWindowHeight] = useState(window.innerHeight);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+      setWindowHeight(window.innerHeight);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Calculate responsive left margin for dashboard container
+  const getDashboardLeftMargin = () => {
+    const screenWidth = windowWidth;
+    
+    // Use smaller margins to prevent excessive shrinking on smaller screens
+    if (screenWidth >= 1920) {
+      return '0.3vw'; // Large screens - reduced margin
+    } else if (screenWidth >= 1600) {
+      return '0.4vw'; // Medium-large screens - reduced margin
+    } else if (screenWidth >= 1366) {
+      return '0.5vw'; // Standard laptop screens - reduced margin
+    } else if (screenWidth >= 1024) {
+      return '0.6vw'; // Small laptop screens - reduced margin
+    } else if (screenWidth >= 768) {
+      return '0.7vw'; // Tablet screens - reduced margin
+    } else {
+      return '0.8vw'; // Mobile and small screens - reduced margin
+    }
+  };
+
+
+
+
+  // Set fixed horizontal gaps that never change with screen size
+  useEffect(() => {
+    document.documentElement.style.setProperty('--horizontal-gap', '10px');
+    document.documentElement.style.setProperty('--hamburger-margin', '10px');
+    document.documentElement.style.setProperty('--dashboard-left-margin', '21px');
+  }, []);
+
+  // Add blue flash effect when margin changes
+  const [isFlashing, setIsFlashing] = useState(false);
+  
+  useEffect(() => {
+    // Flash blue when window width changes
+    console.log('Window width changed to:', windowWidth, 'Margin will be:', getDashboardLeftMargin());
+    setIsFlashing(true);
+    const timer = setTimeout(() => setIsFlashing(false), 800);
+    return () => clearTimeout(timer);
+  }, [windowWidth]);
+
   const handleHamburgerHover = () => setHamburgerHovered(true)
   const handleHamburgerUnhover = () => { if (!hamburgerLocked) setHamburgerHovered(false) }
   const handleHamburgerClick = () => {
@@ -367,58 +443,70 @@ export default function App() {
     <>
       <Header isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} tempUnit={tempUnit} setTempUnit={setTempUnit} />
       <Navigation activeTab={activeTab} setActiveTab={setActiveTab} isDarkMode={isDarkMode} />
+
       <div className="app-layout">
         <div className="main-content">
+          {activeTab === 'dashboard' && eventLogsVisible && (
+            <SidebarPanel
+              isDarkMode={isDarkMode}
+              startDate={startDate}
+              setStartDate={setStartDate}
+              endDate={endDate}
+              setEndDate={setEndDate}
+              logs={filteredLogs}
+              visibleZones={visibleZones}
+              zones={zones}
+              history={history}
+              addZone={addZone}
+              zoneCameraMap={zoneCameraMap}
+              onDatePick={(start, end) => { setStartDate(start); setEndDate(end) }}
+            />
+          )}
           {activeTab === 'dashboard' && (
-            <div className="sidebarpanel-hamburger-row">
-              {eventLogsVisible && (
-                <SidebarPanel
-                  isDarkMode={isDarkMode}
-                  startDate={startDate}
-                  setStartDate={setStartDate}
-                  endDate={endDate}
-                  setEndDate={setEndDate}
-                  logs={filteredLogs}
-                  visibleZones={visibleZones}
-                  zones={zones}
-                  history={history}
-                  addZone={addZone}
-                  zoneCameraMap={zoneCameraMap}
-                  onDatePick={(start, end) => { setStartDate(start); setEndDate(end) }}
-                />
-              )}
-              <HamburgerMenu
-                show={hamburgerHovered}
-                locked={hamburgerLocked}
-                onHover={handleHamburgerHover}
-                onUnhover={handleHamburgerUnhover}
-                onClick={handleHamburgerClick}
-              />
-            </div>
+            <HamburgerMenu
+              show={hamburgerHovered}
+              locked={hamburgerLocked}
+              onHover={handleHamburgerHover}
+              onUnhover={handleHamburgerUnhover}
+              onClick={handleHamburgerClick}
+            />
           )}
           <div className="content-area">
             {activeTab === 'dashboard' && (
               <div className="dashboard-wrapper">
                 <div 
-                  className={`big-dashboard-container${!eventLogsVisible ? '--fullwidth' : ''}`}
+                  className={`big-dashboard-container${!eventLogsVisible ? ' --fullwidth' : ''}`}
+                  style={{ 
+                    marginLeft: `${getDashboardLeftMargin()}`,
+                    marginRight: !eventLogsVisible ? `${getDashboardLeftMargin()}` : '0px',
+                    width: !eventLogsVisible ? 'calc(100% + 300px)' : 'auto',
+                    maxWidth: '100%',
+                    transition: 'margin-left 0.3s ease, margin-right 0.3s ease, width 0.3s ease !important',
+                    zIndex: 1000,
+                    overflow: 'hidden',
+                    position: 'relative'
+                  }}
                 >
-                  <VideoFeed
-                    isDarkMode={isDarkMode}
-                    tempUnit={tempUnit}
-                    camera1Zones={camera1Zones}
-                    camera2Zones={camera2Zones}
-                    show360Popup={show360Popup}
-                    setShow360Popup={setShow360Popup}
-                    selectedThermalCamera={selectedThermalCamera}
-                    setSelectedThermalCamera={setSelectedThermalCamera}
-                    isHoveringThermal={false}
-                    setIsHoveringThermal={() => {}}
-                    selectedOpticalCamera={selectedOpticalCamera}
-                    setSelectedOpticalCamera={setSelectedOpticalCamera}
-                    isHoveringOptical={false}
-                    setIsHoveringOptical={() => {}}
-                    filterZonesByCamera={filterZonesByCamera}
-                  />
+
+                  <div style={{ width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
+                    <VideoFeed
+                      isDarkMode={isDarkMode}
+                      tempUnit={tempUnit}
+                      camera1Zones={camera1Zones}
+                      camera2Zones={camera2Zones}
+                      show360Popup={show360Popup}
+                      setShow360Popup={setShow360Popup}
+                      selectedThermalCamera={selectedThermalCamera}
+                      setSelectedThermalCamera={setSelectedThermalCamera}
+                      isHoveringThermal={false}
+                      setIsHoveringThermal={() => {}}
+                      selectedOpticalCamera={selectedOpticalCamera}
+                      setSelectedOpticalCamera={setSelectedOpticalCamera}
+                      isHoveringOptical={false}
+                      setIsHoveringOptical={() => {}}
+                      filterZonesByCamera={filterZonesByCamera}
+                    />
+                  </div>
                 </div>
               </div>
             )}

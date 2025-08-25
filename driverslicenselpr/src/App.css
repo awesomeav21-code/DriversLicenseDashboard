@@ -1,5 +1,20 @@
 
 /* Reset and base styles */
+@keyframes pulse {
+  0% { 
+    border-left-width: 0.5rem;
+    box-shadow: none;
+  }
+  50% { 
+    border-left-width: 2rem;
+    box-shadow: 0 0 20px #0066ff;
+  }
+  100% { 
+    border-left-width: 0.5rem;
+    box-shadow: none;
+  }
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -52,6 +67,16 @@ body.screen-size-base {
 .sidebarpanel-hamburger-row {
   margin-right: 1%;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  position: relative; /* Required for absolute positioning of hamburger menu */
+  z-index: 5;
+  min-width: 0; /* Allow shrinking when sidebar is hidden */
+  max-width: 200px; /* Set a reasonable maximum width */
+  width: auto; /* Let flexbox determine width */
+  padding: 0; /* Remove any padding */
+  margin: 0; /* Remove any margin */
 }
 
 .content-area {
@@ -90,13 +115,16 @@ body.dark-mode .mini-navbar-outer::after {
 }
 
 .big-dashboard-container {
-  /* Use flexbox for truly responsive width */
-  flex: 1; /* Take up available space */
+  /* Remove flex to allow width to work properly */
+  /* flex: 1; */ /* Commented out to prevent override */
   min-width: 0; /* Allow shrinking to fit container */
   max-width: none; /* No maximum width constraint */
   height: auto;
   min-height: 0; /* Allow content to determine height */
   max-height: none; /* Remove height constraint to prevent overflow */
+  
+  /* Responsive width stretching - MUCH wider for testing */
+  width: calc(100% + 300px) !important; /* Force width with !important - much wider for testing */
   
   /* Dynamic positioning - moves up as screen gets larger */
   position: relative;
@@ -109,21 +137,20 @@ body.dark-mode .mini-navbar-outer::after {
   z-index: 10; /* Lower z-index so it doesn't go above the footer */
   position: relative; /* Ensure stacking context */
   margin-top: 0.2% !important;
-  margin-left: 2%; /* Move container to the right */
+  /* margin-left removed - handled by inline styles in JSX */
   margin-right: -30px; /* Increased negative right margin */
   margin-bottom: 1%; /* Reduced bottom margin */
-  width: auto; /* Let flexbox determine width automatically */
   padding: 1%; /* Use percentage padding */
   
-  /* Visual styling with debug border */
+  /* Visual styling with proper border */
   background-color: #fff !important; /* White background with !important to override any inherited backgrounds */
   background: linear-gradient(to right, #fff 0%, #fff 100%) !important; /* Solid white background to cover mint green */
-  border-radius: clamp(0.8cqw, 1cqw, 1.2cqw);
+  border-radius: clamp(0.3cqw, 0.4cqw, 0.5cqw);
   box-shadow: 0 clamp(0.3cqw, 0.4cqw, 0.5cqw) clamp(1.8cqw, 2.4cqw, 3cqw) 0 rgba(30, 40, 60, 0.10);
-  border: 8px solid #ffff00; /* TEST BORDER - Bright yellow thick border to show width increased */
+  border: 0.1rem solid #d1d5db; /* Same border as camera sections */
   box-sizing: border-box;
   
-  /* Prevent overflow */
+  /* Constrain children within container */
   overflow: hidden;
 }
 
@@ -137,46 +164,35 @@ body.dark-mode .mini-navbar-outer::after {
 
 body.dark-mode .big-dashboard-container {
   background: #0f172a;
-  border: clamp(0.08cqw, 0.1cqw, 0.12cqw) solid #fff;
+  /* Border removed - handled by inline styles */
   color: #e0e8f0;
   box-shadow: 0 clamp(0.3cqw, 0.4cqw, 0.5cqw) clamp(1.8cqw, 2.4cqw, 3cqw) 0 rgba(10, 18, 28, 0.45);
 }
 
-.sidebarpanel-hamburger-row {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  position: relative; /* Required for absolute positioning of hamburger menu */
-  z-index: 5;
-  min-width: 0; /* Allow shrinking when sidebar is hidden */
-  max-width: none; /* No maximum width constraint */
-  flex-shrink: 1; /* Allow shrinking when sidebar is hidden */
-  width: auto; /* Let flexbox determine width */
-}
+/* Removed duplicate sidebarpanel-hamburger-row definition */
 
 /* On very large screens, maintain consistent sidebar width */
 @media (min-width: 1920px) {
   .sidebarpanel-hamburger-row {
     width: auto; /* Let flexbox determine width */
     min-width: 0; /* Allow shrinking */
-    max-width: none; /* No maximum width constraint */
+    max-width: 200px; /* Keep reasonable maximum width */
   }
 }
 
 .hamburger-area {
-  position: relative; /* Changed from absolute to relative */
-  right: auto; /* Remove fixed right positioning */
-  top: auto; /* Remove fixed top positioning */
-  align-self: flex-start;
+  position: absolute; /* Absolute positioning relative to parent */
+  top: 20px; /* Position from top of parent */
+  right: 20px; /* Fixed distance from right edge of parent */
   transform: none; /* Remove transform that was hiding it */
   opacity: 1; /* Make it fully visible */
-  width: clamp(2.5cqw, 3.4cqw, 4.2cqw);
-  height: clamp(3.6cqw, 4.8cqw, 6cqw);
+  width: 50px; /* Fixed width */
+  height: 50px; /* Fixed height */
   overflow: visible;
   cursor: pointer;
-  z-index: 10; /* Higher z-index to ensure visibility */
+  z-index: 10000; /* Very high z-index to ensure visibility above dashboard */
   pointer-events: auto;
-  margin-left: 10px; /* Add some margin for spacing */
+  margin: 0; /* Remove margin since we're using absolute positioning */
 }
 
 .hamburger-area::before {
@@ -195,29 +211,30 @@ body.dark-mode .big-dashboard-container {
 }
 
 .hamburger-menu {
-  border-radius: clamp(1.8cqw, 2.4cqw, 3cqw);
+  border-radius: 50%; /* Perfect circle */
   background: #fff;
-  box-shadow: 0 clamp(0.15cqw, 0.2cqw, 0.25cqw) clamp(1.05cqw, 1.4cqw, 1.75cqw) rgba(20,30,50,0.11);
-  border: clamp(0.08cqw, 0.1cqw, 0.12cqw) solid #eee;
-  min-width: clamp(2.5cqw, 3.4cqw, 4.2cqw);
-  min-height: clamp(2.5cqw, 3.4cqw, 4.2cqw);
+  box-shadow: 0 4px 12px rgba(20,30,50,0.15);
+  border: 2px solid #eee;
+  width: 50px; /* Fixed width */
+  height: 50px; /* Fixed height */
+  min-width: 50px;
+  min-height: 50px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: clamp(0.75cqw, 1cqw, 1.25cqw);
+  justify-content: center;
+  margin: 0; /* Remove margin */
+  transition: all 0.2s ease;
 }
 
 .hamburger-menu.open,
 .hamburger-menu.locked {
   background: #fff;
-  box-shadow: 0 clamp(0.15cqw, 0.2cqw, 0.25cqw) clamp(1.05cqw, 1.4cqw, 1.75cqw) rgba(20,30,50,0.11);
-  border: clamp(0.08cqw, 0.1cqw, 0.12cqw) solid #eee;
+  box-shadow: 0 6px 16px rgba(20,30,50,0.2);
+  border: 2px solid #ddd;
 }
 
-.sidebarpanel-hamburger-row > .hamburger-area {
-  margin-left: 10px; /* Consistent margin */
-  align-self: flex-start;
-}
+/* Remove old margin rule since we're using fixed positioning */
 
 body.light-mode {
   background-color: #f8f9fa;
@@ -292,7 +309,7 @@ body.dark-mode .page-wrapper {
   display: flex;
   flex-direction: row-reverse; /* Keep sidebar on right */
   align-items: flex-start;
-  gap: 20px; /* Add consistent gap between sidebar and dashboard */
+  gap: var(--horizontal-gap, 20px); /* JavaScript-controlled horizontal gap */
   box-sizing: border-box;
   min-height: 0; /* Allow content to scale properly */
   background: transparent;
@@ -397,36 +414,38 @@ body.dark-mode .fixed-popup {
 
 .big-dashboard-container--fullwidth {
   /* Use flexbox for truly responsive width */
-  flex: 1; /* Same as regular mode */
+  /* flex: 1; */ /* Commented out to prevent override */
   min-width: 0; /* Allow shrinking to fit container */
   max-width: none; /* No maximum width constraint */
   height: auto;
   min-height: 0; /* Allow content to determine height */
   max-height: none; /* Remove height constraint to prevent overflow */
   
-  /* Same positioning as regular mode */
+  /* Responsive width - let container size naturally in fullwidth mode */
+  width: 90%; /* Use 90% width to create even spacing */
+  max-width: 1400px; /* Set a reasonable maximum width */
+  
+  /* Use proper margins for even spacing */
   position: relative;
   top: var(--dashboard-top, 0vh); /* Same as regular mode */
   left: 0;
-  transform: scaleY(var(--height-scale, 1)); /* Same as regular mode */
+  transform: scaleY(var(--height-scale, 1)); /* Scale height only */
   transform-origin: top center; /* Same as regular mode */
   display: flex;
   flex-direction: column; /* Same as regular mode */
   z-index: 10; /* Same as regular mode */
   position: relative; /* Same as regular mode */
   margin-top: 0.2% !important; /* Same as regular mode */
-  margin-left: 2%; /* Same as regular mode */
-  margin-right: -30px; /* Same as regular mode */
+  /* margin-left and margin-right handled by inline styles in JSX for fullwidth mode */
   margin-bottom: 1%; /* Same as regular mode */
-  width: auto; /* Let flexbox determine width automatically */
   padding: 1%; /* Same as regular mode */
   
   /* Same visual styling as regular mode */
   background-color: #fff !important; /* Same as regular mode */
   background: linear-gradient(to right, #fff 0%, #fff 100%) !important; /* Same as regular mode */
-  border-radius: clamp(0.8cqw, 1cqw, 1.2cqw); /* Same as regular mode */
+  border-radius: clamp(0.3cqw, 0.4cqw, 0.5cqw); /* Same as regular mode */
   box-shadow: 0 clamp(0.3cqw, 0.4cqw, 0.5cqw) clamp(1.8cqw, 2.4cqw, 3cqw) 0 rgba(30, 40, 60, 0.10); /* Same as regular mode */
-  border: 8px solid #ffff00; /* Same as regular mode */
+  border: 0.1rem solid #d1d5db; /* Same border as camera sections */
   box-sizing: border-box;
   
   /* Same overflow handling as regular mode */
