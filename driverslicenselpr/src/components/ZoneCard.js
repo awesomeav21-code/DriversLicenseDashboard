@@ -44,7 +44,7 @@ export default function ZoneCard({
   // Add the --fullwidth class conditionally here like you did for zone-grid-wrapper
   const zoneCardClassName = `zone-card ${extraClass} ${isDarkMode ? 'dark-zone' : ''}${
     expandFullWidth ? ' zone-card--fullwidth' : ''
-  }`;
+  }${zone.name.toLowerCase() === 'global' ? ' zone-card--global' : ''}`;
 
   return (
     <div className={zoneCardClassName}>

@@ -103,3 +103,19 @@
   max-width: none !important;
   aspect-ratio: auto !important;
 }
+
+/* Global zone card - rectangular shape */
+.zone-card--global {
+  height: 180px !important; /* Increased height for better proportions */
+  min-height: 180px !important; /* Increased min-height */
+  grid-column: span 2 !important; /* Make it span 2 grid columns to be wider */
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Ensure other zone cards remain square */
+.zone-card:not(.zone-card--global) {
+  height: 200px !important; /* Keep fixed height for square cards */
+  min-height: 180px !important; /* Keep min-height for square cards */
+  aspect-ratio: 1 / 1 !important; /* Keep square shape */
+}
