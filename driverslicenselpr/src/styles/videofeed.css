@@ -58,6 +58,8 @@
   gap: 10px; /* Small fixed gap to keep content below header */
   box-sizing: border-box;
   /* No scaling here - let App.js handle container scaling */
+  transform: none !important; /* Prevent any transforms */
+  transition: none !important; /* Prevent any transitions */
 }
 
 /* Cameras scale wrapper - missing CSS rule */
@@ -69,7 +71,7 @@
   box-sizing: border-box;
   overflow: visible; /* Allow content to be visible */
   margin-top: 0; /* Remove negative margin to prevent overlap */
-  z-index: 15; /* Higher than live-data-header to prevent covering */
+  z-index: 5; /* Lower than live-data-header to prevent covering */
 }
 
 /* Fixed gaps to maintain 1424px baseline layout */
@@ -133,7 +135,7 @@
   position: relative;
   margin-left: auto;
   margin-right: auto;
-  top: 0; /* Reset to normal position since we're using gap now */
+  /* Removed top positioning to prevent movement */
   height: auto;
   min-height: 0;
   max-height: none;
@@ -153,17 +155,28 @@ body.dark-mode .live-data-wrapper {
   font-size: 1.2rem; /* Fixed font size - no responsive units */
   font-weight: 600;
   color: #1f2937;
-  position: relative;
-  left: 0; /* Reset to normal position */
-  margin-left: -20px; /* Move further to the left with fixed margin */
-  padding: 12px 20px; /* Fixed pixel padding */
-  z-index: 10; /* Ensure it's above other elements */
+  position: relative; /* Back to relative positioning */
+  left: 0; /* Fixed position - no responsive changes */
+  margin-left: -20px; /* Fixed margin - no responsive changes */
+  margin-top: 0; /* Reset margin */
+  padding: 20px 20px 12px 20px; /* Increase top padding to move text down */
+  z-index: 5; /* Lower than hamburger menu to prevent overlap */
   background-color: transparent; /* Removed test background */
   margin-bottom: 16px; /* Fixed pixel margin */
   white-space: nowrap; /* Prevent text wrapping */
   overflow: hidden; /* Hide overflow */
   text-overflow: ellipsis; /* Show ellipsis for overflow */
   max-width: 100%; /* Stay within parent bounds */
+  transform: none !important; /* Fixed position - no movement */
+  transition: none !important; /* No transitions */
+  pointer-events: auto !important; /* Ensure it can receive mouse events */
+  /* Prevent any responsive behavior */
+  min-height: auto !important;
+  max-height: none !important;
+  height: auto !important;
+  width: auto !important;
+  min-width: auto !important;
+  max-width: none !important;
 }
 
 .dark-video .live-data-header {
@@ -273,12 +286,12 @@ body.dark-mode .live-data-wrapper {
   display: flex !important; /* Force flex display */
   column-gap: 0.5rem; /* Very small gap to ensure sections fit on small screens */
   max-width: 100%; /* Ensure it doesn't overflow container */
-  position: relative;
+  position: relative !important;
   flex-wrap: nowrap !important; /* Force no wrapping */
   
-  /* Natural positioning */
-  left: 0;
-  top: 0; /* Remove negative offset */
+  /* Responsive positioning - moves down on smaller screens */
+  left: 0 !important;
+  top: clamp(-22px, -1.1vw, -19px) !important; /* Responsive top position - moved slightly down */
   
   /* Responsive width that adapts to container */
   width: 100%;
@@ -293,6 +306,9 @@ body.dark-mode .live-data-wrapper {
   overflow: visible;
   margin-left: auto;
   margin-right: auto;
+  
+  /* Allow smooth transitions for responsive positioning */
+  transition: top 0.3s ease-in-out !important;
 }
 
 /* Remove conflicting dashboard container styles - handled in App.css */
@@ -320,8 +336,8 @@ body.dark-mode .live-data-wrapper {
   min-height: 288px !important; /* Fixed pixel minimum height */
   max-height: none !important; /* No maximum height constraint */
   
-  z-index: 100;
-  margin-top: -30px !important; /* Increased negative margin to push up more */
+  z-index: 50; /* Lower than live-data-header */
+  margin-top: 0 !important; /* Fixed position - no negative margin */
   transition: none !important; /* Remove transition to prevent any movement */
   transform: none !important; /* Override any parent scaling */
   transform-origin: top center !important; /* Reset transform origin */
@@ -351,14 +367,14 @@ body.dark-mode .live-data-wrapper {
 
 .section-livedata-tite {
   position: relative;
-  top: 0; /* Fixed: removed negative positioning */
+  /* Removed top positioning to prevent movement */
   left: 0; /* Fixed: removed negative positioning */
   font-size: calc(clamp(0.4cqw, 0.85cqw, 1cqw) * max(0.8, var(--content-scale, 1))); /* Reduced scaling - minimum 0.8 scale */
   transition: font-size 0.3s ease-in-out; /* Smooth transition for font size changes */
 }
 
 .section-title {
-  font-size: calc(1rem * max(0.8, var(--content-scale, 1))); /* Reduced scaling - minimum 0.8 scale */
+  font-size: calc(1.5rem * max(0.8, var(--content-scale, 1))); /* Increased from 1rem to 1.5rem */
   font-weight: 600;
   color: #1f2937;
   position: relative;
@@ -442,15 +458,15 @@ body.dark-mode .live-data-wrapper {
 
 .zone-grid {
   display: grid; /* Use grid for responsive columns */
-  grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr)); /* Smaller minimum width to fit more columns */
-  gap: 0.25rem; /* Fixed small gap between cards */
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); /* Increased minimum width to 12rem for wider cards */
+  gap: 0.75rem; /* Increased gap for better spacing with larger cards */
   position: relative; 
   left: 0;
   width: 100%; /* Stay within camera section width */
   max-width: 100%; /* Don't exceed camera section width */
   margin: 0 auto; /* Center the grid */
   box-sizing: border-box;
-  padding: 0.25rem; /* Fixed small padding */
+  padding: 0.75rem; /* Increased padding for better spacing */
   background-color: #f3f4f6; /* Match zone card background color */
   border-radius: 0.5rem;
   overflow-x: auto; /* Horizontal scroll for large screens */
@@ -538,8 +554,9 @@ body.dark-mode .live-data-wrapper {
 
   box-shadow: none; /* Remove shadow to prevent overlap */
 
-  position: relative;
-  left: 0;
+  position: relative !important;
+  left: 0 !important;
+  top: clamp(-22px, -1.1vw, -19px) !important; /* Responsive top position - moved slightly down */
 
   z-index: 3; /* Higher z-index to ensure visibility */
 
@@ -549,10 +566,10 @@ body.dark-mode .live-data-wrapper {
   max-height: none; /* Remove maximum height constraint */
 
   /* Fixed positioning with camera sections */
-  margin-top: -15px; /* Reduced negative margin to move down */
+  margin-top: 0; /* Fixed position - no negative margin */
 
-  /* Remove transition to prevent movement */
-  transition: none;
+  /* Allow smooth transitions for responsive positioning */
+  transition: top 0.3s ease-in-out;
   
   /* Ensure visibility */
   visibility: visible;
@@ -583,7 +600,7 @@ body.dark-mode .live-data-wrapper {
   }
   
   .camera-section {
-    margin-top: -30px !important; /* Keep pushed up on all screen sizes */
+    margin-top: 0 !important; /* Fixed position - no negative margin */
   }
 }
 
@@ -602,19 +619,19 @@ body.dark-mode .live-data-wrapper {
   height: clamp(0.2cqw, 0.6cqw, 0.8cqw);
 }
 
-/* Responsive stream group sizing using clamp */
+/* Responsive stream group sizing */
 .stream-group {
   flex: 0 0 auto !important;
-  width: clamp(120px, 12vw, 200px) !important;
-  min-width: clamp(120px, 12vw, 200px) !important;
-  max-width: clamp(120px, 12vw, 200px) !important;
+  width: clamp(200px, 20vw, 350px) !important;
+  min-width: clamp(200px, 20vw, 350px) !important;
+  max-width: clamp(200px, 20vw, 350px) !important;
   display: flex;
   flex-direction: column;
   align-items: center !important;
   justify-content: center;
-  gap: clamp(0.2rem, 0.4vw, 0.75rem);
+  gap: 0.5rem;
   box-sizing: border-box;
-  padding: clamp(0.2rem, 0.4vw, 0.75rem);
+  padding: 0.5rem;
   background-color: transparent;
   border: none;
   box-shadow: none;
@@ -629,16 +646,16 @@ body.dark-mode .live-data-wrapper {
 }
 
 .stream-group h3 {
-  font-size: clamp(0.5rem, 0.7vw, 0.8rem);
+  font-size: clamp(0.8rem, 1.2vw, 1.5rem);
   font-weight: 600;
-  margin-bottom: clamp(0.1rem, 0.2vw, 0.5rem);
+  margin-bottom: 0.3rem;
   color: #1f2937;
   text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: clamp(4rem, 5vw, 8rem);
-  min-width: clamp(3rem, 3.5vw, 4rem);
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  max-width: clamp(6rem, 10vw, 12rem);
+  min-width: clamp(4rem, 6vw, 8rem);
   line-height: 1;
   display: block;
 }
@@ -647,30 +664,45 @@ body.dark-mode .live-data-wrapper {
   color: #e2e8f0;
 }
 
-/* Responsive image sizing using clamp */
-.stream-group img {
-  width: clamp(80px, 10vw, 300px);
-  height: clamp(60px, 8vw, 280px);
+/* Fixed image sizing - no responsive scaling */
+.stream-group img:not(.dynamic-stream-image) {
+  width: 50px !important;
+  height: 50px !important;
   border-radius: 50%;
-  margin-bottom: clamp(0.1rem, 0.3vw, 0.5rem);
+  margin-bottom: 0.3rem;
   background-color: #e7ffe7;
   object-fit: cover;
-  box-shadow: 0 0 clamp(0.1rem, 0.2vw, 0.2rem) rgba(22, 163, 74, 0.3);
+  box-shadow: 0 0 0.2rem rgba(22, 163, 74, 0.3);
   flex-shrink: 1;
+  max-width: 50px !important;
+  min-width: 50px !important;
+  max-height: 50px !important;
+  min-height: 50px !important;
 }
 
-@media (max-width: 480px) {
-  .stream-group img {
-    width: 60px;
-    height: 40px;
-  }
+/* Dynamic stream images - responsive sizing that grows on larger screens */
+.camera-streams-panel .stream-group .dynamic-stream-image {
+  width: clamp(100px, 15vw, 300px) !important;
+  height: clamp(100px, 15vw, 300px) !important;
+  border-radius: 50%;
+  margin-bottom: 0.3rem;
+  background-color: #e7ffe7;
+  object-fit: cover;
+  box-shadow: 0 0 0.2rem rgba(22, 163, 74, 0.3);
+  flex-shrink: 1;
+  max-width: clamp(100px, 15vw, 300px) !important;
+  min-width: clamp(100px, 15vw, 300px) !important;
+  max-height: clamp(100px, 15vw, 300px) !important;
+  min-height: clamp(100px, 15vw, 300px) !important;
 }
+
+/* Responsive media query REMOVED - keeping fixed 50px width */
 
 .stream-group > div {
   display: flex;
   justify-content: center !important;
   align-items: center;
-  gap: clamp(0.2rem, 0.3vw, 0.5rem);
+  gap: 0.5rem;
   padding: 0;
   margin: 0;
   width: 100%;
@@ -678,31 +710,86 @@ body.dark-mode .live-data-wrapper {
   flex-wrap: nowrap;
 }
 
-/* Responsive button sizing using clamp */
+/* Responsive button sizing */
 .camera-btn {
   background-color: #e8f5e8 !important;
   border: 0.1rem solid #d1d5db !important;
   color: #000000 !important;
-  padding: clamp(0.2rem, 0.4vw, 0.5rem) clamp(0.4rem, 0.8vw, 1rem) !important;
+  padding: clamp(0.4rem, 0.6vw, 0.8rem) clamp(0.6rem, 1vw, 1.4rem) !important;
   border-radius: 0.4rem !important;
   cursor: pointer !important;
   font-weight: 600 !important;
-  font-size: clamp(0.4rem, 0.5vw, 0.6rem) !important;
+  font-size: clamp(0.8rem, 1vw, 1.3rem) !important;
   white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  width: clamp(4rem, 6vw, 7rem) !important;
-  height: clamp(1.8rem, 2.2vw, 2.5rem) !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  width: auto !important;
+  min-width: clamp(5rem, 7vw, 12rem) !important;
+  max-width: none !important;
+  height: clamp(2rem, 3vw, 3.5rem) !important;
   flex-shrink: 0 !important;
   flex-grow: 0 !important;
-  text-align: center !important;
+  text-align: left !important;
   box-sizing: border-box !important;
   display: inline-block !important;
   line-height: 1.2 !important;
+  transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+}
+
+/* Force left alignment for Right Camera button text only */
+.right-camera-btn {
+  text-align: left !important;
+  padding-left: 4px !important;
+}
+
+/* Even more specific targeting */
+.camera-streams-panel .right-camera-btn {
+  text-align: left !important;
+  padding-left: 4px !important;
+}
+
+/* Make all camera buttons in streams panel responsive - smaller on small screens, larger on big screens */
+.camera-streams-panel .stream-group .camera-btn {
+  width: auto !important;
+  min-width: clamp(100px, 10vw, 150px) !important;
+  max-width: none !important;
+  height: clamp(35px, 3.5vw, 50px) !important;
+  min-height: clamp(35px, 3.5vw, 50px) !important;
+  max-height: clamp(35px, 3.5vw, 50px) !important;
+  font-size: clamp(15px, 1.5vw, 22px) !important;
+  padding: clamp(5px, 0.9vw, 10px) clamp(12px, 1.5vw, 16px) !important;
+  text-align: left !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+}
+
+/* Override any responsive text alignment for Right Camera buttons */
+@media (min-width: 1200px) {
+  .camera-streams-panel .stream-group .right-camera-btn {
+    text-align: left !important;
+    padding-left: 4px !important;
+  }
+}
+
+@media (min-width: 1600px) {
+  .camera-streams-panel .stream-group .right-camera-btn {
+    text-align: left !important;
+    padding-left: 4px !important;
+  }
+}
+
+@media (min-width: 2000px) {
+  .camera-streams-panel .stream-group .right-camera-btn {
+    text-align: left !important;
+    padding-left: 4px !important;
+  }
 }
 
 .camera-btn:hover {
-  background-color: #15803d;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  border-color: #6ca956 !important; /* Green border on hover */
+  background-color: #f0f9f0 !important; /* Very light green background on hover */
 }
 
 .dark-video .camera-btn {
@@ -711,7 +798,9 @@ body.dark-mode .live-data-wrapper {
 }
 
 .dark-video .camera-btn:hover {
-  background-color: #22c55e;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
+  border-color: #8DB600 !important; /* Green border on hover in dark mode */
+  background-color: #1a2e1a !important; /* Very light green background on hover in dark mode */
 }
 
 /* All responsive sizing now handled by clamp() functions above */
@@ -721,24 +810,4 @@ body.dark-mode .live-data-wrapper {
 /* Camera streams panel maintains fixed positioning and dimensions regardless of screen size */
 /* No media queries needed - fixed positioning prevents any shifting */
 
-/* Responsive camera streams panel icons */
-@media (min-width: 1200px) {
-  .stream-group img {
-    width: 200px !important;
-    height: 167px !important;
-  }
-}
-
-@media (min-width: 1600px) {
-  .stream-group img {
-    width: 150px !important;
-    height: 125px !important;
-  }
-}
-
-@media (min-width: 2000px) {
-  .stream-group img {
-    width: 120px !important;
-    height: 100px !important;
-  }
-}
+/* Responsive camera streams panel icons - REMOVED to keep 50px width */

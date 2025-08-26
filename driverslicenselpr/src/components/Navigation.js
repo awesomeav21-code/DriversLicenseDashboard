@@ -9,7 +9,8 @@ export default function Navigation({ activeTab, setActiveTab, isDarkMode }) {
       className={`navigation ${isDarkMode ? 'dark-nav' : 'light-nav'}`}
       style={{
         width: 'calc(100% - 240px)',
-        marginLeft: '240px'
+        marginLeft: '240px', 
+        zIndex: 1, 
       }}
     >
       <button

@@ -89,7 +89,8 @@ body.screen-size-base {
   min-height: 100vh; /* Full viewport height */
   display: flex;
   flex-direction: column;
-  overflow-x: hidden; /* Prevent horizontal overflow */
+  overflow-x: visible; /* Allow hamburger menu to be visible */
+  position: relative; /* Required for absolute positioning of hamburger menu */
 }
 
 /* Ensure footer stays at bottom */
@@ -136,11 +137,11 @@ body.dark-mode .mini-navbar-outer::after {
   flex-direction: column; /* Ensure VideoFeed stacks vertically */
   z-index: 10; /* Lower z-index so it doesn't go above the footer */
   position: relative; /* Ensure stacking context */
-  margin-top: 0.2% !important;
+  margin-top: 0 !important;
   /* margin-left removed - handled by inline styles in JSX */
   margin-right: -30px; /* Increased negative right margin */
   margin-bottom: 1%; /* Reduced bottom margin */
-  padding: 1%; /* Use percentage padding */
+  padding: 0 1% 1% 1%; /* Remove top padding to prevent overlap with header */
   
   /* Visual styling with proper border */
   background-color: #fff !important; /* White background with !important to override any inherited backgrounds */
@@ -181,29 +182,21 @@ body.dark-mode .big-dashboard-container {
 }
 
 .hamburger-area {
-  position: absolute; /* Absolute positioning relative to parent */
-  top: 20px; /* Position from top of parent */
-  right: 20px; /* Fixed distance from right edge of parent */
+  position: absolute; /* Absolute positioning relative to app-layout */
+  top: 20px; /* Position from top of app-layout */
+  right: 20px; /* Move the hamburger button a bit more to the right */
   transform: none; /* Remove transform that was hiding it */
   opacity: 1; /* Make it fully visible */
   width: 50px; /* Fixed width */
   height: 50px; /* Fixed height */
   overflow: visible;
   cursor: pointer;
-  z-index: 10000; /* Very high z-index to ensure visibility above dashboard */
+  z-index: 10002; /* Higher than header (10001) to ensure visibility */
   pointer-events: auto;
   margin: 0; /* Remove margin since we're using absolute positioning */
 }
 
-.hamburger-area::before {
-  content: "";
-  position: absolute;
-  left: clamp(-1.8cqw, -2.4cqw, -3cqw);
-  top: 0;
-  width: clamp(2.1cqw, 2.8cqw, 3.5cqw);
-  height: 100%;
-  z-index: 2;
-}
+
 
 .hamburger-area:hover,
 .hamburger-area:focus-within {
@@ -308,7 +301,7 @@ body.dark-mode .page-wrapper {
   position: relative;
   display: flex;
   flex-direction: row-reverse; /* Keep sidebar on right */
-  align-items: flex-start;
+  align-items: stretch; /* Make sidebar stretch to match dashboard height */
   gap: var(--horizontal-gap, 20px); /* JavaScript-controlled horizontal gap */
   box-sizing: border-box;
   min-height: 0; /* Allow content to scale properly */
@@ -316,6 +309,7 @@ body.dark-mode .page-wrapper {
   margin: 0;
   padding: 0;
   overflow-x: hidden; /* Prevent horizontal overflow */
+  align-content: flex-start; /* Ensure flex items align to the top */
 }
 
 body.dark-mode .main-content {
@@ -435,7 +429,7 @@ body.dark-mode .fixed-popup {
   flex-direction: column; /* Same as regular mode */
   z-index: 10; /* Same as regular mode */
   position: relative; /* Same as regular mode */
-  margin-top: 0.2% !important; /* Same as regular mode */
+  margin-top: 0 !important; /* Same as regular mode */
   /* margin-left and margin-right handled by inline styles in JSX for fullwidth mode */
   margin-bottom: 1%; /* Same as regular mode */
   padding: 1%; /* Same as regular mode */

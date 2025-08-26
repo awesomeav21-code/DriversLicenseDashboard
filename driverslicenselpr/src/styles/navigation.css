@@ -24,7 +24,7 @@
   width: 100% !important;
   height: 1px;
   pointer-events: none;
-  z-index: 1000;
+  z-index: 10 !important; 
 }
 
 /* Dark mode overrides */

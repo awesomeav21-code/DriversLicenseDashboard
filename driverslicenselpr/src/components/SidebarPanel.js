@@ -14,38 +14,8 @@ export default function SidebarPanel({
   endDate,
   setEndDate,
 }) {
-  // Calculate dynamic height based on screen size
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-
-  // Add resize listener to update height when window resizes
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Calculate dynamic height that increases gradually with screen size
-  const getDynamicHeight = () => {
-    const baseHeight = 600; // Minimum height
-    const maxHeight = 2000; // Maximum height - increased significantly
-    const minWidth = 1200; // Width at which we start increasing height
-    const maxWidth = 2400; // Width at which we reach max height
-    
-    if (windowWidth <= minWidth) {
-      return baseHeight;
-    } else if (windowWidth >= maxWidth) {
-      return maxHeight;
-    } else {
-      // Linear interpolation between min and max
-      const ratio = (windowWidth - minWidth) / (maxWidth - minWidth);
-      return Math.round(baseHeight + (maxHeight - baseHeight) * ratio);
-    }
-  };
-
-  const dynamicHeight = getDynamicHeight();
+  // Use static height to prevent movement
+  const staticHeight = 600; // Fixed height that doesn't change
 
 
 
@@ -205,20 +175,87 @@ export default function SidebarPanel({
     URL.revokeObjectURL(url);
   };
 
-  // Calculate scroll container height based on dynamic height
+  // Calculate scroll container height based on static height
   const getScrollContainerHeight = () => {
-    if (dynamicHeight === 'auto') {
-      return '340px'; // Default height
-    } else {
-      // Extract numeric value from dynamicHeight and calculate proportional scroll height
-      const totalHeight = parseInt(dynamicHeight);
-      const fixedElementsHeight = 200; // Approximate height of header, inputs, buttons, etc.
-      const scrollHeight = Math.max(340, totalHeight - fixedElementsHeight);
-      return `${scrollHeight}px`;
-    }
+    const totalHeight = staticHeight;
+    const fixedElementsHeight = 200; // Approximate height of header, inputs, buttons, etc.
+    const scrollHeight = Math.max(340, totalHeight - fixedElementsHeight);
+    return `${scrollHeight}px`;
   };
 
   const scrollContainerHeight = getScrollContainerHeight();
+
+  // State to track window width for responsive margins
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [dashboardHeight, setDashboardHeight] = useState(600); // Default height
+  
+  // Calculate responsive maxHeight for event-logs container - reduced upward movement on smaller screens
+  const getEventLogsMaxHeight = () => {
+    // Reduced linear reduction: smaller screen = less height reduction (content moves up less)
+    const baseHeight = 100; // Start at 100% for very large screens
+    const reductionPerPixel = 0.008; // Reduced from 0.015 to 0.008 - less reduction per pixel
+    const calculatedHeight = Math.max(92, baseHeight - (windowWidth * 0.003)); // Increased minimum from 87 to 92, reduced multiplier from 0.005 to 0.003
+    return `${calculatedHeight}%`;
+  };
+
+  // Listen for window resize to update responsive margins and match dashboard height
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+      
+      // Find the big-dashboard-container and match its height
+      const dashboardContainer = document.querySelector('.big-dashboard-container');
+      if (dashboardContainer) {
+        const height = dashboardContainer.offsetHeight;
+        setDashboardHeight(height);
+      }
+    };
+
+    // Initial measurement
+    handleResize();
+    
+    // Set up a more frequent check for height changes
+    const interval = setInterval(handleResize, 100);
+    
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearInterval(interval);
+    };
+  }, []);
+
+  // Debug: Monitor margin changes
+  useEffect(() => {
+    const checkMargin = () => {
+      const sidebarEl = document.querySelector('.sidebar-panel');
+      if (sidebarEl) {
+        const computedStyle = window.getComputedStyle(sidebarEl);
+        const topMargin = computedStyle.marginTop;
+        const topPosition = computedStyle.top;
+        const offsetTop = sidebarEl.offsetTop;
+        
+        console.log('SidebarPanel Debug:', {
+          marginTop: topMargin,
+          top: topPosition,
+          offsetTop: offsetTop,
+          timestamp: new Date().toLocaleTimeString()
+        });
+        
+        const debugEl = document.getElementById('sidebar-debug');
+        if (debugEl) {
+          debugEl.textContent = `Margin: ${topMargin} | Top: ${topPosition} | Offset: ${offsetTop}px`;
+        }
+      }
+    };
+
+    // Check immediately
+    checkMargin();
+    
+    // Check every 500ms
+    const interval = setInterval(checkMargin, 500);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   // Calculate static right margin - doesn't change with screen size
   const getResponsiveMargin = () => {
@@ -226,92 +263,116 @@ export default function SidebarPanel({
     return '8px'; // Fixed 8px right margin (reduced from 10px)
   };
 
+  // Calculate uniform bottom margin - same across all screen sizes
+  const getUniformBottomMargin = () => {
+    // Uniform bottom margin that stays the same on all screen sizes
+    return '50px'; // Same 50px margin for all screen sizes
+  };
+
   return (
     <div 
       className={`sidebar-panel ${isDarkMode ? 'dark-panel' : 'light-panel'}`}
       style={{ 
-        height: `${dynamicHeight}px`,
+        height: `${dashboardHeight}px`, // Dynamically match dashboard container height
         minHeight: '600px', // Ensure minimum height
         marginRight: getResponsiveMargin(),
-        transition: 'margin-right 0.3s ease, transform 0.3s ease, height 0.3s ease' // Added height transition
+        marginBottom: getUniformBottomMargin(), // Uniform bottom margin
+        transition: 'margin-right 0.3s ease, margin-bottom 0.3s ease, transform 0.3s ease' // Added margin-bottom transition
+      }}
+      ref={(el) => {
+        if (el) {
+          const computedStyle = window.getComputedStyle(el);
+          const topMargin = computedStyle.marginTop;
+          console.log('SidebarPanel top margin:', topMargin);
+          // Update the debug display
+          const debugEl = document.getElementById('sidebar-debug');
+          if (debugEl) {
+            debugEl.textContent = `Top Margin: ${topMargin}`;
+          }
+        }
       }}
     >
 
+
       
 
       
-      <div className="sidebar-inner">
-        <div className="event-logs">
-          <h2 className="log-title">Zone Details</h2>
+      <div className="sidebar-inner" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div className="event-logs" style={{ display: 'flex', flexDirection: 'column', height: 'auto', maxHeight: getEventLogsMaxHeight() }}>
+          <h2 className="log-title">Event Logs</h2>
+          <hr className="title-divider" />
 
-          <div className="date-inputs">
-            <label htmlFor="start-date">Start</label>
-            <input
-              id="start-date"
-              type="date"
-              max={todayISO}
-              value={startDate}
-              onChange={(e) => setStartDate(clampDate(e.target.value))}
-              className={isDarkMode ? 'dark-input' : ''}
-              style={{ marginBottom: '6px' }}
-              placeholder="MM/DD/YYYY"
-            />
-            <label htmlFor="end-date">End</label>
-            <input
-              id="end-date"
-              type="date"
-              max={todayISO}
-              value={endDate}
-              onChange={(e) => setEndDate(clampDate(e.target.value))}
-              className={isDarkMode ? 'dark-input' : ''}
-              placeholder="MM/DD/YYYY"
-            />
+          <div className="controls-container">
+            <div className="date-inputs">
+              <label htmlFor="start-date">Start Date</label>
+              <input
+                id="start-date"
+                type="date"
+                max={todayISO}
+                value={startDate}
+                onChange={(e) => setStartDate(clampDate(e.target.value))}
+                className={isDarkMode ? 'dark-input' : ''}
+                style={{ marginBottom: '6px' }}
+                placeholder="MM/DD/YYYY"
+              />
+              <label htmlFor="end-date">End Date</label>
+              <input
+                id="end-date"
+                type="date"
+                max={todayISO}
+                value={endDate}
+                onChange={(e) => setEndDate(clampDate(e.target.value))}
+                className={isDarkMode ? 'dark-input' : ''}
+                placeholder="MM/DD/YYYY"
+              />
+            </div>
+
+            <div className="log-buttons">
+              <button
+                className={`download-logs-btn${isDarkMode ? ' dark-btn' : ''}`}
+                onClick={downloadLogs}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  style={{ width: '24px', height: '24px' }}
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+                  />
+                </svg>
+                Download Logs
+              </button>
+            </div>
           </div>
 
-          <div className="log-buttons">
-            <button
-              className={`download-logs-btn${isDarkMode ? ' dark-btn' : ''}`}
-              onClick={downloadLogs}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
+                    <div className="logs-container" style={{ flex: '0.98', display: 'flex', flexDirection: 'column', minHeight: '0' }}>
+            <div
+              className="logs-scroll-container"
+              style={{ 
+                flex: '1.2',
+                overflowY: 'auto', 
+                overflowX: 'visible', // Ensure horizontal overflow is visible
+                marginTop: '0px', // Fixed to prevent movement
+                minHeight: '0' // Allow flex item to shrink
               }}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                stroke="currentColor"
-                style={{ width: '24px', height: '24px' }}
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
-                />
-              </svg>
-              Download Logs
-            </button>
-          </div>
-
-          <div
-            className="logs-scroll-container"
-            style={{ 
-              maxHeight: scrollContainerHeight, 
-              overflowY: 'auto', 
-              marginTop: '10px',
-              flex: '1' // Allow it to grow within the container
-            }}
-          >
             <div className="log-entries-list">
               {/* Latest entries top */}
               {latestEntries.length > 0 && (
                 <>
-                  <h3>Latest Readings</h3>
                   {latestEntries.map(({ zoneName, time, reading }, idx) => (
                     <div
                       className="log-entry"
@@ -330,7 +391,6 @@ export default function SidebarPanel({
               {/* Previous entries */}
               {previousEntries.length > 0 && (
                 <>
-                  <h3>Previous Entries</h3>
                   {previousEntries.map(({ zoneName, time, reading }, idx) => (
                     <div
                       className="log-entry"
@@ -355,6 +415,8 @@ export default function SidebarPanel({
                 <div className="log-empty">Select start and end dates to view logs.</div>
               ) : null}
             </div>
+          </div>
+          <div style={{ flex: '0.02', minHeight: '0' }}></div>
           </div>
         </div>
       </div>

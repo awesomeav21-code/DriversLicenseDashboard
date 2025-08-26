@@ -38,9 +38,48 @@ export default function VideoFeed({
     return saved === 'true';
   });
 
+  // Fixed image sizing - no dynamic scaling
+  const getImageSize = () => {
+    return {
+      width: '80px !important',
+      height: '80px !important',
+      borderRadius: '50% !important'
+    };
+  };
+
   useEffect(() => {
     localStorage.setItem('isAlertOn', isAlertOn);
   }, [isAlertOn]);
+
+  // Header movement disabled - keeping fixed position
+  // useEffect(() => {
+  //   const calculateHeaderOffset = () => {
+  //     const screenWidth = window.innerWidth;
+  //     const baseWidth = 1200; // Base width where movement starts
+  //     const movementPer100px = -1; // Move up 1px for every 100px increase
+  //     
+  //     if (screenWidth <= baseWidth) {
+  //       return 0; // No movement below base width
+  //     }
+  //     
+  //     const extraWidth = screenWidth - baseWidth;
+  //     const offset = Math.floor(extraWidth / 100) * movementPer100px;
+  //     return Math.max(offset, -10); // Limit maximum upward movement to 10px
+  //   };
+
+  //   const updateHeaderOffset = () => {
+  //     const offset = calculateHeaderOffset();
+  //     document.documentElement.style.setProperty('--header-offset', `${offset}px`);
+  //   };
+
+  //   // Update immediately
+  //   updateHeaderOffset();
+  //   
+  //   // Update on window resize
+  //   window.addEventListener('resize', updateHeaderOffset);
+  //   
+  //   return () => window.removeEventListener('resize', updateHeaderOffset);
+  // }, []);
 
   // Use only the scaling from App.js - no additional scaling here
   // App.js already sets --content-scale CSS custom property
@@ -141,35 +180,19 @@ export default function VideoFeed({
             marginRight: '16px'
           }}
         >
-          <h3 style={{
-            fontSize: 'clamp(0.5rem, 0.7vw, 0.8rem)',
-            marginBottom: '5px',
-            maxWidth: 'clamp(4rem, 5vw, 8rem)',
-            minWidth: 'clamp(3rem, 3.5vw, 4rem)'
-          }}>360° Stream</h3>
+          <h3>360° Stream</h3>
                       <img 
             src="/assets/cam-360.png" 
-            alt="360 Stream" 
-            style={{
-              width: 'clamp(80px, 12vw, 350px)', /* CHANGED LARGER - test */
-              height: 'clamp(60px, 10vw, 330px)', /* CHANGED LARGER - test */
-              marginBottom: '5px'
-            }}
+            alt="360 Stream TEST" 
+            className="dynamic-stream-image"
           />
           <div style={{
-            gap: '5px',
             justifyContent: 'center',
             alignItems: 'center'
           }}>
             <button 
               className="camera-btn" 
               onClick={() => setShow360Popup(true)}
-              style={{
-                width: 'clamp(3.5rem, 6vw, 7rem)',
-                height: 'clamp(1.5rem, 2.2vw, 2.5rem)',
-                fontSize: 'clamp(0.35rem, 0.5vw, 0.6rem)',
-                padding: 'clamp(0.15rem, 0.4vw, 0.5rem) clamp(0.3rem, 0.8vw, 1rem)'
-              }}
             >
               Camera 1
             </button>
@@ -191,47 +214,26 @@ export default function VideoFeed({
             marginRight: '16px'
           }}
         >
-          <h3 style={{
-            fontSize: 'clamp(0.5rem, 0.7vw, 0.8rem)',
-            marginBottom: '5px',
-            maxWidth: 'clamp(4rem, 5vw, 8rem)',
-            minWidth: 'clamp(3rem, 3.5vw, 4rem)'
-          }}>Thermal Stream</h3>
+          <h3>Thermal Stream</h3>
           <img 
             src={Thermal} 
             alt="Thermal Stream" 
-            style={{
-              width: 'clamp(80px, 12vw, 350px)', /* CHANGED LARGER - test */
-              height: 'clamp(60px, 10vw, 330px)', /* CHANGED LARGER - test */
-              marginBottom: '5px'
-            }}
+            className="dynamic-stream-image"
           />
           <div style={{
-            gap: '5px',
-            justifyContent: 'center',
-            alignItems: 'center'
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+            paddingLeft: '10px'
           }}>
             <button
-              className="camera-btn"
+              className="camera-btn left-camera-btn"
               onClick={() => setShow360Popup(true)}
-              style={{
-                width: 'clamp(4rem, 6vw, 7rem)',
-                height: 'clamp(1.8rem, 2.2vw, 2.5rem)',
-                fontSize: 'clamp(0.4rem, 0.5vw, 0.6rem)',
-                padding: 'clamp(0.2rem, 0.4vw, 0.5rem) clamp(0.4rem, 0.8vw, 1rem)'
-              }}
             >
               Left Camera
             </button>
             <button
-              className="camera-btn"
+              className="camera-btn right-camera-btn"
               onClick={() => setShow360Popup(true)}
-              style={{
-                width: 'clamp(4rem, 6vw, 7rem)',
-                height: 'clamp(1.8rem, 2.2vw, 2.5rem)',
-                fontSize: 'clamp(0.4rem, 0.5vw, 0.6rem)',
-                padding: 'clamp(0.2rem, 0.4vw, 0.5rem) clamp(0.4rem, 0.8vw, 1rem)'
-              }}
             >
               Right Camera
             </button>
@@ -253,55 +255,34 @@ export default function VideoFeed({
             marginRight: '16px'
           }}
         >
-          <h3 style={{
-            fontSize: 'clamp(0.5rem, 0.7vw, 0.8rem)',
-            marginBottom: '5px',
-            maxWidth: 'clamp(4rem, 5vw, 8rem)',
-            minWidth: 'clamp(3rem, 3.5vw, 4rem)'
-          }}>Optical Stream</h3>
+          <h3>Optical Stream</h3>
           <img 
             src={Surveillance} 
             alt="Optical Stream" 
-            style={{
-              width: 'clamp(80px, 12vw, 350px)', /* CHANGED LARGER - test */
-              height: 'clamp(60px, 10vw, 330px)', /* CHANGED LARGER - test */
-              marginBottom: '5px'
-            }}
+            className="dynamic-stream-image"
           />
           <div style={{
-            gap: '5px',
-            justifyContent: 'center',
-            alignItems: 'center'
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+            paddingLeft: '10px'
           }}>
             <button
-              className="camera-btn"
+              className="camera-btn left-camera-btn"
               onClick={() =>
                 setSelectedOpticalCamera((prev) =>
                   prev === 'planck_1' ? null : 'planck_1'
                 )
               }
-              style={{
-                width: 'clamp(4rem, 6vw, 7rem)',
-                height: 'clamp(1.8rem, 2.2vw, 2.5rem)',
-                fontSize: 'clamp(0.4rem, 0.5vw, 0.6rem)',
-                padding: 'clamp(0.2rem, 0.4vw, 0.5rem) clamp(0.4rem, 0.8vw, 1rem)'
-              }}
             >
               Left Camera
             </button>
             <button
-              className="camera-btn"
+              className="camera-btn right-camera-btn"
               onClick={() =>
                 setSelectedOpticalCamera((prev) =>
                   prev === 'planck_2' ? null : 'planck_2'
                 )
               }
-              style={{
-                width: 'clamp(4rem, 6vw, 7rem)',
-                height: 'clamp(1.8rem, 2.2vw, 2.5rem)',
-                fontSize: 'clamp(0.4rem, 0.5vw, 0.6rem)',
-                padding: 'clamp(0.2rem, 0.4vw, 0.5rem) clamp(0.4rem, 0.8vw, 1rem)'
-              }}
             >
               Right Camera
             </button>

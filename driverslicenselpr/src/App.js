@@ -116,7 +116,7 @@ function HamburgerMenu({ show, locked, onHover, onUnhover, onClick }) {
     borderRadius: '50%', // Make it a perfect circle
     border: '2px solid #eee',
     boxShadow: '0 4px 8px rgba(20,30,50,0.11)',
-    marginTop: '8px',
+    marginTop: '-50px',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
@@ -418,6 +418,36 @@ export default function App() {
     document.documentElement.style.setProperty('--dashboard-left-margin', '21px');
   }, []);
 
+  // Header movement disabled - keeping fixed position
+  // useEffect(() => {
+  //   const calculateHeaderOffset = () => {
+  //     const screenWidth = window.innerWidth;
+  //     const baseWidth = 1200; // Base width where movement starts
+  //     const movementPer100px = -1; // Move up 1px for every 100px increase (reduced from -2)
+  //     
+  //     if (screenWidth <= baseWidth) {
+  //       return 0; // No movement below base width
+  //     }
+  //     
+  //     const extraWidth = screenWidth - baseWidth;
+  //     const offset = Math.floor(extraWidth / 100) * movementPer100px;
+  //     return Math.max(offset, -10); // Limit maximum upward movement to 10px (reduced from -20)
+  //   };
+
+  //   const updateHeaderOffset = () => {
+  //     const offset = calculateHeaderOffset();
+  //     document.documentElement.style.setProperty('--header-offset', `${offset}px`);
+  //   };
+
+  //   // Update immediately
+  //   updateHeaderOffset();
+  //   
+  //   // Update on window resize
+  //   window.addEventListener('resize', updateHeaderOffset);
+  //   
+  //   return () => window.removeEventListener('resize', updateHeaderOffset);
+  // }, []);
+
   // Add blue flash effect when margin changes
   const [isFlashing, setIsFlashing] = useState(false);
   
@@ -445,6 +475,13 @@ export default function App() {
       <Navigation activeTab={activeTab} setActiveTab={setActiveTab} isDarkMode={isDarkMode} />
 
       <div className="app-layout">
+        <HamburgerMenu
+          show={hamburgerHovered}
+          locked={hamburgerLocked}
+          onHover={handleHamburgerHover}
+          onUnhover={handleHamburgerUnhover}
+          onClick={handleHamburgerClick}
+        />
         <div className="main-content">
           {activeTab === 'dashboard' && eventLogsVisible && (
             <SidebarPanel
@@ -460,15 +497,6 @@ export default function App() {
               addZone={addZone}
               zoneCameraMap={zoneCameraMap}
               onDatePick={(start, end) => { setStartDate(start); setEndDate(end) }}
-            />
-          )}
-          {activeTab === 'dashboard' && (
-            <HamburgerMenu
-              show={hamburgerHovered}
-              locked={hamburgerLocked}
-              onHover={handleHamburgerHover}
-              onUnhover={handleHamburgerUnhover}
-              onClick={handleHamburgerClick}
             />
           )}
           <div className="content-area">
