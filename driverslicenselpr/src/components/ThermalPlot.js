@@ -681,7 +681,7 @@ export default function ThermalPlot({
         display: true,
         text: 'Temperature Data',
         position: 'top',
-        font: { size: 18, family: 'Segoe UI', weight: 'bold' },
+        font: { size: 18, family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', weight: 'bold' },
         padding: { top: 4, bottom: 10 },
         color: isDarkMode ? '#ccc' : '#222',
       },
@@ -693,7 +693,7 @@ export default function ThermalPlot({
           font: function (context) {
             return {
               size: 15,
-              family: 'Segoe UI',
+              family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
               weight: 'bold',
               style: 'normal',
               lineHeight: 1.2,

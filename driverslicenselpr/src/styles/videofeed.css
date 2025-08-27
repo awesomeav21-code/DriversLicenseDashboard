@@ -317,8 +317,8 @@ body.dark-mode .live-data-wrapper {
 /* Camera section with dynamic height scaling */
 .camera-section {
   flex: 1 1 0 !important; /* Force flexible layout */
-  min-width: 15% !important; /* Minimum width to prevent too narrow sections */
-  max-width: 60% !important; /* Increased maximum width to prevent too much decrease */
+  min-width: 300px !important; /* Minimum width to fit 240px cards + padding */
+  max-width: none !important; /* Remove max-width constraint to maintain consistency */
   background-color: #fff; /* White background */
   border: 1px solid #d1d5db; /* Fixed pixel border */
   border-radius: 8px; /* Fixed pixel border radius */
@@ -419,7 +419,7 @@ body.dark-mode .live-data-wrapper {
   position: relative;
   left: 0;
   display: grid; /* Use grid for responsive columns */
-  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr)); /* Increased minimum width from 6rem to 7rem for slightly wider cards */
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Fill space while keeping stacking */
   gap: 0.25rem; /* Fixed small gap between cards */
   padding: 0.25rem; /* Fixed small padding */
   box-sizing: border-box;
@@ -457,23 +457,23 @@ body.dark-mode .live-data-wrapper {
 }
 
 .zone-grid {
-  display: grid; /* Use grid for responsive columns */
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); /* Changed minimum width to 15rem for wider cards */
-  gap: 0.75rem; /* Increased gap for better spacing with larger cards */
+  display: grid; /* Use grid for consistent responsive behavior */
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Fill space while keeping stacking */
+  gap: 0.75rem; /* Fixed gap for consistent spacing */
   position: relative; 
   left: 0;
   width: 100%; /* Stay within camera section width */
   max-width: 100%; /* Don't exceed camera section width */
   margin: 0 auto; /* Center the grid */
   box-sizing: border-box;
-  padding: 0.75rem; /* Increased padding for better spacing */
+  padding: 0.75rem; /* Fixed padding for consistent spacing */
   background-color: #f3f4f6; /* Match zone card background color */
   border-radius: 0.5rem;
   overflow-x: auto; /* Horizontal scroll for large screens */
   overflow-y: auto; /* Vertical scroll if needed */
   height: auto; /* Let content determine height - no fixed height */
   min-height: auto; /* No minimum height constraint */
-  max-height: 100%; /* Don't exceed camera section height */
+  max-height: none; /* Allow unlimited height for vertical scrolling */
   flex: 1; /* Take remaining space in camera section */
   align-content: start; /* Position cards at the top */
 }
@@ -483,12 +483,20 @@ body.dark-mode .live-data-wrapper {
 /* Removed conflicting horizontal scroll rule */
 
 .zone-grid > * {
-  /* Remove constraints to allow natural sizing */
+  /* Ensure zone cards fill the grid columns */
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  flex-shrink: 0 !important; /* Prevent shrinking */
 }
 
 /* Ensure zone cards don't change size in fullwidth mode */
 .zone-grid--fullwidth > * {
-  /* Remove constraints to allow natural sizing */
+  /* Ensure zone cards fill the grid columns in fullwidth mode too */
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  flex-shrink: 0 !important; /* Prevent shrinking */
 }
 
 .dark-mode .zone-grid {
@@ -757,6 +765,7 @@ body.dark-mode .live-data-wrapper {
   min-height: clamp(35px, 3.5vw, 50px) !important;
   max-height: clamp(35px, 3.5vw, 50px) !important;
   font-size: clamp(15px, 1.5vw, 22px) !important;
+  font-weight: 400 !important; /* Reduced font weight from 600 to 400 for thinner text */
   padding: clamp(5px, 0.9vw, 10px) clamp(12px, 1.5vw, 16px) !important;
   text-align: left !important;
   overflow: visible !important;

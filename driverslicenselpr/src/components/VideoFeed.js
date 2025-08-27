@@ -86,6 +86,35 @@ export default function VideoFeed({
 
   const toggleAlert = () => setIsAlertOn(prev => !prev);
 
+  // Dynamic positioning for camera sections based on screen size
+  const [cameraSectionOffset, setCameraSectionOffset] = useState(0);
+
+  useEffect(() => {
+    const calculateCameraOffset = () => {
+      const screenWidth = window.innerWidth;
+      const movementPerVw = -0.01; // Move 0.01vw for every 1vw increase in screen width
+      
+      // Calculate movement using viewport units for consistent scaling across devices
+      // Truly continuous, no breakpoints
+      const offset = screenWidth * movementPerVw / 100;
+      
+      return Math.round(offset);
+    };
+
+    const updateCameraOffset = () => {
+      const offset = calculateCameraOffset();
+      setCameraSectionOffset(offset);
+    };
+
+    // Update immediately
+    updateCameraOffset();
+    
+    // Update on window resize
+    window.addEventListener('resize', updateCameraOffset);
+    
+    return () => window.removeEventListener('resize', updateCameraOffset);
+  }, []);
+
   return (
     <div className="video-feed-inner-wrapper">
       {/* Live data header outside of scaling wrapper */}
@@ -109,6 +138,9 @@ export default function VideoFeed({
               className={`cameras-row ${center ? 'center' : ''} ${
                 expandFullWidth ? 'cameras-row--fullwidth' : ''
               }`}
+              style={{
+                marginTop: `${cameraSectionOffset}px`
+              }}
             >
               <div
                 ref={leftCameraSectionRef}
@@ -120,16 +152,23 @@ export default function VideoFeed({
                 </div>
                 <div className={`zone-grid-wrapper ${expandFullWidth ? 'zone-grid-wrapper--fullwidth' : ''}`}>
                   <div ref={leftGridRef} className={`zone-grid ${expandFullWidth ? 'zone-grid--fullwidth' : ''}`}>
-                    {camera1Zones.map((zone) => (
-                      <ZoneCard
-                        key={`${zone.camera}-${zone.name}`}
-                        zone={zone}
-                        tempUnit={tempUnit}
-                        isDarkMode={isDarkMode}
-                        expandFullWidth={expandFullWidth}
-                        isAlertOn={isAlertOn}
-                      />
-                    ))}
+                    {camera1Zones
+                      .sort((a, b) => {
+                        // Put Global card at the end
+                        if (a.name.toLowerCase() === 'global') return 1;
+                        if (b.name.toLowerCase() === 'global') return -1;
+                        return 0;
+                      })
+                      .map((zone) => (
+                        <ZoneCard
+                          key={`${zone.camera}-${zone.name}`}
+                          zone={zone}
+                          tempUnit={tempUnit}
+                          isDarkMode={isDarkMode}
+                          expandFullWidth={expandFullWidth}
+                          isAlertOn={isAlertOn}
+                        />
+                      ))}
                   </div>
                 </div>
               </div>
@@ -144,16 +183,23 @@ export default function VideoFeed({
                 </div>
                 <div className={`zone-grid-wrapper ${expandFullWidth ? 'zone-grid-wrapper--fullwidth' : ''}`}>
                   <div ref={rightGridRef} className={`zone-grid ${expandFullWidth ? 'zone-grid--fullwidth' : ''}`}>
-                    {camera2Zones.map((zone) => (
-                      <ZoneCard
-                        key={`${zone.camera}-${zone.name}`}
-                        zone={zone}
-                        tempUnit={tempUnit}
-                        isDarkMode={isDarkMode}
-                        expandFullWidth={expandFullWidth}
-                        isAlertOn={isAlertOn}
-                      />
-                    ))}
+                    {camera2Zones
+                      .sort((a, b) => {
+                        // Put Global card at the end
+                        if (a.name.toLowerCase() === 'global') return 1;
+                        if (b.name.toLowerCase() === 'global') return -1;
+                        return 0;
+                      })
+                      .map((zone) => (
+                        <ZoneCard
+                          key={`${zone.camera}-${zone.name}`}
+                          zone={zone}
+                          tempUnit={tempUnit}
+                          isDarkMode={isDarkMode}
+                          expandFullWidth={expandFullWidth}
+                          isAlertOn={isAlertOn}
+                        />
+                      ))}
                   </div>
                 </div>
               </div>

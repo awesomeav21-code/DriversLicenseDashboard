@@ -49,12 +49,12 @@ export default function ZoneCard({
   return (
     <div className={zoneCardClassName}>
       <div className="zone-card-inner">
-        <h4 className="zone-name" style={{ position: 'relative', top: '-8px' }}>{zone.name}</h4>
-        <div className="zone-temp" style={{ marginTop: '8px', marginBottom: '12px' }}>
+        <h4 className="zone-name">{zone.name}</h4>
+        <div className="zone-temp">
           {convertTemp(zone.temperature)}
           {unitSymbol}
         </div>
-        <div className="zone-threshold" style={{ marginBottom: '12px' }}>
+        <div className="zone-threshold">
           Threshold: {convertTemp(zone.threshold)}
           {unitSymbol}
         </div>
