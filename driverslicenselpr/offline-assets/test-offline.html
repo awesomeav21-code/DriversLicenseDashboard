@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline Assets Test - Drivers License LPR Dashboard</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="cdn-libraries/bootstrap.min.css">
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin: 20px 0;
+        }
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .icon-item {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .icon-item img {
+            max-width: 50px;
+            max-height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Offline Assets Test</h1>
+        <p class="text-center text-muted">Testing all offline assets for Drivers License LPR Dashboard</p>
+
+        <!-- Libraries Test Section -->
+        <div class="test-section">
+            <h3>📚 Libraries Test</h3>
+            <div id="libraries-status"></div>
+        </div>
+
+        <!-- Chart.js Test Section -->
+        <div class="test-section">
+            <h3>📊 Chart.js Test</h3>
+            <div id="chart-status"></div>
+            <canvas id="testChart" class="chart-container"></canvas>
+        </div>
+
+        <!-- Assets Test Section -->
+        <div class="test-section">
+            <h3>📁 Assets Test</h3>
+            <div id="assets-status"></div>
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>JSON Files:</h5>
+                    <ul id="json-files-list"></ul>
+                </div>
+                <div class="col-md-6">
+                    <h5>Images:</h5>
+                    <ul id="images-list"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Icons Test Section -->
+        <div class="test-section">
+            <h3>🎨 Icons Test</h3>
+            <div id="icons-status"></div>
+            <div class="icon-grid" id="icons-grid"></div>
+        </div>
+
+        <!-- Fonts Test Section -->
+        <div class="test-section">
+            <h3>🔤 Fonts Test</h3>
+            <div id="fonts-status"></div>
+            <p style="font-family: 'Segoe UI', sans-serif; font-size: 18px;">
+                This text should be displayed in Segoe UI font if available.
+            </p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="cdn-libraries/react.production.min.js"></script>
+    <script src="cdn-libraries/react-dom.production.min.js"></script>
+    <script src="cdn-libraries/bootstrap.bundle.min.js"></script>
+    <script src="cdn-libraries/chart.min.js"></script>
+    <script src="cdn-libraries/chartjs-adapter-date-fns.min.js"></script>
+    <script src="cdn-libraries/chartjs-plugin-zoom.min.js"></script>
+    <script src="cdn-libraries/date-fns.min.js"></script>
+    <script src="cdn-libraries/react-chartjs-2.min.js"></script>
+    <script src="cdn-libraries/recharts.min.js"></script>
+
+    <script>
+        // Test Libraries
+        function testLibraries() {
+            const status = document.getElementById('libraries-status');
+            const tests = [
+                { name: 'React', test: () => typeof React !== 'undefined' },
+                { name: 'ReactDOM', test: () => typeof ReactDOM !== 'undefined' },
+                { name: 'Bootstrap', test: () => typeof bootstrap !== 'undefined' },
+                { name: 'Chart.js', test: () => typeof Chart !== 'undefined' },
+                { name: 'date-fns', test: () => typeof dateFns !== 'undefined' }
+            ];
+
+            let results = '';
+            tests.forEach(test => {
+                const passed = test.test();
+                results += `<div class="status ${passed ? 'success' : 'error'}">
+                    ${passed ? '✅' : '❌'} ${test.name}: ${passed ? 'Loaded' : 'Failed'}
+                </div>`;
+            });
+            status.innerHTML = results;
+        }
+
+        // Test Chart.js
+        function testChartJS() {
+            const status = document.getElementById('chart-status');
+            const canvas = document.getElementById('testChart');
+            
+            if (typeof Chart !== 'undefined') {
+                status.innerHTML = '<div class="status success">✅ Chart.js loaded successfully</div>';
+                
+                // Create a test chart
+                const ctx = canvas.getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        datasets: [{
+                            label: 'Test Data',
+                            data: [12, 19, 3, 5, 2, 3],
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            } else {
+                status.innerHTML = '<div class="status error">❌ Chart.js failed to load</div>';
+            }
+        }
+
+        // Test Assets
+        async function testAssets() {
+            const status = document.getElementById('assets-status');
+            const jsonList = document.getElementById('json-files-list');
+            const imagesList = document.getElementById('images-list');
+            
+            const jsonFiles = [
+                'assets/thermaldata.json',
+                'assets/zones.json',
+                'assets/manifest.json',
+                'assets/robots.txt'
+            ];
+            
+            const imageFiles = [
+                'assets/favicon.ico',
+                'assets/logo192.png',
+                'assets/logo512.png'
+            ];
+
+            let jsonResults = '';
+            let imageResults = '';
+
+            // Test JSON files
+            for (const file of jsonFiles) {
+                try {
+                    const response = await fetch(file);
+                    if (response.ok) {
+                        jsonResults += `<li class="text-success">✅ ${file}</li>`;
+                    } else {
+                        jsonResults += `<li class="text-danger">❌ ${file}</li>`;
+                    }
+                } catch (error) {
+                    jsonResults += `<li class="text-danger">❌ ${file}</li>`;
+                }
+            }
+
+            // Test image files
+            for (const file of imageFiles) {
+                try {
+                    const response = await fetch(file);
+                    if (response.ok) {
+                        imageResults += `<li class="text-success">✅ ${file}</li>`;
+                    } else {
+                        imageResults += `<li class="text-danger">❌ ${file}</li>`;
+                    }
+                } catch (error) {
+                    imageResults += `<li class="text-danger">❌ ${file}</li>`;
+                }
+            }
+
+            jsonList.innerHTML = jsonResults;
+            imagesList.innerHTML = imageResults;
+            status.innerHTML = '<div class="status success">✅ Asset testing completed</div>';
+        }
+
+        // Test Icons
+        async function testIcons() {
+            const status = document.getElementById('icons-status');
+            const grid = document.getElementById('icons-grid');
+            
+            const icons = [
+                'icons/ANEEC.png',
+                'icons/ANEEC 2.png',
+                'icons/Assetlogo.png',
+                'icons/Camera-icon.png',
+                'icons/LineChart.png',
+                'icons/settings.png',
+                'icons/Surveillance.png',
+                'icons/Thermal.png'
+            ];
+
+            let gridHTML = '';
+            for (const icon of icons) {
+                gridHTML += `
+                    <div class="icon-item">
+                        <img src="${icon}" alt="Icon" onerror="this.style.display='none'">
+                        <div>${icon.split('/').pop()}</div>
+                    </div>
+                `;
+            }
+            
+            grid.innerHTML = gridHTML;
+            status.innerHTML = '<div class="status success">✅ Icons loaded</div>';
+        }
+
+        // Test Fonts
+        function testFonts() {
+            const status = document.getElementById('fonts-status');
+            status.innerHTML = '<div class="status success">✅ Font test completed (check visual appearance above)</div>';
+        }
+
+        // Run all tests when page loads
+        window.addEventListener('load', function() {
+            testLibraries();
+            testChartJS();
+            testAssets();
+            testIcons();
+            testFonts();
+        });
+    </script>
+</body>
+</html>

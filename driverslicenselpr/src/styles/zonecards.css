@@ -1,8 +1,8 @@
 .zone-card {
-  width: 100%; /* Stretch to fill grid column */
+  width: 100%; /* Use full grid column width */
   max-width: 100%; /* Don't exceed grid column width */
-  height: 160px; /* Consistent height */
-  min-height: 160px; /* Consistent minimum height */
+  height: 200px; /* Increase height significantly */
+  min-height: 200px; /* Increase minimum height */
   position: relative;
   background-color: #f3f4f6;
   border: 1px solid #e5e7eb;
@@ -10,18 +10,20 @@
   box-sizing: border-box;
   cursor: pointer;
   overflow: hidden;
-  flex-grow: 0; /* Don't grow beyond grid column */
+  flex-grow: 1; /* Allow cards to grow */
   flex-shrink: 0; /* Prevent shrinking */
+  margin: 0; /* Remove negative margins */
 }
 
 .zone-card--fullwidth {
   background-color: #f3f4f6 !important; 
-  flex: 0; /* Don't grow or shrink */
+  flex: 1; /* Allow cards to grow */
   width: 100%; /* Use full width */
   max-width: 100%; /* Don't exceed width */
   min-width: 100%; /* Don't shrink below 100% */
   position: relative !important; 
   left: 0 !important; /* Remove negative positioning */
+  margin: 0; /* Remove negative margins */
 }
 
 .zone-card-inner--fullwidth {

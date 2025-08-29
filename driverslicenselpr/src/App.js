@@ -392,19 +392,19 @@ export default function App() {
   const getDashboardLeftMargin = () => {
     const screenWidth = windowWidth;
     
-    // Use smaller margins to prevent excessive shrinking on smaller screens
+    // Use consistent margins to maintain alignment with sidebar
     if (screenWidth >= 1920) {
-      return '0.3vw'; // Large screens - reduced margin
+      return '10px'; // Large screens - fixed margin
     } else if (screenWidth >= 1600) {
-      return '0.4vw'; // Medium-large screens - reduced margin
+      return '10px'; // Medium-large screens - fixed margin
     } else if (screenWidth >= 1366) {
-      return '0.5vw'; // Standard laptop screens - reduced margin
+      return '10px'; // Standard laptop screens - fixed margin
     } else if (screenWidth >= 1024) {
-      return '0.6vw'; // Small laptop screens - reduced margin
+      return '10px'; // Small laptop screens - fixed margin
     } else if (screenWidth >= 768) {
-      return '0.7vw'; // Tablet screens - reduced margin
+      return '10px'; // Tablet screens - fixed margin
     } else {
-      return '0.8vw'; // Mobile and small screens - reduced margin
+      return '10px'; // Mobile and small screens - fixed margin
     }
   };
 
@@ -415,7 +415,7 @@ export default function App() {
   useEffect(() => {
     document.documentElement.style.setProperty('--horizontal-gap', '10px');
     document.documentElement.style.setProperty('--hamburger-margin', '10px');
-    document.documentElement.style.setProperty('--dashboard-left-margin', '21px');
+    document.documentElement.style.setProperty('--dashboard-left-margin', '10px');
   }, []);
 
   // Header movement disabled - keeping fixed position
@@ -475,14 +475,16 @@ export default function App() {
       <Navigation activeTab={activeTab} setActiveTab={setActiveTab} isDarkMode={isDarkMode} />
 
       <div className="app-layout">
-        <HamburgerMenu
-          show={hamburgerHovered}
-          locked={hamburgerLocked}
-          onHover={handleHamburgerHover}
-          onUnhover={handleHamburgerUnhover}
-          onClick={handleHamburgerClick}
-        />
-        <div className="main-content">
+        {activeTab === 'dashboard' && (
+          <HamburgerMenu
+            show={hamburgerHovered}
+            locked={hamburgerLocked}
+            onHover={handleHamburgerHover}
+            onUnhover={handleHamburgerUnhover}
+            onClick={handleHamburgerClick}
+          />
+        )}
+        <div className="main-content" style={{ overflow: activeTab === 'thermal' ? 'visible' : 'hidden' }}>
           {activeTab === 'dashboard' && eventLogsVisible && (
             <SidebarPanel
               isDarkMode={isDarkMode}
@@ -505,8 +507,8 @@ export default function App() {
                 <div 
                   className={`big-dashboard-container${!eventLogsVisible ? ' --fullwidth' : ''}`}
                   style={{ 
-                    marginLeft: `${getDashboardLeftMargin()}`,
-                    marginRight: !eventLogsVisible ? `${getDashboardLeftMargin()}` : '0px',
+                    marginLeft: '10px',
+                    marginRight: !eventLogsVisible ? '10px' : '0px',
                     width: !eventLogsVisible ? 'calc(100% + 300px)' : 'auto',
                     maxWidth: '100%',
                     transition: 'margin-left 0.3s ease, margin-right 0.3s ease, width 0.3s ease !important',

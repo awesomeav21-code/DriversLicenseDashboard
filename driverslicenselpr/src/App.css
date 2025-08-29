@@ -61,6 +61,7 @@ body.screen-size-base {
   overflow-x: visible; /* Allow horizontal overflow for child extension */
   box-sizing: border-box;
   margin-left: 0; /* Remove margin to allow more space */
+  margin-bottom: 50px; /* Add bottom margin to prevent footer overlap */
 }
 
 /* Fixed gap between sidebar and dashboard */
@@ -131,8 +132,8 @@ body.dark-mode .mini-navbar-outer::after {
   position: relative;
   top: var(--dashboard-top, 0vh); /* Dynamic top position from JavaScript */
   left: 0;
-  transform: scaleY(var(--height-scale, 1)); /* Only scale height, not width */
-  transform-origin: top center; /* Scale from top center */
+  /* Remove transform scaling to prevent layout issues */
+  transform: none;
   display: flex;
   flex-direction: column; /* Ensure VideoFeed stacks vertically */
   z-index: 10; /* Lower z-index so it doesn't go above the footer */
@@ -230,7 +231,7 @@ body.dark-mode .big-dashboard-container {
 /* Remove old margin rule since we're using fixed positioning */
 
 body.light-mode {
-  background-color: #f8f9fa;
+  background-color: #f6fcf8;
   color: #111827;
 }
 

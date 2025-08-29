@@ -2,14 +2,13 @@
 .thermal-container {
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25), 0 8px 24px rgba(0,0,0,0.15);  padding: 28px;           /* Slightly reduced padding */
-  height: 500px !important;           /* Shorter, so more is visible! */
-  width: 1200px !important ;
-  max-width: 98vw;         /* Prevents overflow on small screens */
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25), 0 8px 24px rgba(0,0,0,0.15);
+  width: 85vw !important;          /* Fully responsive width */
+  height: 65vh !important;         /* Fully responsive height */
+  padding: 1.5vw;                  /* Responsive padding */
   box-sizing: border-box;
   position: relative;
-  margin: 10px auto 0 auto; /* Top margin, center horizontally */
-  left: -20px; 
+  margin: 80px 7% 40px auto;      /* Move to the left slightly */
 }
 
 .thermal-container.dark-mode {
@@ -21,23 +20,24 @@
 
 /* === CAMERA BUTTON BAR (centered above chart) === */
 .camera-switcher-bar {
-  display: inline-flex;             /* Inline-flex to shrink to fit */
-  justify-content: flex-start !important;
+  display: inline-flex;            /* Inline-flex to shrink to fit */
+  justify-content: flex-start;     /* Keep buttons at start */
   align-items: center;
   gap: 14px;
-  transform: translateX(530px);    /* Keep your current position */
   margin-bottom: 10px;
   margin-top: 4px;
-  position: relative; 
-  top: -15px; 
+  position: absolute; 
+  top: -10px; 
+  left: 52%;
+  transform: translateX(-50%);
   background: #fff;                /* White background */
   padding: 8px 20px;               /* Padding inside container */
   border-radius: 6px;              /* Rounded corners */
   box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* subtle shadow */
-  border: 1px solid #ddd;          /* subtle border */
+  z-index: 10000;                  /* Much higher z-index to stay above everything */
 
-  max-width: 700px;                /* Max width limit */
-  min-width: 0;                   /* Allow shrinking */
+  max-width: 600px;                /* Fixed max width to prevent overgrowth on small screens */
+  min-width: 250px;                /* Lower minimum width */
   white-space: nowrap;            /* Prevent buttons wrapping */
   overflow-x: auto;               /* Scroll if buttons overflow */
   box-sizing: border-box;          /* Include padding in width */
@@ -45,7 +45,8 @@
 .chart-button, 
 .pdf-dropdown, 
 .chart-dropdown {
-  left: 335px !important; 
+  position: relative;
+  left: auto !important;  /* Remove fixed positioning */
 }
 
 /* Dark mode container style */
@@ -128,16 +129,18 @@
   border-radius: 6px;
   border: 1px solid #ddd;
   padding: 8px 16px;
-  display: inline-flex;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   gap: 10px;
   position: relative;
-  left: -10px;
-  top: 85px;
+  margin: 0vh auto 1vh 8%;
   flex-wrap: wrap;
   cursor: pointer;
   color: #000;
   transition: background-color 0.3s ease;
-  width: calc(100% + 20px) !important;
+  width: 85vw;                     /* Match thermal container width */
+  z-index: 100;
 }
 /* Dark mode for chart button container */
 .dark-mode .chart-button-container {
@@ -167,7 +170,7 @@
   user-select: none;
   text-align: center;
   position: relative; 
-  left: 250px; 
+  left: auto;  /* Let flexbox handle positioning */
   line-height: 1.2;
 }
 .chart-dropdown{
@@ -228,14 +231,7 @@
   color: #ffffff;
 }
 
-/* Responsive tweak for very small screens */
-@media (max-width: 1500px) {
-  .thermal-container {
-    width: 96vw;
-    padding: 10px;
-    height: 440px;    /* Reduce further for smaller screens */
-  }
-}
+
 
 .chartjs-legend li span {
   text-decoration: line-through !important;

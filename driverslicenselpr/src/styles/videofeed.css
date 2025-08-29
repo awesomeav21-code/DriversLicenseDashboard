@@ -419,7 +419,7 @@ body.dark-mode .live-data-wrapper {
   position: relative;
   left: 0;
   display: grid; /* Use grid for responsive columns */
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Fill space while keeping stacking */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Wider cards with 280px minimum */
   gap: 0.25rem; /* Fixed small gap between cards */
   padding: 0.25rem; /* Fixed small padding */
   box-sizing: border-box;
@@ -458,7 +458,7 @@ body.dark-mode .live-data-wrapper {
 
 .zone-grid {
   display: grid; /* Use grid for consistent responsive behavior */
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Fill space while keeping stacking */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Wider cards with 280px minimum */
   gap: 0.75rem; /* Fixed gap for consistent spacing */
   position: relative; 
   left: 0;
