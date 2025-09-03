@@ -18,15 +18,17 @@
   flex-direction: column;
   gap: 12px !important;
   z-index: 0;
-  margin: 0 0 50px 0; /* Increased bottom margin to 50px */
+  margin: 0 0 50px 0; /* Reset margin */
+  left: -20px; /* Move sidebar 20px to the left */
   border-radius: 10px !important;
   background-color: #ffffff;
   border: 1px solid #d1d5db;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  align-self: stretch; /* Make it stretch to match the height of the flex container */
+  align-self: flex-start; /* Prevent stretching and shifting */
   top: 0; /* Explicitly set top to 0 */
   margin-top: 0 !important; /* Force remove any top margin */
   padding-top: 0 !important; /* Force remove any top padding */
+  flex-shrink: 0; /* Prevent sidebar from shrinking or shifting */
 }
 
 /* Light mode background override */

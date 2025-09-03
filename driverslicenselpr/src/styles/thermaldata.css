@@ -196,19 +196,6 @@
 }
 .chart-dropdown{
   position: relative !important; 
-  background-color: #4ade80 !important; /* Light green background like in image */
-  color: #000 !important; /* Dark text */
-  border: none !important;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-family: 'Segoe UI', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  min-width: 140px;
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  -moz-appearance: none !important;
 }
 .pdf-dropdown{
   position: relative; 

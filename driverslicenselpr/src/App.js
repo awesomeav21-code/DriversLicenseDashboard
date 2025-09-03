@@ -469,6 +469,7 @@ export default function App() {
     document.documentElement.style.setProperty('--horizontal-gap', '10px');
     document.documentElement.style.setProperty('--hamburger-margin', '10px');
     document.documentElement.style.setProperty('--dashboard-left-margin', '10px');
+    document.documentElement.style.setProperty('--dashboard-right-margin', '1rem');
   }, []);
 
   // Header movement disabled - keeping fixed position
