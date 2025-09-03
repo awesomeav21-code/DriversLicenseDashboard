@@ -15,10 +15,10 @@ import zoomPlugin from 'chartjs-plugin-zoom'
 import 'chartjs-adapter-date-fns'
 import '../styles/thermaldata.css'
 
-const jitterPlugin = {
-  id: 'jitterPlugin',
+const hoverDotsPlugin = {
+  id: 'hoverDotsPlugin',
   beforeDatasetsDraw(chart) {
-    if (!chart.options.plugins.jitterPlugin?.isChartReady) return
+    if (!chart.options.plugins.hoverDotsPlugin?.isChartReady) return
     
     // Check if zoom plugin is active or if zooming/panning is happening
     const zoomPlugin = chart.options.plugins.zoom
@@ -33,59 +33,54 @@ const jitterPlugin = {
     
     const tooltip = chart.tooltip
     
-    // Show only the exact point being hovered
+    // Show dots on all lines at the same x-position when hovering
     if (tooltip.opacity === 1 && tooltip.dataPoints && tooltip.dataPoints.length > 0) {
       const hoveredPoint = tooltip.dataPoints[0]
-      const hoveredDatasetIndex = hoveredPoint.datasetIndex
       const hoveredDataIndex = hoveredPoint.dataIndex
+      const hoveredTime = hoveredPoint.parsed.x
       
-      // Enable only the specific point being hovered
+      // Show dots on all visible datasets at the same time position
       chart.data.datasets.forEach((dataset, dsIndex) => {
-        if (dsIndex === hoveredDatasetIndex) {
-          // For the hovered dataset, enable only the specific point
-          dataset.pointRadius = 0
-          dataset.pointHoverRadius = 0
-          
-          // Set the specific point to be visible
-          if (dataset.data[hoveredDataIndex]) {
-            dataset.data[hoveredDataIndex].pointRadius = 6
+        // Reset all point radii to 0 first
+        if (dataset.data && Array.isArray(dataset.data)) {
+          dataset.data.forEach((point, pointIndex) => {
+            if (typeof point === 'object' && point !== null) {
+              point.pointRadius = 0
+            }
+          })
+        }
+        
+        // Find the data point at the same time position and show it
+        if (dataset.data && dataset.data[hoveredDataIndex]) {
+          const dataPoint = dataset.data[hoveredDataIndex]
+          if (dataPoint && typeof dataPoint === 'object') {
+            // Show dot only if the dataset is not hidden
+            if (!dataset.hidden) {
+              dataPoint.pointRadius = 5
+              dataPoint.pointHoverRadius = 6
+            }
           }
-        } else {
-          // Disable all points for other datasets
-          dataset.pointRadius = 0
-          dataset.pointHoverRadius = 0
         }
       })
     } else {
-      // Disable all points when not hovering
+      // Hide all points when not hovering
       chart.data.datasets.forEach(dataset => {
-        dataset.pointRadius = 0
-        dataset.pointHoverRadius = 0
+        if (dataset.data && Array.isArray(dataset.data)) {
+          dataset.data.forEach((point, pointIndex) => {
+            if (typeof point === 'object' && point !== null) {
+              point.pointRadius = 0
+              point.pointHoverRadius = 0
+            }
+          })
+        }
       })
     }
   }
 }
 
-const dividerPlugin = {
-  id: 'dividerPlugin',
-  afterRender(chart) {
-    const ctx = chart.ctx;
-    const titleBlock = chart.titleBlock;
-    if (!titleBlock) return;
-    
-    // Position divider below the title
-    const dividerY = titleBlock.bottom + 5;
-    
-    ctx.save();
-    ctx.strokeStyle = chart.options.plugins.dividerPlugin?.isDarkMode ? '#444' : '#ddd';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, dividerY);
-    ctx.lineTo(chart.width, dividerY);
-    ctx.stroke();
-    ctx.restore();
-  }
-}
+
+
+
 
 
 
@@ -98,8 +93,7 @@ ChartJS.register(
   Tooltip,
   Legend,
   zoomPlugin,
-  jitterPlugin,
-  dividerPlugin,
+  hoverDotsPlugin,
   Filler
 )
 
@@ -145,10 +139,7 @@ export default function ThermalPlot({
 
   const [isChartReady, setIsChartReady] = useState(false)
   const [timeRange, setTimeRange] = useState(() => localStorage.getItem('timeRange') || '1h')
-  const [allZonesHidden, setAllZonesHidden] = useState(() => {
-    const saved = localStorage.getItem('allZonesHidden')
-    return saved ? JSON.parse(saved) : false
-  })
+  const [allZonesHidden, setAllZonesHidden] = useState(false) // Always start with zones visible
 
   const [history, setHistory] = useState(() => {
     const saved = localStorage.getItem('thermalHistory')
@@ -158,37 +149,145 @@ export default function ThermalPlot({
   })
   const [initialRange, setInitialRange] = useState(null)
   const [showExportMenu, setShowExportMenu] = useState(false)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [isCameraSwitching, setIsCameraSwitching] = useState(false)
+  
+  // Monitor dropdown open state
+  useEffect(() => {
+    const handleDropdownState = () => {
+      const activeElement = document.activeElement
+      const isOpen = activeElement === document.querySelector('.chart-dropdown')
+      setIsDropdownOpen(isOpen)
+    }
+    
+    document.addEventListener('click', handleDropdownState)
+    document.addEventListener('focusin', handleDropdownState)
+    
+    return () => {
+      document.removeEventListener('click', handleDropdownState)
+      document.removeEventListener('focusin', handleDropdownState)
+    }
+  }, [])
+  
   const [zonesVisibility, setZonesVisibility] = useState(() => {
-    const saved = localStorage.getItem('zonesVisibility')
-    return saved ? JSON.parse(saved) : {}
+    // Load saved zone visibility from localStorage or use default
+    const thermalZoneNames = Array.from({ length: 8 }, (_, i) => `Zone_${i + 1}`)
+    const savedVisibility = localStorage.getItem('zonesVisibility')
+    
+    if (savedVisibility) {
+      try {
+        const parsed = JSON.parse(savedVisibility)
+        // Ensure all zones exist in the saved data
+        thermalZoneNames.forEach(name => {
+          if (!(name in parsed)) {
+            parsed[name] = true // Default to visible if zone not in saved data
+          }
+        })
+        return parsed
+      } catch (e) {
+        console.warn('Failed to parse saved zone visibility:', e)
+      }
+    }
+    
+    // Default: all zones visible
+    const initialVisibility = {}
+    thermalZoneNames.forEach(name => { initialVisibility[name] = true })
+    return initialVisibility
   })
 
+  // Single useEffect to handle all initialization - prevents flickering
   useEffect(() => {
-    const allZoneNames = allZones.map(z => z.name) // All zones from both cameras (test data)
-    let changed = false
-    const newVisibility = { ...zonesVisibility }
-    allZoneNames.forEach(name => {
-      if (!(name in newVisibility)) {
-        newVisibility[name] = true
-        changed = true
+    const thermalZoneNames = Array.from({ length: 8 }, (_, i) => `Zone_${i + 1}`)
+    
+    // Load saved zone visibility from localStorage when camera changes
+    const savedVisibility = localStorage.getItem('zonesVisibility')
+    let zonesToShow = thermalZoneNames
+    
+    if (savedVisibility) {
+      try {
+        const parsed = JSON.parse(savedVisibility)
+        // Use saved visibility, but ensure all zones exist
+        thermalZoneNames.forEach(name => {
+          if (!(name in parsed)) {
+            parsed[name] = true // Default to visible if zone not in saved data
+          }
+        })
+        
+        // Set the zonesVisibility to the saved state
+        setZonesVisibility(parsed)
+        
+        // Determine which zones should be visible based on saved state
+        zonesToShow = thermalZoneNames.filter(name => parsed[name] !== false)
+        
+        // Update allZonesHidden based on saved state
+        const allHidden = thermalZoneNames.every(name => parsed[name] === false)
+        setAllZonesHidden(allHidden)
+        
+        console.log('Loaded saved zone visibility:', parsed)
+      } catch (e) {
+        console.warn('Failed to parse saved zone visibility:', e)
+        // Fallback to all zones visible
+        setZonesVisibility({})
+        thermalZoneNames.forEach(name => { setZonesVisibility(prev => ({ ...prev, [name]: true })) })
       }
-    })
-    Object.keys(newVisibility).forEach(name => {
-      if (!allZoneNames.includes(name)) {
-        delete newVisibility[name]
-        changed = true
-      }
-    })
-    if (changed) {
+    } else {
+      // No saved state, default to all visible
+      const newVisibility = {}
+      thermalZoneNames.forEach(name => { newVisibility[name] = true })
       setZonesVisibility(newVisibility)
-      localStorage.setItem('zonesVisibility', JSON.stringify(newVisibility))
+      setAllZonesHidden(false)
     }
-    // Update visibleZones in sync with visibility
-    const nextVisible = allZoneNames.filter(name => newVisibility[name] !== false)
-    setVisibleZones(nextVisible)
-    localStorage.setItem('visibleZones', JSON.stringify(nextVisible))
+    
+    // Set visible zones based on loaded state
+    setVisibleZones(zonesToShow)
+    
+    console.log('Camera change: Zones visibility loaded from localStorage')
+    
     // eslint-disable-next-line
-  }, [allZones, selectedCamera])
+  }, [selectedCamera])
+
+  // Immediately update chart with latest data when component mounts
+  useEffect(() => {
+    // Wait for chart to be ready and then update with latest data
+    const timer = setTimeout(() => {
+      if (chartRef.current && isChartReady) {
+        const testDataKey = `thermalHistory${timeRange}_${selectedCamera}`
+        const testData = localStorage.getItem(testDataKey)
+        if (testData) {
+          try {
+            const parsedData = JSON.parse(testData, (key, val) => (key === 'time' ? new Date(val) : val))
+            console.log(`📊 Initial load: Found ${parsedData.length} data points for ${timeRange}`)
+            // Force chart to update with latest data
+            chartRef.current.update('none')
+          } catch (error) {
+            console.warn('Failed to load initial test data:', error.message)
+          }
+        } else {
+          console.log(`⚠️ No initial data found for ${timeRange}`)
+        }
+      }
+    }, 100) // Small delay to ensure chart is fully rendered
+
+    return () => clearTimeout(timer)
+  }, [isChartReady, timeRange, selectedCamera]) // Depend on chart readiness and current settings
+
+  // Keep states in sync during user interactions (not initial mount)
+  useEffect(() => {
+    const thermalZoneNames = Array.from({ length: 8 }, (_, i) => `Zone_${i + 1}`)
+    const nextVisible = thermalZoneNames.filter(name => zonesVisibility[name] !== false)
+    const allVisible = thermalZoneNames.every(name => zonesVisibility[name] !== false)
+    
+    // Only update if actually different to avoid loops
+    if (JSON.stringify(visibleZones) !== JSON.stringify(nextVisible)) {
+      setVisibleZones(nextVisible)
+    }
+    
+    if (allZonesHidden === allVisible) { // If button state doesn't match visibility
+      setAllZonesHidden(!allVisible)
+    }
+    
+    // eslint-disable-next-line
+  }, [zonesVisibility])
 
   // Force all zones to be visible for all time ranges (test data)
   // REMOVED - This was causing zones to reset when switching cameras
@@ -207,6 +306,7 @@ export default function ThermalPlot({
       
       // Generate initial data if it doesn't exist
       if (!localStorage.getItem(testDataKey)) {
+        console.log(`🔄 Generating initial data for ${timeRange} on ${selectedCamera}`)
         const testData = []
         const now = new Date()
         const startTime = new Date(now.getTime() - (config.entries * config.interval))
@@ -215,73 +315,26 @@ export default function ThermalPlot({
           const time = new Date(startTime.getTime() + (i * config.interval))
           const readings = {}
           
-          // Generate data for all zones, but apply camera-specific patterns
-          allZones.forEach((z, zoneIndex) => {
-            const timeMs = time.getTime()
-            const timeFactor = i / config.entries
+          // Generate horizontal zones with spread-out zig-zag variations like reference image
+          // Use fixed thermal zones for consistent display
+          Array.from({ length: 8 }, (_, zoneIndex) => ({ name: `Zone_${zoneIndex + 1}`, index: zoneIndex })).forEach((z, zoneIndex) => {
+            // Each zone gets its own distinct temperature level, separated by 8°F for better spacing
+            const zoneBaseTemp = 80 + (zoneIndex * 8) // Zone 0: ~80°F, Zone 1: ~88°F, Zone 2: ~96°F, etc.
             
-            // Camera-specific base temperatures and patterns
-            const isLeftCamera = selectedCamera === 'planck_1'
-            const cameraOffset = isLeftCamera ? 30 : 0
-            const cameraMultiplier = isLeftCamera ? 1.3 : 0.9
+            // Create spread-out zig-zag patterns within each zone's band
+            const primaryWave = Math.sin((i / 30) * Math.PI + zoneIndex) * 1.5 // Main wave pattern
+            const secondaryWave = Math.cos((i / 20) * Math.PI + zoneIndex * 2) * 1.0 // Secondary variation
+            const tertiaryWave = Math.sin((i / 45) * Math.PI + zoneIndex * 3) * 0.8 // Tertiary variation
+            const randomNoise = (Math.random() - 0.5) * 1.2 // Random fluctuation
             
-            // Dynamic base temperature based on time, zone, and camera
-            const dynamicBase = 70 + (timeMs % 1000000) / 10000 + (zoneIndex * 12) + cameraOffset
+            // Combine all variations for realistic spread-out zig-zag pattern
+            const finalTemp = zoneBaseTemp + primaryWave + secondaryWave + tertiaryWave + randomNoise
             
-            // Camera-specific zone patterns
-            const zonePattern = isLeftCamera 
-              ? Math.sin(timeMs / (4 * 60 * 60 * 1000) + zoneIndex) * 25 + 
-                Math.cos(timeMs / (8 * 60 * 60 * 1000) + zoneIndex * 2) * 20
-              : Math.sin(timeMs / (6 * 60 * 60 * 1000) + zoneIndex) * 18 + 
-                Math.cos(timeMs / (12 * 60 * 60 * 1000) + zoneIndex * 3) * 12
+            // Keep within zone's range (±2.5°F from base)
+            const minTemp = zoneBaseTemp - 2.5
+            const maxTemp = zoneBaseTemp + 2.5
+            const clampedTemp = Math.max(minTemp, Math.min(maxTemp, Math.round(finalTemp * 10) / 10))
             
-            // Camera-specific time-based variations
-            const dailyPattern = Math.sin(timeMs / (24 * 60 * 60 * 1000)) * (25 * cameraMultiplier)
-            const weeklyPattern = Math.sin(timeMs / (7 * 24 * 60 * 60 * 1000)) * (20 * cameraMultiplier)
-            const monthlyPattern = Math.sin(timeMs / (30 * 60 * 60 * 24 * 1000)) * (15 * cameraMultiplier)
-            const seasonalPattern = Math.sin(timeMs / (90 * 60 * 60 * 24 * 1000)) * (30 * cameraMultiplier)
-            
-            // Camera-specific hour and day patterns
-            const hourPattern = isLeftCamera
-              ? Math.sin((time.getHours() / 24) * 2 * Math.PI) * 22
-              : Math.sin((time.getHours() / 24) * 2 * Math.PI + Math.PI) * 16
-            const dayPattern = isLeftCamera
-              ? Math.sin((time.getDay() / 7) * 2 * Math.PI) * 15
-              : Math.sin((time.getDay() / 7) * 2 * Math.PI + Math.PI) * 10
-            
-            // Consistent oscillation patterns with camera-specific amplitudes
-            const oscillation1 = Math.sin(i / (50 + zoneIndex * 10)) * (isLeftCamera ? 25 : 18)
-            const oscillation2 = Math.sin(i / (25 + zoneIndex * 5)) * (isLeftCamera ? 18 : 12)
-            const oscillation3 = Math.cos(i / (75 + zoneIndex * 15)) * (isLeftCamera ? 20 : 15)
-            
-            // Camera-specific random variations
-            const timeSeed = Math.floor(timeMs / (30 * 1000)) + zoneIndex + (isLeftCamera ? 1000 : 2000)
-            const random1 = Math.sin(timeSeed) * (20 * cameraMultiplier)
-            const random2 = Math.cos(timeSeed * 2) * (15 * cameraMultiplier)
-            const random3 = Math.sin(timeSeed * 3) * (10 * cameraMultiplier)
-            
-            // Camera-specific peaks and spikes
-            const peakPattern = isLeftCamera
-              ? Math.sin(i / (80 + zoneIndex * 15)) * 0.9 + 0.1
-              : Math.sin(i / (120 + zoneIndex * 25)) * 0.7 + 0.3
-            const dynamicPeak = peakPattern * (isLeftCamera ? (30 + Math.random() * 40) : (20 + Math.random() * 30))
-            
-            const spikeSeed = Math.sin(timeSeed + zoneIndex * 50) * 0.5 + 0.5
-            const dynamicSpike = spikeSeed > (1 - config.peakChance) 
-              ? (isLeftCamera ? (Math.random() * 60 + 35) : (Math.random() * 40 + 25))
-              : 0
-            
-            // Camera-specific temperature drift
-            const timeDrift = (timeMs - startTime.getTime()) / (24 * 60 * 60 * 1000) * (isLeftCamera ? 4 : 2)
-            const driftPattern = Math.sin(timeDrift / (isLeftCamera ? 4 : 6)) * (isLeftCamera ? 10 : 6)
-            
-            // Calculate final temperature with all camera-specific components
-            const finalTemp = dynamicBase + zonePattern + dailyPattern + weeklyPattern + monthlyPattern + 
-                             seasonalPattern + hourPattern + dayPattern + oscillation1 + oscillation2 + 
-                             oscillation3 + random1 + random2 + random3 + dynamicPeak + dynamicSpike + driftPattern
-            
-            // Ensure temperature is always greater than 100°F
-            const clampedTemp = Math.max(101, Math.round(finalTemp))
             readings[z.name] = clampedTemp
           })
           
@@ -290,12 +343,15 @@ export default function ThermalPlot({
         
         try {
           localStorage.setItem(testDataKey, JSON.stringify(testData))
+          console.log(`✅ Generated ${testData.length} initial data points for ${timeRange}`)
         } catch (error) {
           console.warn(`Failed to store initial test data:`, error.message)
         }
+      } else {
+        console.log(`📊 Found existing data for ${timeRange}: ${JSON.parse(localStorage.getItem(testDataKey)).length} entries`)
       }
     }
-  }, [])
+  }, [timeRange, selectedCamera])
 
   useEffect(() => {
     localStorage.setItem('timeRange', timeRange)
@@ -330,65 +386,49 @@ export default function ThermalPlot({
     }
   }, [history, selectedCamera, allZones, allZoneNames])
 
-  useEffect(() => {
-    const cameraZoneNames = allZones
-      .filter(z => z.camera === selectedCamera)
-      .map(z => z.name)
 
-    // Try loading from localStorage
-    let stored = localStorage.getItem('visibleZones')
-    let storedZones = stored ? JSON.parse(stored) : null
 
-    // Only default if not stored, or not an array, or all empty
-    if (!storedZones || !Array.isArray(storedZones) || storedZones.length === 0) {
-      setVisibleZones(cameraZoneNames)
-      localStorage.setItem('visibleZones', JSON.stringify(cameraZoneNames))
-    } else {
-      setVisibleZones(storedZones)
-    }
-    // eslint-disable-next-line
-  }, [selectedCamera, allZones, setVisibleZones])
+  // DISABLED: Don't use actual zone data for thermal chart - only use test data
+  // useEffect(() => {
+  //   const now = new Date()
+  //   const readings = {}
+  //   zones
+  //     .filter(z => z.camera === selectedCamera)
+  //     .forEach(z => {
+  //       readings[z.name] = z.temperature
+  //     })
+  //   if (Object.keys(readings).length > 0) {
+  //     setHistory(prev => {
+  //       const lastEntry = prev[prev.length - 1]
+  //       if (lastEntry && now.getTime() === new Date(lastEntry.time).getTime()) {
+  //         return prev
+  //       }
+  //       const updated = [...prev, { time: now, readings }]
+  //       try {
+  //         localStorage.setItem('thermalHistory', JSON.stringify(updated))
+  //       } catch (error) {
+  //         console.warn('Failed to store thermal history in localStorage:', error.message)
+  //       }
+  //       return updated
+  //     })
+  //   }
+  //   }, [zones, selectedCamera])
 
-  useEffect(() => {
-    const now = new Date()
-    const readings = {}
-    zones
-      .filter(z => z.camera === selectedCamera)
-      .forEach(z => {
-        readings[z.name] = z.temperature
-      })
-    if (Object.keys(readings).length > 0) {
-      setHistory(prev => {
-        const lastEntry = prev[prev.length - 1]
-        if (lastEntry && now.getTime() === new Date(lastEntry.time).getTime()) {
-          return prev
-        }
-        const updated = [...prev, { time: now, readings }]
-        try {
-          localStorage.setItem('thermalHistory', JSON.stringify(updated))
-        } catch (error) {
-          console.warn('Failed to store thermal history in localStorage:', error.message)
-        }
-        return updated
-      })
-    }
-    }, [zones, selectedCamera])
-
-  // Test data configuration - dynamic values only
+  // Test data configuration - all ranges use 5000 entries
   const testDataConfig = {
-    '30m': { entries: 360, interval: 5000, peakChance: 0.05 },
-    '1h': { entries: 720, interval: 5000, peakChance: 0.06 },
-    '3h': { entries: 1080, interval: 10000, peakChance: 0.07 },
-    '6h': { entries: 5000, interval: 43200, peakChance: 0.08 },
-    '12h': { entries: 6000, interval: 7200, peakChance: 0.09 },
-    '24h': { entries: 8000, interval: 10800, peakChance: 0.10 },
+    '30m': { entries: 5000, interval: 360, peakChance: 0.05 },
+    '1h': { entries: 5000, interval: 720, peakChance: 0.06 },
+    '3h': { entries: 5000, interval: 3240, peakChance: 0.07 },
+    '6h': { entries: 5000, interval: 4320, peakChance: 0.08 },
+    '12h': { entries: 5000, interval: 8640, peakChance: 0.09 },
+    '24h': { entries: 5000, interval: 17280, peakChance: 0.10 },
     '48h': { entries: 5000, interval: 34560, peakChance: 0.12 },
-    '2d': { entries: 1000, interval: 172800, peakChance: 0.15 },
-    '4d': { entries: 800, interval: 432000, peakChance: 0.18 },
-    '7d': { entries: 500, interval: 1209600, peakChance: 0.20 },
-    '2w': { entries: 300, interval: 4032000, peakChance: 0.25 },
-    '1m': { entries: 200, interval: 12960000, peakChance: 0.30 },
-    '1y': { entries: 100, interval: 315360000, peakChance: 0.35 }
+    '2d': { entries: 5000, interval: 34560, peakChance: 0.15 },
+    '4d': { entries: 5000, interval: 69120, peakChance: 0.18 },
+    '7d': { entries: 5000, interval: 120960, peakChance: 0.20 },
+    '2w': { entries: 5000, interval: 241920, peakChance: 0.25 },
+    '1m': { entries: 5000, interval: 518400, peakChance: 0.30 },
+    '1y': { entries: 5000, interval: 6307200, peakChance: 0.35 }
   }
 
   // Generate test data for all time ranges
@@ -396,23 +436,15 @@ export default function ThermalPlot({
     const config = testDataConfig[timeRange]
     if (!config) return
 
-    // Force clear ALL test data every time range changes
-    const timeMap = {
-      '30m': 30 * 60000, '1h': 3600000, '3h': 3 * 3600000, '6h': 6 * 3600000,
-      '12h': 12 * 3600000, '24h': 24 * 3600000, '48h': 48 * 3600000,
-      '2d': 2 * 86400000, '4d': 4 * 86400000, '7d': 7 * 86400000,
-      '2w': 14 * 86400000, '1m': 30 * 86400000, '1y': 365 * 86400000
-    }
-    
-    // Clear ALL test data for ALL time ranges and cameras
-    Object.keys(timeMap).forEach(range => {
-      localStorage.removeItem(`thermalHistory${range}`)
-      localStorage.removeItem(`thermalHistory${range}_planck_1`)
-      localStorage.removeItem(`thermalHistory${range}_planck_2`)
-    })
-    localStorage.removeItem('thermalHistory')
-
+    // Only generate data if it doesn't exist - don't clear existing data
     const testDataKey = `thermalHistory${timeRange}_${selectedCamera}`
+    const existingData = localStorage.getItem(testDataKey)
+    
+    // If data already exists, don't regenerate it
+    if (existingData) {
+      console.log(`📊 Using existing data for ${timeRange}: ${JSON.parse(existingData).length} entries`)
+      return
+    }
     
     const testData = []
     const now = new Date()
@@ -447,73 +479,31 @@ export default function ThermalPlot({
       const time = new Date(startTime.getTime() + (i * interval))
       const readings = {}
       
-      // Generate data for all zones, but apply camera-specific patterns
-      allZones.forEach((z, zoneIndex) => {
-        const timeMs = time.getTime()
-        const timeFactor = i / config.entries
-        
-        // Camera-specific base temperatures and patterns
+      // Generate horizontal zones with spread-out zig-zag variations like reference image
+      // Use fixed thermal zones for consistent display
+      Array.from({ length: 8 }, (_, zoneIndex) => ({ name: `Zone_${zoneIndex + 1}`, index: zoneIndex })).forEach((z, zoneIndex) => {
+        // Camera-specific offset (small difference between cameras)
         const isLeftCamera = selectedCamera === 'planck_1'
-        const cameraOffset = isLeftCamera ? 30 : 0 // Left camera runs hotter
-        const cameraMultiplier = isLeftCamera ? 1.3 : 0.9 // Left camera has more variation
+        const cameraOffset = isLeftCamera ? 2 : 0 // 2°F difference between cameras
         
-        // Dynamic base temperature based on time, zone, and camera
-        const dynamicBase = 70 + (timeMs % 1000000) / 10000 + (zoneIndex * 12) + cameraOffset
+        // Each zone gets its own distinct temperature level, separated by 8°F for better spacing
+        const zoneBaseTemp = 80 + (zoneIndex * 8) + cameraOffset // Zone 0: ~80°F, Zone 1: ~88°F, etc.
         
-        // Camera-specific zone patterns
-        const zonePattern = isLeftCamera 
-          ? Math.sin(timeMs / (4 * 60 * 60 * 1000) + zoneIndex) * 25 + 
-            Math.cos(timeMs / (8 * 60 * 60 * 1000) + zoneIndex * 2) * 20
-          : Math.sin(timeMs / (6 * 60 * 60 * 1000) + zoneIndex) * 18 + 
-            Math.cos(timeMs / (12 * 60 * 60 * 1000) + zoneIndex * 3) * 12
+        // Create spread-out zig-zag patterns within each zone's band
+        const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 1.8 // Main wave pattern
+        const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 1.2 // Secondary variation
+        const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 1.0 // Tertiary variation
+        const randomNoise = (Math.random() - 0.5) * 1.4 // Random fluctuation
+        const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.8 // Daily variation
         
-        // Camera-specific time-based variations
-        const dailyPattern = Math.sin(timeMs / (24 * 60 * 60 * 1000)) * (25 * cameraMultiplier)
-        const weeklyPattern = Math.sin(timeMs / (7 * 24 * 60 * 60 * 1000)) * (20 * cameraMultiplier)
-        const monthlyPattern = Math.sin(timeMs / (30 * 60 * 60 * 24 * 1000)) * (15 * cameraMultiplier)
-        const seasonalPattern = Math.sin(timeMs / (90 * 60 * 60 * 24 * 1000)) * (30 * cameraMultiplier)
+        // Combine all variations for realistic spread-out zig-zag pattern
+        const finalTemp = zoneBaseTemp + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
         
-        // Camera-specific hour and day patterns
-        const hourPattern = isLeftCamera
-          ? Math.sin((time.getHours() / 24) * 2 * Math.PI) * 22
-          : Math.sin((time.getHours() / 24) * 2 * Math.PI + Math.PI) * 16 // Opposite phase
-        const dayPattern = isLeftCamera
-          ? Math.sin((time.getDay() / 7) * 2 * Math.PI) * 15
-          : Math.sin((time.getDay() / 7) * 2 * Math.PI + Math.PI) * 10 // Opposite phase
+        // Keep within zone's range (±2.5°F from base)
+        const minTemp = zoneBaseTemp - 2.5
+        const maxTemp = zoneBaseTemp + 2.5
+        const clampedTemp = Math.max(minTemp, Math.min(maxTemp, Math.round(finalTemp * 10) / 10))
         
-        // Consistent oscillation patterns with camera-specific amplitudes
-        const oscillation1 = Math.sin(i / (50 + zoneIndex * 10)) * (isLeftCamera ? 25 : 18)
-        const oscillation2 = Math.sin(i / (25 + zoneIndex * 5)) * (isLeftCamera ? 18 : 12)
-        const oscillation3 = Math.cos(i / (75 + zoneIndex * 15)) * (isLeftCamera ? 20 : 15)
-        
-        // Camera-specific random variations
-        const timeSeed = Math.floor(timeMs / (30 * 1000)) + zoneIndex + (isLeftCamera ? 1000 : 2000)
-        const random1 = Math.sin(timeSeed) * (20 * cameraMultiplier)
-        const random2 = Math.cos(timeSeed * 2) * (15 * cameraMultiplier)
-        const random3 = Math.sin(timeSeed * 3) * (10 * cameraMultiplier)
-        
-        // Camera-specific peaks and spikes
-        const peakPattern = isLeftCamera
-          ? Math.sin(i / (80 + zoneIndex * 15)) * 0.9 + 0.1
-          : Math.sin(i / (120 + zoneIndex * 25)) * 0.7 + 0.3
-        const dynamicPeak = peakPattern * (isLeftCamera ? (30 + Math.random() * 40) : (20 + Math.random() * 30))
-        
-        const spikeSeed = Math.sin(timeSeed + zoneIndex * 50) * 0.5 + 0.5
-        const dynamicSpike = spikeSeed > (1 - config.peakChance) 
-          ? (isLeftCamera ? (Math.random() * 60 + 35) : (Math.random() * 40 + 25))
-          : 0
-        
-        // Camera-specific temperature drift
-        const timeDrift = (timeMs - startTime.getTime()) / (24 * 60 * 60 * 1000) * (isLeftCamera ? 4 : 2)
-        const driftPattern = Math.sin(timeDrift / (isLeftCamera ? 4 : 6)) * (isLeftCamera ? 10 : 6)
-        
-        // Calculate final temperature with all camera-specific components
-        const finalTemp = dynamicBase + zonePattern + dailyPattern + weeklyPattern + monthlyPattern + 
-                         seasonalPattern + hourPattern + dayPattern + oscillation1 + oscillation2 + 
-                         oscillation3 + random1 + random2 + random3 + dynamicPeak + dynamicSpike + driftPattern
-        
-        // Ensure temperature is always greater than 100°F
-        const clampedTemp = Math.max(101, Math.round(finalTemp))
         readings[z.name] = clampedTemp
       })
       
@@ -556,6 +546,40 @@ export default function ThermalPlot({
     }
   }, [timeRange, selectedCamera])
 
+  useEffect(() => {
+    if (chartRef.current) {
+      chartRef.current.update()
+    }
+  }, [zonesVisibility, visibleZones])
+
+  // Force chart to re-read test data every 10 seconds and immediately on load
+  useEffect(() => {
+    // Immediately update chart with latest data when component mounts or timeRange/camera changes
+    const updateChartWithLatestData = () => {
+      const testDataKey = `thermalHistory${timeRange}_${selectedCamera}`
+      const testData = localStorage.getItem(testDataKey)
+      if (testData) {
+        try {
+          const parsedData = JSON.parse(testData, (key, val) => (key === 'time' ? new Date(val) : val))
+          // Force chart to update with new data
+          if (chartRef.current) {
+            chartRef.current.update('none')
+          }
+        } catch (error) {
+          console.warn('Failed to re-read test data:', error.message)
+        }
+      }
+    }
+
+    // Update immediately on mount/change
+    updateChartWithLatestData()
+    
+    // Then set up interval for continuous updates
+    const interval = setInterval(updateChartWithLatestData, 10000) // Every 10 seconds
+
+    return () => clearInterval(interval)
+  }, [timeRange, selectedCamera])
+
 
 
 
@@ -567,57 +591,32 @@ export default function ThermalPlot({
       const now = new Date()
       const readings = {}
       
-      // Generate new temperature readings for all zones
-      allZones.forEach((z, zoneIndex) => {
-        const timeMs = now.getTime()
-        
-        // Camera-specific base temperatures and patterns
+      // Generate horizontal zones with spread-out zig-zag variations like reference image
+      // Use fixed thermal zones for consistent display
+      Array.from({ length: 8 }, (_, zoneIndex) => ({ name: `Zone_${zoneIndex + 1}`, index: zoneIndex })).forEach((z, zoneIndex) => {
+        // Camera-specific offset (small difference between cameras)
         const isLeftCamera = selectedCamera === 'planck_1'
-        const cameraOffset = isLeftCamera ? 30 : 0
-        const cameraMultiplier = isLeftCamera ? 1.3 : 0.9
+        const cameraOffset = isLeftCamera ? 2 : 0 // 2°F difference between cameras
         
-        // Dynamic base temperature based on time, zone, and camera
-        const dynamicBase = 70 + (timeMs % 1000000) / 10000 + (zoneIndex * 12) + cameraOffset
+        // Each zone gets its own distinct temperature level, separated by 8°F for better spacing
+        const zoneBaseTemp = 80 + (zoneIndex * 8) + cameraOffset // Zone 0: ~80°F, Zone 1: ~88°F, etc.
         
-        // Camera-specific patterns
-        const zonePattern = isLeftCamera 
-          ? Math.sin(timeMs / (4 * 60 * 60 * 1000) + zoneIndex) * 25 + 
-            Math.cos(timeMs / (8 * 60 * 60 * 1000) + zoneIndex * 2) * 20
-          : Math.sin(timeMs / (6 * 60 * 60 * 1000) + zoneIndex) * 18 + 
-            Math.cos(timeMs / (12 * 60 * 60 * 1000) + zoneIndex * 3) * 12
+        // Create spread-out zig-zag patterns within each zone's band
+        const timeBasedIndex = Math.floor(now.getTime() / 10000) // Use time-based index for consistent patterns
+        const primaryWave = Math.sin((timeBasedIndex / 35) * Math.PI + zoneIndex) * 1.8 // Main wave pattern
+        const secondaryWave = Math.cos((timeBasedIndex / 25) * Math.PI + zoneIndex * 2) * 1.2 // Secondary variation
+        const tertiaryWave = Math.sin((timeBasedIndex / 50) * Math.PI + zoneIndex * 3) * 1.0 // Tertiary variation
+        const randomNoise = (Math.random() - 0.5) * 1.4 // Random fluctuation
+        const dailyPattern = Math.sin((now.getHours() / 24) * Math.PI * 2) * 0.8 // Daily variation
         
-        // Time-based variations
-        const dailyPattern = Math.sin(timeMs / (24 * 60 * 60 * 1000)) * (25 * cameraMultiplier)
-        const weeklyPattern = Math.sin(timeMs / (7 * 24 * 60 * 60 * 1000)) * (20 * cameraMultiplier)
-        const monthlyPattern = Math.sin(timeMs / (30 * 60 * 60 * 24 * 1000)) * (15 * cameraMultiplier)
-        const seasonalPattern = Math.sin(timeMs / (90 * 60 * 60 * 24 * 1000)) * (30 * cameraMultiplier)
+        // Combine all variations for realistic spread-out zig-zag pattern
+        const finalTemp = zoneBaseTemp + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
         
-        // Hour and day patterns
-        const hourPattern = isLeftCamera
-          ? Math.sin((now.getHours() / 24) * 2 * Math.PI) * 22
-          : Math.sin((now.getHours() / 24) * 2 * Math.PI + Math.PI) * 16
-        const dayPattern = isLeftCamera
-          ? Math.sin((now.getDay() / 7) * 2 * Math.PI) * 15
-          : Math.sin((now.getDay() / 7) * 2 * Math.PI + Math.PI) * 10
+        // Keep within zone's range (±2.5°F from base)
+        const minTemp = zoneBaseTemp - 2.5
+        const maxTemp = zoneBaseTemp + 2.5
+        const clampedTemp = Math.max(minTemp, Math.min(maxTemp, Math.round(finalTemp * 10) / 10))
         
-        // Oscillation patterns
-        const oscillation1 = Math.sin(timeMs / (50 + zoneIndex * 10)) * (isLeftCamera ? 25 : 18)
-        const oscillation2 = Math.sin(timeMs / (25 + zoneIndex * 5)) * (isLeftCamera ? 18 : 12)
-        const oscillation3 = Math.cos(timeMs / (75 + zoneIndex * 15)) * (isLeftCamera ? 20 : 15)
-        
-        // Random variations
-        const timeSeed = Math.floor(timeMs / (30 * 1000)) + zoneIndex + (isLeftCamera ? 1000 : 2000)
-        const random1 = Math.sin(timeSeed) * (20 * cameraMultiplier)
-        const random2 = Math.cos(timeSeed * 2) * (15 * cameraMultiplier)
-        const random3 = Math.sin(timeSeed * 3) * (10 * cameraMultiplier)
-        
-        // Calculate final temperature
-        const finalTemp = dynamicBase + zonePattern + dailyPattern + weeklyPattern + monthlyPattern + 
-                         seasonalPattern + hourPattern + dayPattern + oscillation1 + oscillation2 + 
-                         oscillation3 + random1 + random2 + random3
-        
-        // Ensure temperature is always greater than 100°F
-        const clampedTemp = Math.max(101, Math.round(finalTemp))
         readings[z.name] = clampedTemp
       })
       
@@ -632,14 +631,33 @@ export default function ThermalPlot({
         return updated
       })
       
-      // Update chart
+      // Update ALL time range test data for the current camera every 10 seconds
+      Object.keys(testDataConfig).forEach(range => {
+        const testDataKey = `thermalHistory${range}_${selectedCamera}`
+        const existingTestData = localStorage.getItem(testDataKey)
+        if (existingTestData) {
+          try {
+            const parsedData = JSON.parse(existingTestData, (key, val) => (key === 'time' ? new Date(val) : val))
+            
+            // Always add new data every 10 seconds for ALL time ranges
+            const updatedTestData = [...parsedData, { time: now, readings }]
+            localStorage.setItem(testDataKey, JSON.stringify(updatedTestData))
+          } catch (error) {
+            console.warn(`Failed to update ${range} test data:`, error.message)
+          }
+        }
+      })
+      
+      // Force chart to re-read data from localStorage and update
       if (chartRef.current) {
+        // Trigger a re-render by updating the component state
+        setHistory(prev => [...prev]) // Force re-render
         chartRef.current.update('none') // Force update without animation
       }
     }, 10000) // 10 seconds
 
     return () => clearInterval(interval) // Cleanup on unmount
-  }, [allZones, selectedCamera])
+  }, [allZones, selectedCamera, timeRange])
 
 
 
@@ -663,38 +681,59 @@ export default function ThermalPlot({
 
   const fToC = f => Math.round(((f - 32) * 5) / 9)
 
-  const handleCameraChange = cam => {
-    setSelectedCamera(cam)
-    // Removed setAllZonesHidden(false) - button state should persist across camera changes
+  const handleCameraChange = async (cam) => {
+    if (cam === selectedCamera) return // Don't switch if same camera
     
-    // Force chart refresh when camera changes
-    setTimeout(() => {
+    setIsCameraSwitching(true)
+    
+    try {
+      // Simulate a small delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      setSelectedCamera(cam)
+      
+      // Force immediate chart refresh when camera changes
       if (chartRef.current) {
         chartRef.current.update('none') // Force complete update
       }
-    }, 100)
+    } finally {
+      setIsCameraSwitching(false)
+    }
   }
 
   const toggleAllZones = () => {
-    const allZoneNames = allZones.map(z => z.name) // All zones from both cameras (test data)
+    // Use thermalZones instead of allZones since that's what's actually displayed in the chart
+    const thermalZoneNames = Array.from({ length: 8 }, (_, i) => `Zone_${i + 1}`)
+    console.log('toggleAllZones called, allZonesHidden:', allZonesHidden)
+    console.log('toggleAllZones called, thermalZoneNames:', thermalZoneNames)
+    console.log('toggleAllZones called, allZones names:', allZones.map(z => z.name))
+    
     if (allZonesHidden) {
       // Show all zones
       const newVisibility = { ...zonesVisibility }
-      allZoneNames.forEach(name => { newVisibility[name] = true })
+      thermalZoneNames.forEach(name => { newVisibility[name] = true })
+      console.log('Showing all zones, newVisibility:', newVisibility)
       setZonesVisibility(newVisibility)
-      setVisibleZones(allZoneNames)
+      setVisibleZones(thermalZoneNames)
       setAllZonesHidden(false)
       localStorage.setItem('zonesVisibility', JSON.stringify(newVisibility))
-      localStorage.setItem('visibleZones', JSON.stringify(allZoneNames))
+      localStorage.setItem('visibleZones', JSON.stringify(thermalZoneNames))
     } else {
       // Hide all zones
       const newVisibility = { ...zonesVisibility }
-      allZoneNames.forEach(name => { newVisibility[name] = false })
+      thermalZoneNames.forEach(name => { newVisibility[name] = false })
+      console.log('Hiding all zones, newVisibility:', newVisibility)
       setZonesVisibility(newVisibility)
       setVisibleZones([])
       setAllZonesHidden(true)
       localStorage.setItem('zonesVisibility', JSON.stringify(newVisibility))
       localStorage.setItem('visibleZones', JSON.stringify([]))
+    }
+    
+    // Force immediate chart update to refresh legend
+    if (chartRef.current) {
+      console.log('Forcing chart update after toggleAllZones')
+      chartRef.current.update('none')
     }
   }
   const handleSaveGraph = () => {
@@ -789,33 +828,39 @@ export default function ThermalPlot({
   
     chart.update()
   }
-    // Don't show waiting message - let the chart render with whatever data is available
-    if (!history.length) {
-      return <div style={{ padding: 20 }}>Loading...</div>
-    }
+    // No loading state needed - test data is generated immediately
 
   const timeLimit = timeMap[timeRange] || timeMap['7d']
   const currentTime = Date.now()
   const rangeCutoff = currentTime - timeLimit
 
-  // Use test data for all time ranges
-  let dataToUse = history
+  // ALWAYS use test data - ignore actual history data
+  let dataToUse = []
   const testDataKey = `thermalHistory${timeRange}_${selectedCamera}`
   const testData = localStorage.getItem(testDataKey)
   if (testData) {
     try {
       dataToUse = JSON.parse(testData, (key, val) => (key === 'time' ? new Date(val) : val))
+      console.log(`📊 Using test data for ${timeRange} on ${selectedCamera}: ${dataToUse.length} entries`)
     } catch (e) {
-      console.error(`Error parsing ${timeRange} test data for ${selectedCamera}:`, e)
-      dataToUse = history
+      console.error(`❌ Error parsing ${timeRange} test data for ${selectedCamera}:`, e)
+      dataToUse = [] // Use empty array instead of actual history
     }
   } else {
-    console.log(`No ${timeRange} test data found for ${selectedCamera} in localStorage`)
+    console.log(`⚠️ No ${timeRange} test data found for ${selectedCamera} in localStorage`)
+    dataToUse = [] // Use empty array instead of actual history
   }
 
   const sorted = dataToUse.sort((a, b) => new Date(a.time) - new Date(b.time)) // Don't filter test data by time
 
-  const zonesForCamera = allZones // Use all zones for all time ranges (test data)
+  // Create a fixed set of zones for thermal chart display (independent of actual data)
+  const thermalZones = Array.from({ length: 8 }, (_, i) => ({
+    name: `Zone_${i + 1}`,
+    camera: selectedCamera,
+    index: i
+  }))
+  
+  const zonesForCamera = thermalZones // Use fixed thermal zones for consistent display
   const filteredNames = zonesForCamera.map(z => z.name)
   
 
@@ -837,7 +882,7 @@ export default function ThermalPlot({
       
 
 
-    const isHidden = zonesVisibility[zone.name] === false || !visibleZones.includes(zone.name)
+    const isHidden = zonesVisibility[zone.name] === false
     const smoothed = zoneDataPoints.length > 0
       ? smoothData(zoneDataPoints.slice(0, -1), 5)
       : []
@@ -845,20 +890,23 @@ export default function ThermalPlot({
       ? [...smoothed, zoneDataPoints[zoneDataPoints.length - 1]]
       : []
     
-    // Add vertical offset to each zone to spread them out
-    let verticalOffset = idx * 20 // 20°F offset per zone
-    if (timeRange === '12h' || timeRange === '48h') {
-      verticalOffset = idx * 40 // 40°F offset per zone for 12h and 48h
-    }
+    // Add vertical offset to spread out the zone lines
     const offsetData = combinedData.map(point => ({
-      ...point,
-      y: point.y + verticalOffset
+      x: point.x,
+      y: point.y + (idx * 20) // Add 20° spacing between each zone line
     }))
-    // Create more distinct colors with better spacing
-    const hue = (idx * 60) % 360 // 60° spacing instead of 45° for better separation
-    const saturation = 75 + (idx % 3) * 10 // Vary saturation for more distinction
-    const lightness = 50 + (idx % 2) * 15 // Vary lightness for better contrast
-    const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`
+    // Professional color palette - business-appropriate colors
+    const professionalColors = [
+      '#1f77b4', // Professional blue
+      '#ff7f0e', // Professional orange
+      '#2ca02c', // Professional green
+      '#d62728', // Professional red
+      '#9467bd', // Professional purple
+      '#8c564b', // Professional brown
+      '#e377c2', // Professional pink
+      '#17becf'  // Professional teal
+    ]
+    const color = professionalColors[idx % professionalColors.length]
     
     return {
       label: zone.name,
@@ -868,15 +916,15 @@ export default function ThermalPlot({
       borderDash: [], // All lines are solid
       spanGaps: true,
       pointRadius: 0, // No points visible by default
-      pointHoverRadius: 0, // Don't show points on hover by default
-      pointHitRadius: 6,
+      pointHoverRadius: 5, // Show points on hover
+      pointHitRadius: 12, // Larger hit area for easier hovering
       pointBackgroundColor: color,
       pointBorderColor: color,
       pointBorderWidth: 1,
       yAxisID: 'y',
       order: idx, // Use index for ordering
       hidden: isHidden,
-      borderWidth: 1, // Even thinner lines
+      borderWidth: 2, // Thicker lines to match reference image
     }
   })
 
@@ -897,26 +945,18 @@ export default function ThermalPlot({
     }
   })
   
-  // Calculate y-axis range with exactly 10°F buffer
+  // Calculate y-axis range to ensure max is always higher than highest data point
   if (allChartTemps.length === 0) {
-    dataMin = tempUnit === 'F' ? 0 : Math.round(((0 - 32) * 5) / 9)
-    dataMax = tempUnit === 'F' ? 300 : Math.round(((300 - 32) * 5) / 9)
+    dataMin = tempUnit === 'F' ? 75 : Math.round(((75 - 32) * 5) / 9)
+    dataMax = tempUnit === 'F' ? 120 : Math.round(((120 - 32) * 5) / 9)
   } else {
-    // Use actual min/max with exactly 10°F buffer
+    // Use actual min/max with buffer to ensure max is always higher than data
     const actualMin = Math.min(...allChartTemps)
     const actualMax = Math.max(...allChartTemps)
     
-    // Apply buffer, but for 6h use exactly 5°F above highest point minus 30°F
-    if (timeRange === '6h') {
-      dataMin = Math.max(0, actualMin - 5)
-      dataMax = actualMax + 5 - 30
-    } else if (timeRange === '24h') {
-      dataMin = Math.max(0, actualMin - 50)
-      dataMax = actualMax + 15
-    } else {
-      dataMin = Math.max(0, actualMin - 25)
-      dataMax = actualMax + 15
-    }
+    // Buffer to show all zones clearly and ensure max is above highest data point
+    dataMin = Math.max(75, actualMin - 3)
+    dataMax = actualMax + 15 // Always add 15° buffer above highest data point for better spacing
   }
 
   const dataMinTime = sorted.length
@@ -948,14 +988,14 @@ export default function ThermalPlot({
     const now = new Date(currentTime)
     now.setSeconds(0, 0)
     const start = new Date(now.getTime() - 30 * 60 * 1000)
-    // Generate ticks every 5 minutes for 30m (7 ticks total)
+    // Generate ticks every 5 minutes for 30m (6 ticks total, including first)
     for (let i = 0; i <= 6; i++) {
       const tick = new Date(start.getTime() + i * 5 * 60 * 1000)
       custom30mTicks.push(tick.getTime())
     }
     // Add current time as the last tick
     custom30mTicks.push(currentTime)
-    extendedMin = start.getTime()
+    extendedMin = start.getTime() // Start from exactly 30 minutes ago
     extendedMax = currentTime
     startTime = extendedMin
   } else if (timeRange === '24h') {
@@ -975,12 +1015,11 @@ export default function ThermalPlot({
     // Force the last tick to be the current time
     custom24hTicks[custom24hTicks.length - 1] = currentTime
     extendedMax = currentTime
-    extendedMin = custom24hTicks[0]
+    extendedMin = custom24hTicks[0] // Use first tick (exactly 24 hours ago)
     startTime = extendedMin
   } else if (timeRange === '1h') {
     const now = new Date(currentTime)
-    now.setSeconds(0, 0)
-    const baseMinute = now.getMinutes()
+    now.setSeconds(0, 0) // Round down to nearest minute like other ranges
     const start = new Date(now.getTime() - 60 * 60 * 1000)
     for (let i = 0; i <= 12; i++) {
       const tick = new Date(start.getTime() + i * 5 * 60 * 1000)
@@ -989,7 +1028,7 @@ export default function ThermalPlot({
     // Add current time as the last tick
     custom1hTicks.push(currentTime)
     console.log('1h ticks:', custom1hTicks.length, 'Current time added:', new Date(currentTime))
-    extendedMin = start.getTime()
+    extendedMin = custom1hTicks[0] // Use first tick (exactly 1 hour ago)
     extendedMax = currentTime
     startTime = extendedMin
   } else if (timeRange === '3h') {
@@ -1003,7 +1042,7 @@ export default function ThermalPlot({
     }
     // Add current time as the last tick
     custom3hTicks.push(currentTime)
-    extendedMin = start.getTime()
+    extendedMin = custom3hTicks[0] // Use first tick (exactly 3 hours ago)
     extendedMax = currentTime
     startTime = extendedMin
   } else if (timeRange === '6h') {
@@ -1017,14 +1056,14 @@ export default function ThermalPlot({
     // Add current time as the last tick
     custom6hTicks.push(currentTime)
     console.log('6h ticks:', custom6hTicks.length, 'Current time added:', new Date(currentTime))
-    extendedMin = start.getTime()
+    extendedMin = custom6hTicks[0] // Use first tick (exactly 6 hours ago)
     extendedMax = currentTime
     startTime = extendedMin
   } else if (timeRange === '12h') {
     const now = new Date(currentTime)
     now.setSeconds(0, 0)
     const start = new Date(now.getTime() - 12 * 60 * 60 * 1000)
-    // Generate ticks every 2 hours for 12h (7 ticks total)
+    // Generate ticks every 2 hours for 12h (6 ticks total, including first)
     for (let i = 0; i <= 6; i++) {
       const tick = new Date(start.getTime() + i * 2 * 60 * 60 * 1000)
       custom12hTicks.push(tick.getTime())
@@ -1032,14 +1071,14 @@ export default function ThermalPlot({
     // Add current time as the last tick
     custom12hTicks.push(currentTime)
     console.log('12h ticks:', custom12hTicks.length, 'Current time added:', new Date(currentTime))
-    extendedMin = start.getTime()
+    extendedMin = custom12hTicks[0] // Use first tick (exactly 12 hours ago)
     extendedMax = currentTime
     startTime = extendedMin
   } else if (timeRange === '48h') {
     const now = new Date(currentTime)
     now.setSeconds(0, 0)
     const start = new Date(now.getTime() - 48 * 60 * 60 * 1000)
-    // Generate ticks every 6 hours for 48h (8 ticks total)
+    // Generate ticks every 6 hours for 48h (8 ticks total, including first)
     for (let i = 0; i <= 8; i++) {
       const tick = new Date(start.getTime() + i * 6 * 60 * 60 * 1000)
       custom48hTicks.push(tick.getTime())
@@ -1047,7 +1086,7 @@ export default function ThermalPlot({
     // Add current time as the last tick
     custom48hTicks.push(currentTime)
     console.log('48h ticks:', custom48hTicks.length, 'Current time added:', new Date(currentTime))
-    extendedMin = start.getTime()
+    extendedMin = custom48hTicks[0] // Use first tick (exactly 48 hours ago)
     extendedMax = currentTime
     startTime = extendedMin
   } else if (dayRanges[timeRange]) {
@@ -1063,7 +1102,7 @@ export default function ThermalPlot({
     }
     // Add current time as the last tick for higher time ranges
     customDayTicks.push(currentTime)
-    extendedMin = customDayTicks[0]
+    extendedMin = customDayTicks[1] // Skip first tick, use second tick
     extendedMax = customDayTicks[customDayTicks.length - 1]
     startTime = extendedMin
   } else {
@@ -1119,6 +1158,9 @@ export default function ThermalPlot({
       [zoneName]: !currentlyVisible
     }
     setZonesVisibility(updatedVisibility)
+    // Save zonesVisibility to localStorage for persistence across camera switches
+    localStorage.setItem('zonesVisibility', JSON.stringify(updatedVisibility))
+    
     if (currentlyVisible) {
       // Zone is being hidden
       setVisibleZones(prev => {
@@ -1138,12 +1180,12 @@ export default function ThermalPlot({
     }
     
     // Update button state based on visibility
-    const allZoneNames = allZones.map(z => z.name)
+    const thermalZoneNames = Array.from({ length: 8 }, (_, i) => `Zone_${i + 1}`)
     
     console.log('Legend click - Zone:', zoneName, 'Currently visible:', currentlyVisible)
     
     // Check if ALL zones are hidden after this click
-    const allZonesHidden = allZoneNames.every(name => updatedVisibility[name] === false)
+    const allZonesHidden = thermalZoneNames.every(name => updatedVisibility[name] === false)
     console.log('All zones hidden after this click:', allZonesHidden)
     
     // If all zones are hidden, force button to show "Show All Zones"
@@ -1159,18 +1201,21 @@ export default function ThermalPlot({
       console.log('Setting button to:', currentlyVisible ? 'Show All Zones' : 'Hide All Zones')
     }
     
-
+    // Force immediate chart update to refresh legend
+    if (chartRef.current) {
+      chartRef.current.update('none')
+    }
   }
   
   const mergedOptions = {
     responsive: true,
-    maintainAspectRatio: false,
+    maintainAspectRatio: true,
     layout: {
       padding: {
-        top: 60, // More space for legend
-        bottom: 20,
-        left: 30,
-        right: 30,
+        top: 20, // Fixed padding to prevent shifting
+        bottom: 30, // Fixed padding for time label
+        left: 40, // Fixed padding for temperature label
+        right: 20, // Fixed padding
       },
     },
     animation: { duration: 0 },
@@ -1181,7 +1226,7 @@ export default function ThermalPlot({
       },
       point: {
         radius: 0,
-        hoverRadius: 0,
+        hoverRadius: 5,
         hitRadius: 12,
       },
     },
@@ -1228,22 +1273,43 @@ export default function ThermalPlot({
           },
         },
       },
-      jitterPlugin: { isChartReady: true },
+      hoverDotsPlugin: { isChartReady: false }, // Disable to remove extra horizontal lines
       title: {
-        display: true,
-        text: 'Temperature Data',
-        position: 'top',
-        font: { size: 18, family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', weight: 'bold' },
-        padding: { top: 4, bottom: 20 },
-        color: isDarkMode ? '#ccc' : '#222',
+        display: false, // Title is now displayed above the container
       },
-      dividerPlugin: { isDarkMode },
+
       legend: {
         display: true,
         labels: {
           usePointStyle: false,
           boxWidth: 20,
           boxHeight: 10,
+          generateLabels: function(chart) {
+            const original = ChartJS.defaults.plugins.legend.labels.generateLabels
+            const labels = original.call(this, chart)
+            
+            return labels.map(label => {
+              const zoneName = label.text.replace(/\u0336/g, '') // Clean the name first
+              
+              // Only cross out if explicitly set to false - ignore everything else
+              const isHidden = zonesVisibility[zoneName] === false
+              
+              if (isHidden) {
+                label.text = zoneName.split('').join('\u0336') + '\u0336'
+              } else {
+                label.text = zoneName
+              }
+              
+              // Make sure the legend box is filled with the dataset color
+              if (label.datasetIndex !== undefined && chart.data.datasets[label.datasetIndex]) {
+                const dataset = chart.data.datasets[label.datasetIndex]
+                label.fillStyle = dataset.borderColor || dataset.backgroundColor
+                label.strokeStyle = dataset.borderColor || dataset.backgroundColor
+              }
+              
+              return label
+            })
+          },
           font: function (context) {
             return {
               size: 15,
@@ -1254,13 +1320,18 @@ export default function ThermalPlot({
             }
           },
           color: function (context) {
+            // Return the actual dataset color for filled legend squares
+            if (context.datasetIndex !== undefined && context.chart.data.datasets[context.datasetIndex]) {
+              return context.chart.data.datasets[context.datasetIndex].borderColor || (isDarkMode ? '#fff' : '#000')
+            }
             return isDarkMode ? '#fff' : '#000'
           },
+
         },
         onClick: onLegendClick,
       },
       tooltip: {
-        mode: 'nearest',
+        mode: 'index',
         axis: 'x',
         intersect: false,
         backgroundColor: isDarkMode ? '#222' : '#fff',
@@ -1311,48 +1382,14 @@ export default function ThermalPlot({
         },
       },
     },
-    hover: { mode: 'nearest', intersect: false },
+    hover: { mode: 'index', intersect: false },
     scales: {
       x: {
         type: 'time',
         bounds: 'ticks',
         reverse: false,
-        min:
-          timeRange === '30m'
-            ? custom30mTicks[0]
-            : timeRange === '1h'
-            ? custom1hTicks[0]
-            : timeRange === '3h'
-            ? custom3hTicks[0]
-            : timeRange === '6h'
-            ? custom6hTicks[0]
-            : timeRange === '12h'
-            ? custom12hTicks[0]
-            : timeRange === '48h'
-            ? custom48hTicks[0]
-            : timeRange === '24h' && custom24hTicks.length
-            ? custom24hTicks[0]
-            : dayRanges[timeRange] && customDayTicks.length
-            ? customDayTicks[0]
-            : extendedMin,
-        max:
-          timeRange === '30m'
-            ? custom30mTicks[custom30mTicks.length - 1]
-            : timeRange === '1h'
-            ? custom1hTicks[custom1hTicks.length - 1]
-            : timeRange === '3h'
-            ? custom3hTicks[custom3hTicks.length - 1]
-            : timeRange === '6h'
-            ? custom6hTicks[custom6hTicks.length - 1]
-            : timeRange === '12h'
-            ? custom12hTicks[custom12hTicks.length - 1]
-            : timeRange === '48h'
-            ? custom48hTicks[custom48hTicks.length - 1]
-            : timeRange === '24h' && custom24hTicks.length
-            ? custom24hTicks[custom24hTicks.length - 1]
-            : dayRanges[timeRange] && customDayTicks.length
-            ? customDayTicks[customDayTicks.length - 1]
-            : extendedMax,
+        min: extendedMin,
+        max: extendedMax,
         time:
           dayRanges[timeRange]
             ? {
@@ -1403,6 +1440,12 @@ export default function ThermalPlot({
               values: customDayTicks,
               callback(value) {
                 const date = new Date(value)
+                
+                // Hide the leftmost tick label (first tick)
+                if (value === customDayTicks[0]) {
+                  return '' // Return empty string to hide first label
+                }
+                
                 return date.toLocaleDateString(undefined, {
                   month: 'short',
                   day: 'numeric',
@@ -1417,11 +1460,16 @@ export default function ThermalPlot({
               minRotation: 0,
               font: { size: 13, family: 'Segoe UI' },
               color: isDarkMode ? '#ccc' : '#222',
-              values: custom30mTicks,
+              values: custom30mTicks, // Show all ticks but hide first label
               callback(value) {
                 const date = new Date(value)
                 const now = new Date()
                 const isCurrentTime = Math.abs(date.getTime() - now.getTime()) < 60000 // Within 1 minute
+                
+                // Hide the leftmost tick label (first tick)
+                if (value === custom30mTicks[0]) {
+                  return '' // Return empty string to hide first label
+                }
                 
                 let hours = date.getHours()
                 const minutes = String(date.getMinutes()).padStart(2, '0')
@@ -1441,12 +1489,17 @@ export default function ThermalPlot({
               minRotation: 0,
               font: { size: 13, family: 'Segoe UI' },
               color: isDarkMode ? '#ccc' : '#222',
-              values: custom24hTicks,
+              values: custom24hTicks, // Show all ticks but hide first label
               callback(value) {
                 const date = new Date(value)
                 const now = new Date()
                 const timeDiff = Math.abs(date.getTime() - now.getTime())
                 const isCurrentTime = timeDiff < 600000 // Within 10 minutes
+                
+                // Hide the leftmost tick label (first tick)
+                if (value === custom24hTicks[0]) {
+                  return '' // Return empty string to hide first label
+                }
                 
                 // Debug logging
                 if (timeDiff < 300000) { // Within 5 minutes
@@ -1475,11 +1528,16 @@ export default function ThermalPlot({
               minRotation: 0,
               font: { size: 13, family: 'Segoe UI' },
               color: isDarkMode ? '#ccc' : '#222',
-              values: custom1hTicks,
+              values: custom1hTicks, // Show all ticks but hide first label
               callback(value) {
                 const date = new Date(value)
                 const now = new Date()
                 const isCurrentTime = Math.abs(date.getTime() - now.getTime()) < 60000 // Within 1 minute
+                
+                // Hide the leftmost tick label (first tick)
+                if (value === custom1hTicks[0]) {
+                  return '' // Return empty string to hide first label
+                }
                 
                 let hours = date.getHours()
                 const minutes = String(date.getMinutes()).padStart(2, '0')
@@ -1499,11 +1557,16 @@ export default function ThermalPlot({
               minRotation: 0,
               font: { size: 13, family: 'Segoe UI' },
               color: isDarkMode ? '#ccc' : '#222',
-              values: custom3hTicks,
+              values: custom3hTicks, // Show all ticks but hide first label
               callback(value) {
                 const date = new Date(value)
                 const now = new Date()
                 const isCurrentTime = Math.abs(date.getTime() - now.getTime()) < 60000 // Within 1 minute
+                
+                // Hide the leftmost tick label (first tick)
+                if (value === custom3hTicks[0]) {
+                  return '' // Return empty string to hide first label
+                }
                 
                 let hours = date.getHours()
                 const minutes = String(date.getMinutes()).padStart(2, '0')
@@ -1523,11 +1586,16 @@ export default function ThermalPlot({
               minRotation: 0,
               font: { size: 13, family: 'Segoe UI' },
               color: isDarkMode ? '#ccc' : '#222',
-              values: custom6hTicks,
+              values: custom6hTicks, // Show all ticks but hide first label
               callback(value) {
                 const date = new Date(value)
                 const now = new Date()
                 const isCurrentTime = Math.abs(date.getTime() - now.getTime()) < 60000 // Within 1 minute
+                
+                // Hide the leftmost tick label (first tick)
+                if (value === custom6hTicks[0]) {
+                  return '' // Return empty string to hide first label
+                }
                 
                 let hours = date.getHours()
                 const minutes = String(date.getMinutes()).padStart(2, '0')
@@ -1547,11 +1615,16 @@ export default function ThermalPlot({
               minRotation: 0,
               font: { size: 13, family: 'Segoe UI' },
               color: isDarkMode ? '#ccc' : '#222',
-              values: custom12hTicks,
+              values: custom12hTicks, // Show all ticks but hide first label
               callback(value) {
                 const date = new Date(value)
                 const now = new Date()
                 const isCurrentTime = Math.abs(date.getTime() - now.getTime()) < 60000 // Within 1 minute
+                
+                // Hide the leftmost tick label (first tick)
+                if (value === custom12hTicks[0]) {
+                  return '' // Return empty string to hide first label
+                }
                 
                 let hours = date.getHours()
                 const minutes = String(date.getMinutes()).padStart(2, '0')
@@ -1575,13 +1648,16 @@ export default function ThermalPlot({
               minRotation: 0,
               font: { size: 13, family: 'Segoe UI' },
               color: isDarkMode ? '#ccc' : '#222',
-              values: custom48hTicks,
+              values: custom48hTicks, // Show all ticks but hide first label
               callback(value) {
                 const date = new Date(value)
                 const now = new Date()
                 const isCurrentTime = Math.abs(date.getTime() - now.getTime()) < 60000 // Within 1 minute
                 
-
+                // Hide the leftmost tick label (first tick)
+                if (value === custom48hTicks[0]) {
+                  return '' // Return empty string to hide first label
+                }
                 
                 let hours = date.getHours()
                 const minutes = String(date.getMinutes()).padStart(2, '0')
@@ -1644,27 +1720,27 @@ export default function ThermalPlot({
               },
             },
         grid: {
-          display: true,
+          display: false, // Disable vertical grid lines
           color: isDarkMode ? '#2226' : '#ccc7',
           drawTicks: false,
-          drawOnChartArea: true,
+          drawOnChartArea: false,
           drawBorder: false,
-          borderColor: isDarkMode ? '#666' : '#999',
+          borderColor: 'transparent', // Remove any border that might create extra lines
         },
         title: {
           display: true,
           text: 'Time',
           font: { size: 15, family: 'Segoe UI', weight: 'bold' },
           color: isDarkMode ? '#ccc' : '#222',
+          padding: { top: 10, bottom: 5 },
         },
       },
       y: {
         min: dataMin,
         max: dataMax,
-
         ticks: {
-          stepSize: 10, // Increased step size for better spacing
-          maxTicksLimit: 8, // Allow more ticks for better range coverage
+          stepSize: 5, // Smaller step size for more granular spacing
+          maxTicksLimit: 12, // Allow more ticks for better spacing
           color: isDarkMode ? '#ccc' : '#222',
           font: { size: 13, family: 'Segoe UI' },
           callback: function (value) {
@@ -1678,12 +1754,15 @@ export default function ThermalPlot({
           drawOnChartArea: true,
           drawBorder: false,
           color: isDarkMode ? '#2226' : '#ccc7',
+          borderDash: [], // Solid lines
+          lineWidth: 0.5, // Very thin lines to reduce interactivity
         },
         title: {
           display: true,
           text: 'Temperature',
           color: isDarkMode ? '#ccc' : '#222',
           font: { family: 'Segoe UI', size: 15 },
+          padding: { top: 0, bottom: 0, left: 5, right: 5 },
         },
       },
     },
@@ -1694,19 +1773,54 @@ export default function ThermalPlot({
         <button
           onClick={() => handleCameraChange('planck_1')}
           className={`camera-switcher-btn${selectedCamera === 'planck_1' ? ' selected' : ''}`}
+          disabled={isCameraSwitching}
         >
           <span>📷 Left Camera</span>
         </button>
         <button
           onClick={() => handleCameraChange('planck_2')}
           className={`camera-switcher-btn${selectedCamera === 'planck_2' ? ' selected' : ''}`}
+          disabled={isCameraSwitching}
         >
           <span>📷 Right Camera</span>
         </button>
       </div>
 
       <div className={`thermal-container${isDarkMode ? ' dark-mode' : ''}`}>
-        <Line ref={chartRef} data={data} options={mergedOptions} />
+        <h2 
+          style={{
+            textAlign: 'center',
+            margin: '0 0 20px 0',
+            fontSize: '24px',
+            fontWeight: 'bold',
+            color: isDarkMode ? '#ccc' : '#222',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+          }}
+        >
+          Temperature Data
+        </h2>
+        <hr 
+          style={{
+            border: 'none',
+            height: '1px',
+            backgroundColor: isDarkMode ? '#444' : '#ddd',
+            margin: '0 0 20px 0',
+            width: '100%'
+          }}
+        />
+        <div className="chart-container">
+          <Line 
+            ref={chartRef} 
+            data={data} 
+            options={mergedOptions}
+          />
+          {isCameraSwitching && (
+            <div className="camera-switching-overlay">
+              <div className="loading-spinner-large"></div>
+              <h2>Switching Cameras...</h2>
+            </div>
+          )}
+        </div>
       </div>
 
       <div
@@ -1791,7 +1905,6 @@ export default function ThermalPlot({
           className="chart-button"
           style={{
             borderColor: '#dc2626',
-            color: '#dc2626',
             backgroundColor: allZonesHidden ? '#dc2626' : 'transparent',
             color: allZonesHidden ? '#fff' : '#dc2626',
           }}
@@ -1833,31 +1946,44 @@ export default function ThermalPlot({
 
 
 
-        <select
-          className="chart-dropdown"
-          value={timeRange}
-          onChange={e => setTimeRange(e.target.value)}
-          style={{
-            borderColor: isDarkMode ? '#fff' : '#000',
+        <div style={{ position: 'relative', display: 'inline-block' }}>
+          <select
+            className="chart-dropdown"
+            value={timeRange}
+            onChange={e => setTimeRange(e.target.value)}
+            style={{
+              borderColor: isDarkMode ? '#fff' : '#000',
+              color: isDarkMode ? '#fff' : '#000',
+              backgroundColor: 'transparent',
+              cursor: 'pointer',
+              paddingRight: '30px', // Make room for the arrow
+              appearance: 'none', // Remove default arrow
+              WebkitAppearance: 'none', // For Safari
+              MozAppearance: 'none', // For Firefox
+            }}
+          >
+            <option value="30m" style={{ backgroundColor: '#22c55e', color: '#fff', padding: '8px 12px' }}>Last 30 Minutes</option>
+            <option value="1h" style={{ backgroundColor: '#22c55e', color: '#fff', padding: '8px 12px' }}>Last Hour</option>
+            <option value="6h" style={{ backgroundColor: '#22c55e', color: '#fff', padding: '8px 12px' }}>Last 6 Hours</option>
+            <option value="12h" style={{ backgroundColor: '#22c55e', color: '#fff', padding: '8px 12px' }}>Last 12 Hours</option>
+            <option value="24h" style={{ backgroundColor: '#22c55e', color: '#fff', padding: '8px 12px' }}>Last 24 Hours</option>
+            <option value="48h" style={{ backgroundColor: '#22c55e', color: '#fff', padding: '8px 12px' }}>Last 48 Hours</option>
+            <option value="7d" style={{ backgroundColor: '#22c55e', color: '#fff', padding: '8px 12px' }}>Last 7 Days</option>
+            <option value="1m" style={{ backgroundColor: '#22c55e', color: '#fff', padding: '8px 12px' }}>Last Month</option>
+          </select>
+          <span style={{ 
+            position: 'absolute', 
+            right: '10px', 
+            top: '50%', 
+            transform: 'translateY(-50%)', 
+            fontSize: '12px',
             color: isDarkMode ? '#fff' : '#000',
-            backgroundColor: 'transparent',
-            cursor: 'pointer',
-          }}
-        >
-          <option value="30m">Last 30 Minutes</option>
-          <option value="1h">Last Hour</option>
-          <option value="3h">Last 3 Hours</option>
-          <option value="6h">Last 6 Hours</option>
-          <option value="12h">Last 12 Hours</option>
-          <option value="24h">Last 24 Hours</option>
-          <option value="48h">Last 48 Hours</option>
-          <option value="2d">Last 2 Days</option>
-          <option value="4d">Last 4 Days</option>
-          <option value="7d">Last 7 Days</option>
-          <option value="2w">Last 2 Weeks</option>
-          <option value="1m">Last Month</option>
-          <option value="1y">Last Year</option>
-        </select> 
+            pointerEvents: 'none', // Prevent interference with select
+            userSelect: 'none'
+          }}>
+            ▼
+          </span>
+        </div> 
       </div>
     </>
   )

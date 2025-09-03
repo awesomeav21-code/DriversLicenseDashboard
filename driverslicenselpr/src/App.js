@@ -244,17 +244,27 @@ export default function App() {
 
   useEffect(() => {
     let mounted = true
+    console.log('🔄 Starting data fetch from SSAM.temperature_logs.json...')
+    
     fetch('/SSAM.temperature_logs.json')
       .then(res => {
+        console.log('📡 Fetch response status:', res.status, res.statusText)
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
         return res.json()
       })
       .then(json => {
+        console.log('📊 JSON data received, length:', Array.isArray(json) ? json.length : 'Not an array')
+        console.log('📊 First few entries:', Array.isArray(json) ? json.slice(0, 3) : json)
+        
         if (!mounted) return
         const recent = Array.isArray(json) ? json.slice(-100) : []
+        console.log('📊 Processing recent entries:', recent.length)
+        
         const validZones = []
-        recent.forEach((entry) => {
+        recent.forEach((entry, index) => {
           const camera = entry.camera_id ? entry.camera_id.trim().toLowerCase() : null
+          console.log(`Entry ${index}: camera_id = ${entry.camera_id}, zones count = ${entry.zones?.length || 0}`)
+          
           if (!camera) return
           ;(entry.zones || []).forEach((zoneObj) => {
             const name = Object.keys(zoneObj)[0]
@@ -264,14 +274,21 @@ export default function App() {
             }
           })
         })
+        
+        console.log('✅ Valid zones found:', validZones.length)
+        console.log('✅ Sample zones:', validZones.slice(0, 5))
+        
         const zoneCount = Math.floor(Math.random() * 12) + 1
         const selectedZonesArr = pickZonesAtLeastOnePerCameraUniqueNames(validZones, zoneCount)
+        console.log('✅ Selected zones:', selectedZonesArr.length, selectedZonesArr.map(z => `${z.name}(${z.camera})`))
+        
         setAllZones(selectedZonesArr)
         const allZoneNames = new Set([
           ...selectedZonesArr.map(z => z.name),
           ...history.flatMap(entry => Object.keys(entry.readings || {})),
         ])
         setVisibleZones(Array.from(allZoneNames))
+        
         const testEntries = [
           {
             time: new Date(new Date().setDate(new Date().getDate() - 2)),
@@ -288,6 +305,7 @@ export default function App() {
             }, {})
           }
         ]
+        
         const combinedHistory = [
           ...history,
           ...testEntries,
@@ -307,8 +325,10 @@ export default function App() {
             return { time: entryTime, readings }
           })
         ]
+        
         combinedHistory.sort((a, b) => a.time - b.time)
         setHistory(combinedHistory)
+        
         const curZones = selectedZonesArr.map(z => {
           let value = null
           for (let i = recent.length - 1; i >= 0; i--) {
@@ -332,11 +352,44 @@ export default function App() {
             lastTriggered: new Date().toLocaleString()
           }
         })
+        
+        console.log('✅ Final zones with temperatures:', curZones.map(z => `${z.name}: ${z.temperature}°`))
         setZones(curZones)
       })
-      .catch(() => {
-        setZones([])
-        setAllZones([])
+      .catch((error) => {
+        console.error('❌ Error loading temperature data:', error)
+        console.error('❌ Error details:', error.message)
+        
+        // Fallback to create some dummy data so the app still works
+        console.log('🔄 Creating fallback data...')
+        const fallbackZones = [
+          { name: 'Busbar', camera: 'planck_1', temperature: 78, threshold: 75, lastTriggered: new Date().toLocaleString(), videoFeedUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' },
+          { name: 'Recloser', camera: 'planck_1', temperature: 82, threshold: 75, lastTriggered: new Date().toLocaleString(), videoFeedUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' },
+          { name: 'Bushing', camera: 'planck_2', temperature: 76, threshold: 75, lastTriggered: new Date().toLocaleString(), videoFeedUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' },
+          { name: 'Transformer', camera: 'planck_2', temperature: 85, threshold: 75, lastTriggered: new Date().toLocaleString(), videoFeedUrl: 'https://www.w3schools.com/html/mov_bbb.mp4' }
+        ]
+        
+        setZones(fallbackZones)
+        setAllZones(fallbackZones)
+        setVisibleZones(fallbackZones.map(z => z.name))
+        
+        const fallbackHistory = [
+          {
+            time: new Date(new Date().setDate(new Date().getDate() - 2)),
+            readings: fallbackZones.reduce((acc, z) => {
+              acc[z.name] = Math.floor(Math.random() * 100)
+              return acc
+            }, {})
+          },
+          {
+            time: new Date(new Date().setDate(new Date().getDate() - 1)),
+            readings: fallbackZones.reduce((acc, z) => {
+              acc[z.name] = Math.floor(Math.random() * 100)
+              return acc
+            }, {})
+          }
+        ]
+        setHistory([...history, ...fallbackHistory])
       })
     return () => {
       mounted = false
