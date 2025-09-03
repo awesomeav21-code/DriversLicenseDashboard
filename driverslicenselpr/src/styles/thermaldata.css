@@ -3,13 +3,14 @@
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.25), 0 8px 24px rgba(0,0,0,0.15);
-  width: 85vw !important;          /* Back to original */
-  height: auto !important;          /* GROW WITH CHART CONTENT */
-  min-height: 65vh;                 /* Minimum height but can grow */
-  padding: 1.5vw;                  /* Responsive padding */
+  width: 85vw !important;                        /* Consistent viewport width across all screen sizes */
+  height: auto !important;                     /* GROW WITH CHART CONTENT */
+  min-height: clamp(450px, 45vh, 550px);       /* Slightly larger responsive minimum height */
+  max-height: clamp(550px, 55vh, 700px);       /* Slightly larger responsive maximum height */
+  padding: clamp(1rem, 2%, 2rem);              /* Responsive padding */
   box-sizing: border-box;
   position: relative;
-  margin: 80px 7% 40px auto;       /* Back to original */
+  margin: 80px auto 40px auto;                 /* Center horizontally */
 }
 
 .thermal-container.dark-mode {
@@ -22,11 +23,12 @@
 /* === CHART CONTAINER === */
 .chart-container {
   width: 100% !important;
-  height: auto !important;
-  min-height: 250px;
+  height: clamp(450px, 45vh, 550px) !important;  /* Slightly larger responsive height */
   position: relative;
   overflow: visible;
   display: block;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 /* Ensure Chart.js canvas respects container dimensions */
@@ -37,6 +39,13 @@
   height: 100% !important;
   object-fit: contain;
   display: block;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Move only the Y-axis labels closer to chart area */
+.chart-container .chartjs-axis-y .chartjs-axis-y-label {
+  transform: translateX(10px) !important;
 }
 
 /* === CAMERA BUTTON BAR (centered above chart) === */
@@ -121,7 +130,7 @@
   border-radius: 6px;                /* Rounded corners */
   box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* Subtle shadow */
   border: 1px solid #ddd;            /* Subtle border */
-  max-width: 740px;                  /* Slightly bigger to hold buttons + translate */
+  max-width: 90vw;                   /* Increased to be more responsive */
   margin: 18px auto 0 auto;          /* Margin top, centered horizontally */
   box-sizing: border-box;
   overflow-x: auto;                  /* If buttons overflow horizontally */
@@ -149,19 +158,24 @@
   background-color: #fff;
   border-radius: 6px;
   border: 1px solid #ddd;
-  padding: 8px 16px;
+  padding: 12px 20px;              /* Consistent padding */
   display: flex;
-  justify-content: center;
+  justify-content: center;         /* Center buttons horizontally */
   align-items: center;
-  gap: 10px;
+  gap: 12px;                       /* Fixed gap for consistent spacing */
   position: relative;
-  margin: 0vh auto 1vh 8%;
-  flex-wrap: wrap;
-  cursor: pointer;
+  margin: 0px auto 20px auto;      /* Original margin */
+  flex-wrap: nowrap;               /* Prevent wrapping to maintain layout */
+  cursor: default;                 /* Remove pointer cursor from container */
   color: #000;
   transition: background-color 0.3s ease;
-  width: 85vw;                     /* Match thermal container width */
+  width: 750px !important;         /* Fixed width with !important to override any constraints */
+  min-width: 750px !important;     /* Force minimum width to be 750px */
+  max-width: 750px !important;     /* Force maximum width to be 750px */
+  box-sizing: border-box;          /* Include padding and border in width */
   z-index: 100;
+  overflow: hidden;                /* Ensure nothing goes outside container */
+  flex-shrink: 0;                  /* Prevent container from shrinking */
 }
 /* Dark mode for chart button container */
 .dark-mode .chart-button-container {
@@ -175,12 +189,12 @@
 /* Buttons */
 .chart-button {
   display: inline-block;
-  padding: 6px 18px;
+  padding: clamp(8px, 1.5vh, 12px) clamp(12px, 2vw, 20px);  /* Responsive padding */
   background-color: transparent;
   border: 1px solid #000000;
   color: #000000;
   font-family: 'Segoe UI', sans-serif;
-  font-size: 13px;
+  font-size: clamp(11px, 2vh, 14px);  /* Responsive font size */
   font-weight: 500;
   border-radius: 6px;
   cursor: pointer;
@@ -193,9 +207,37 @@
   position: relative; 
   left: auto;  /* Let flexbox handle positioning */
   line-height: 1.2;
+  flex: 1 1 auto;                 /* Grow and shrink as needed but maintain minimum size */
+  min-width: 80px;                /* Minimum width to keep text readable */
+  max-width: 150px;               /* Maximum width to prevent buttons getting too large */
+  white-space: nowrap;            /* Prevent text wrapping inside buttons */
+  overflow: hidden;               /* Ensure button content doesn't overflow */
+  text-overflow: ellipsis;        /* Add ellipsis if text is too long */
 }
 .chart-dropdown{
-  position: relative !important; 
+  position: relative !important;
+  padding: clamp(8px, 1.5vh, 12px) clamp(12px, 2vw, 20px);  /* Match button responsive padding */
+  background-color: transparent;
+  border: 1px solid #000000;
+  color: #000000;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: clamp(11px, 2vh, 14px);  /* Match button responsive font size */
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: none;
+  outline: none;
+  box-sizing: border-box;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  user-select: none;
+  text-align: center;
+  line-height: 1.2;
+  flex: 1 1 auto;                 /* Grow and shrink as needed */
+  min-width: 100px;               /* Minimum width for dropdown content */
+  max-width: 180px;               /* Maximum width to prevent getting too large */
+  white-space: nowrap;            /* Prevent text wrapping */
+  overflow: hidden;               /* Ensure content doesn't overflow */
+  text-overflow: ellipsis;        /* Add ellipsis if text is too long */
 }
 .pdf-dropdown{
   position: relative; 
@@ -226,12 +268,12 @@
 
 .zoom-left-button {
   display: inline-block;
-  padding: 6px 18px;
+  padding: 10px 20px;             /* Match other buttons */
   background-color: transparent;
   border: 1px solid #000000;
   color: #000000;
   font-family: 'Segoe UI', sans-serif;
-  font-size: 13px;
+  font-size: clamp(12px, 1.5vw, 14px);  /* Responsive font size */
   font-weight: 500;
   border-radius: 6px;
   cursor: pointer;
@@ -243,6 +285,9 @@
   user-select: none;
   text-align: center;
   line-height: 1.2;
+  min-width: clamp(80px, 12vw, 120px);  /* Responsive minimum width */
+  white-space: nowrap;            /* Prevent text wrapping */
+  flex-shrink: 0;                 /* Prevent shrinking too much */
 }
 
 /* Ensure hover color applies to zoom-left-button and all children */
