@@ -209,11 +209,19 @@
   line-height: 1.2;
   flex: 1 1 auto;                 /* Grow and shrink as needed but maintain minimum size */
   min-width: 80px;                /* Minimum width to keep text readable */
-  max-width: 150px;               /* Maximum width to prevent buttons getting too large */
+  max-width: 180px;               /* Increased maximum width to accommodate longer text */
   white-space: nowrap;            /* Prevent text wrapping inside buttons */
-  overflow: hidden;               /* Ensure button content doesn't overflow */
-  text-overflow: ellipsis;        /* Add ellipsis if text is too long */
+  overflow: visible;              /* Allow text to be visible instead of hidden */
+  text-overflow: clip;            /* Remove ellipsis truncation */
 }
+
+/* Special styling for zone toggle button to ensure it's wide enough */
+.chart-button.zone-toggle {
+  min-width: 140px;               /* Ensure minimum width for "Show All Zones" text */
+  max-width: 200px;               /* Allow more width for this specific button */
+  flex: 0 0 auto;                 /* Don't shrink this button */
+}
+
 .chart-dropdown{
   position: relative !important;
   padding: clamp(8px, 1.5vh, 12px) clamp(12px, 2vw, 20px);  /* Match button responsive padding */

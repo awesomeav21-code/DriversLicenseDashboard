@@ -3059,7 +3059,7 @@ export default function ThermalPlot({
 
         <button
           onClick={toggleAllZones}
-          className="chart-button"
+          className="chart-button zone-toggle"
           style={{
             borderColor: '#dc2626',
             backgroundColor: allZonesHidden ? '#dc2626' : 'transparent',
