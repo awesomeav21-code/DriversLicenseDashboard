@@ -175,10 +175,9 @@ const ArchiveCard = ({ event, index, showDownloadButton }) => {
             viewBox="0 0 24 24"
             strokeWidth="1.5"
             stroke="currentColor"
-            className="size-6"
+            className="size-6 svg-margin-right"
             aria-hidden="true"
             focusable="false"
-            style={{ marginRight: 6 }}
           >
             <path
               strokeLinecap="round"
@@ -222,7 +221,7 @@ function formatMonth(date) {
   const yearStr = date.getFullYear();
 
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+    <span className="month-year-container">
       <span className="month-text">{monthStr}</span>
       <span className="year-text">{yearStr}</span>
     </span>
@@ -293,15 +292,7 @@ const LeftArrowIcon = () => (
     xmlSpace="preserve"
   >
     <g
-      style={{
-        stroke: '#6ca956',
-        strokeWidth: 2,
-        strokeLinecap: 'round',
-        strokeLinejoin: 'round',
-        fill: '#6ca956',
-        fillRule: 'nonzero',
-        opacity: 1,
-      }}
+      className="arrow-icon-styles"
       transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)"
     >
       <path
@@ -312,7 +303,7 @@ const LeftArrowIcon = () => (
 );
 
 const RightArrowIcon = () => (
-  <div style={{ transform: 'scaleX(-1)', display: 'inline-block' }}>
+  <div className="right-arrow-container">
     <LeftArrowIcon />
   </div>
 );
@@ -355,53 +346,25 @@ const SidebarDates = ({
       onMouseLeave={() => onHoverChange(false)}
       onClick={toggleActive}
     >
-      <div
-        className="sidebar-title"
-        style={{
-          marginBottom: 8,
-          marginLeft: 8,
-          alignSelf: 'flex-start',
-          textAlign: 'left',
-        }}
-      >
+      <div className="sidebar-title sidebar-title-styles">
         Event Dates
       </div>
       <div className="inner-container month-nav">
         <button
           aria-label="Previous Month"
-          style={{
-            background: 'none',
-            border: 'none',
-            fontSize: 16,
-            cursor: 'pointer',
-            color: '#233046',
-            padding: '2px 1.5px',
-          }}
+          className="month-nav-button"
           onClick={() => onMonthChange(getPrevMonth(selectedMonth))}
         >
           <span className="right-arrow">
             <RightArrowIcon />
           </span>
         </button>
-        <span
-          style={{
-            fontWeight: 400,
-            fontSize: 16,
-            color: '#233046',
-          }}
-        >
+        <span className="month-nav-text">
           {formatMonth(selectedMonth)}
         </span>
         <button
           aria-label="Next Month"
-          style={{
-            background: 'none',
-            border: 'none',
-            fontSize: 16,
-            cursor: isNextMonthAllowed() ? 'pointer' : 'not-allowed',
-            padding: '2px 1.5px',
-            opacity: isNextMonthAllowed() ? 1 : 0.5,
-          }}
+          className={`month-nav-button ${!isNextMonthAllowed() ? 'disabled' : ''}`}
           onClick={() => {
             if (isNextMonthAllowed()) {
               onMonthChange(getNextMonth(selectedMonth));
@@ -433,8 +396,7 @@ const SidebarDates = ({
             {eventDates.map(dateObj => (
               <div key={dateObj.date}>
                 <div
-                  className={`sidebar-date-item${dateObj.date === selectedDate ? ' selected' : ''}`}
-                  style={{ cursor: 'pointer' }}
+                  className={`sidebar-date-item${dateObj.date === selectedDate ? ' selected' : ''} sidebar-date-item-clickable`}
                   onClick={() => {
                     if (selectedDate !== dateObj.date) {
                       onDateSelect(dateObj.date);
@@ -453,24 +415,7 @@ const SidebarDates = ({
           </div>
         </div>
       ) : (
-        <div className="no-eventsbtn"
-          style={{
-            marginTop: 16,
-            padding: 20,
-            marginLeft: 9,
-            marginRight: 8,
-            border: 'none',
-            borderRadius: 8,
-            backgroundColor: '#e6f4ea',
-            textAlign: 'center',
-            color: '#666',
-            fontStyle: 'italic',
-            fontSize: '0.77rem',
-            position: 'relative',
-            top: '-14px',
-            userSelect: 'none',
-          }}
-        >
+        <div className="no-eventsbtn no-events-message">
           No events for this month
         </div>
       )}
@@ -604,7 +549,6 @@ const SurveillanceStreams = ({
 
   const cardsGridRef = useRef(null);
 
-  const [gridTemplateColumns, setGridTemplateColumns] = useState('repeat(auto-fit, minmax(260px, 1fr))');
 
   // New state: array of booleans, true = show Download Video button, false = show No Video button
   const [videoButtonStates] = useState(() => {
@@ -613,26 +557,6 @@ const SurveillanceStreams = ({
     return Array.from({ length: total }, () => Math.random() < 0.5);
   });
 
-  useEffect(() => {
-    function updateGridColumns() {
-      const width = window.innerWidth;
-
-      if (width < 700) {
-        setGridTemplateColumns('1fr');
-      } else if (width < 1024) {
-        setGridTemplateColumns('repeat(2, 1fr)');
-      } else if (width < 1350) {
-        setGridTemplateColumns('repeat(3, 1fr)');
-      } else {
-        setGridTemplateColumns('repeat(auto-fit, minmax(260px, 1fr))');
-      }
-    }
-
-    updateGridColumns();
-
-    window.addEventListener('resize', updateGridColumns);
-    return () => window.removeEventListener('resize', updateGridColumns);
-  }, []);
 
   useEffect(() => {
     if (selectedDate) {
@@ -763,16 +687,12 @@ const SurveillanceStreams = ({
       <div className="mini-navbar-outer">
         <div className="mini-navbar">
           <div className="mini-navbar-title">
-            <div
-              className="mini-navbar-icon-container"
-              style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 24, lineHeight: 1, userSelect: 'none' }}
-            >
+            <div className="mini-navbar-icon-container">
               <svg
-                className="video-icon"
+                className="video-icon video-icon-svg"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="currentColor"
                 viewBox="0 0 24 24"
-                style={{ width: 29, height: 29 }}
               >
                 <path
                   strokeLinecap="round"
@@ -819,17 +739,7 @@ const SurveillanceStreams = ({
                         return (
                           <>
                             {month} {day}
-                            <span
-                              className="comma-normal"
-                              style={{
-                                textDecoration: 'none',
-                                border: 'none',
-                                textShadow: 'none',
-                                background: 'none',
-                                color: 'inherit',
-                                cursor: 'default',
-                              }}
-                            >
+                            <span className="comma-normal">
                               ,{' '}
                             </span>
                             {year}
@@ -873,7 +783,6 @@ const SurveillanceStreams = ({
                 <div
                   className="archive-cards-grid"
                   ref={cardsGridRef}
-                  style={{ gridTemplateColumns }}
                 >
                   {filteredEvents.length === 0 ? (
                     hasEventsInMonth ? (
@@ -883,37 +792,16 @@ const SurveillanceStreams = ({
                           : 'Please select a date to see events.'}
                       </div>
                     ) : (
-                      <div
-                        className="archive-no-events"
-                        style={{
-                          marginTop: 16,
-                          padding: 20,
-                          marginLeft: 8,
-                          marginRight: 8,
-                          border: '1px solid #ccc',
-                          borderRadius: 8,
-                          backgroundColor: 'transparent',
-                          textAlign: 'center',
-                          color: '#666',
-                          fontStyle: 'italic',
-                          userSelect: 'none',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 12,
-                        }}
-                      >
+                      <div className="archive-no-events">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
                           viewBox="0 0 24 24"
                           strokeWidth="1.5"
                           stroke="currentColor"
-                          className="size-6"
+                          className="size-6 svg-margin-right"
                           aria-hidden="true"
                           focusable="false"
-                          style={{ marginRight: 6 }}
                         >
                           <path
                             strokeLinecap="round"
@@ -942,9 +830,9 @@ const SurveillanceStreams = ({
       </div>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <h2 style={{ marginTop: 0 }}>Add Thermal Event (Extra Camera)</h2>
-        <form onSubmit={handleAddCustomEvent} style={{ marginBottom: 24 }}>
-          <div style={{ marginBottom: 12 }}>
+        <h2 className="modal-title">Add Thermal Event (Extra Camera)</h2>
+        <form onSubmit={handleAddCustomEvent} className="modal-form">
+          <div className="form-field">
             <label>
               Time:&nbsp;
               <input
@@ -955,7 +843,7 @@ const SurveillanceStreams = ({
               />
             </label>
           </div>
-          <div style={{ marginBottom: 12 }}>
+          <div className="form-field">
             <label>
               Temperature:&nbsp;
               <input
@@ -967,7 +855,7 @@ const SurveillanceStreams = ({
               />
             </label>
           </div>
-          <div style={{ marginBottom: 12 }}>
+          <div className="form-field">
             <label>
               Threshold:&nbsp;
               <input
@@ -979,7 +867,7 @@ const SurveillanceStreams = ({
               />
             </label>
           </div>
-          <div style={{ marginBottom: 12 }}>
+          <div className="form-field">
             <label>
               Duration (optional):&nbsp;
               <input
@@ -989,7 +877,7 @@ const SurveillanceStreams = ({
               />
             </label>
           </div>
-          <button type="submit" style={{ fontWeight: 600 }}>Add Event</button>
+          <button type="submit" className="submit-button">Add Event</button>
         </form>
         <div>
           {customEvents.length === 0 ? (

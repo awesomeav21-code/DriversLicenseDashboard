@@ -163,7 +163,7 @@ export default function ThermalPlot({
           // Only trigger a minimal update without recalculating options
           chartRef.current.resize()
         }
-      }, 150) // 150ms debounce
+      }, 50) // Reduced debounce to minimize flicker
     }
 
     // Initial width setting
@@ -204,6 +204,7 @@ export default function ThermalPlot({
   const [refreshCounter, setRefreshCounter] = useState(0)
   const [hasUserZoomed, setHasUserZoomed] = useState(false) // Track if user has zoomed into chart
   const [zoomPreserved, setZoomPreserved] = useState(null) // null, true (preserved), false (reset)
+  const [preservedYAxis, setPreservedYAxis] = useState(null) // Store Y-axis limits when user zooms
   const [allZonesHidden, setAllZonesHidden] = useState(false) // Always start with zones visible
   const [legendClickTestResult, setLegendClickTestResult] = useState(null) // null, true (connected), false (not connected)
   const [testResults, setTestResults] = useState({
@@ -712,52 +713,54 @@ export default function ThermalPlot({
 
   // Chart will only update when manually triggered (timeRange/camera changes, zone visibility changes)
 
+  // DISABLED: This useEffect was causing constant re-renders and zoom resets
   // Keep states in sync during user interactions (not initial mount)
-  useEffect(() => {
-    // Skip if we're in a manual legend click to prevent interference with zoom
-    if (isManualLegendClickRef.current) {
-      return
-    }
-    
-    const thermalZoneNames = Array.from({ length: 8 }, (_, i) => `Zone_${i + 1}`)
-    const nextVisible = thermalZoneNames.filter(name => zonesVisibility[name] !== false)
-    
-    // Use same logic as manual legend click for consistency
-    const hiddenZonesCount = thermalZoneNames.filter(name => zonesVisibility[name] === false).length
-    const totalZones = thermalZoneNames.length
-    const allZonesCurrentlyHidden = hiddenZonesCount === totalZones
-    
-    console.log('useEffect triggered - zonesVisibility changed')
-    console.log('zonesVisibility:', zonesVisibility)
-    console.log('Hidden zones count:', hiddenZonesCount, 'out of', totalZones)
-    console.log('All zones currently hidden:', allZonesCurrentlyHidden)
-    console.log('current allZonesHidden:', allZonesHidden)
-    
-    // Only update if actually different to avoid loops
-    if (JSON.stringify(visibleZones) !== JSON.stringify(nextVisible)) {
-      setVisibleZones(nextVisible)
-    }
-    
-    if (allZonesHidden !== allZonesCurrentlyHidden) { // If button state doesn't match visibility
-      console.log('Updating allZonesHidden from', allZonesHidden, 'to', allZonesCurrentlyHidden)
-      console.log('Button changed: true')
-      setAllZonesHidden(allZonesCurrentlyHidden)
-      
-      // Update test results to track button state changes
-      setTestResults(prev => ({
-        ...prev,
-        buttonStateUpdated: {
-          from: allZonesHidden,
-          to: allZonesCurrentlyHidden,
-          time: new Date().toISOString()
-        }
-      }))
-    } else {
-      console.log('Button changed: false')
-    }
-    
-    // eslint-disable-next-line
-  }, [zonesVisibility])
+  // useEffect(() => {
+  //   // Skip if we're in a manual legend click to prevent interference with zoom
+  //   if (isManualLegendClickRef.current) {
+  //     return
+  //   }
+  //   
+  //   const thermalZoneNames = Array.from({ length: 8 }, (_, i) => `Zone_${i + 1}`)
+  //   const nextVisible = thermalZoneNames.filter(name => zonesVisibility[name] !== false)
+  //   
+  //   // Use same logic as manual legend click for consistency
+  //   const hiddenZonesCount = thermalZoneNames.filter(name => zonesVisibility[name] === false).length
+  //   const totalZones = thermalZoneNames.length
+  //   const allZonesCurrentlyHidden = hiddenZonesCount === totalZones
+  //   
+  //   console.log('useEffect triggered - zonesVisibility changed')
+  //   console.log('zonesVisibility:', zonesVisibility)
+  //   console.log('Hidden zones count:', hiddenZonesCount, 'out of', totalZones)
+  //   console.log('All zones currently hidden:', allZonesCurrentlyHidden)
+  //   console.log('current allZonesHidden:', allZonesHidden)
+  //   
+  //   // Only update if actually different to avoid loops
+  //   if (JSON.stringify(visibleZones) !== JSON.stringify(nextVisible)) {
+  //     setVisibleZones(nextVisible)
+  //   }
+  //   
+  //   if (allZonesHidden !== allZonesCurrentlyHidden) { // If button state doesn't match visibility
+  //     console.log('Updating allZonesHidden from', allZonesHidden, 'to', allZonesCurrentlyHidden)
+  //     console.log('Button changed: true')
+  //     setAllZonesHidden(allZonesCurrentlyHidden)
+  //     
+  //     // Update test results to track button state changes
+  //     setTestResults(prev => ({
+  //       ...prev,
+  //       buttonStateUpdated: {
+  //         from: allZonesHidden,
+  //         to: allZonesCurrentlyHidden,
+  //         time: new Date().toISOString()
+  //       }
+  //     }))
+  //   } else {
+  //     console.log('Button changed: false')
+  //   }
+  //   
+  //   // eslint-disable-next-line
+  // }, [zonesVisibility])
+
 
   // Ensure chart data is immediately available when timeRange changes
   useEffect(() => {
@@ -1689,6 +1692,7 @@ export default function ThermalPlot({
         
         // Reset zoom state since camera change resets the view
         setHasUserZoomed(false)
+        setPreservedYAxis(null)
         
         // Force refresh counter to ensure complete chart re-mount for proper layout
         setRefreshCounter(prev => prev + 1)
@@ -1706,6 +1710,7 @@ export default function ThermalPlot({
         
         // Reset zoom state since camera change resets the view
         setHasUserZoomed(false)
+        setPreservedYAxis(null)
         
         // Ensure test data exists for the new camera
         const testDataKey = `thermalHistory${timeRange}_${cam}`
@@ -1716,10 +1721,7 @@ export default function ThermalPlot({
           regenerateTestData()
         }
         
-        // Force immediate chart refresh when camera changes
-        if (chartRef.current) {
-          chartRef.current.update('none') // Force complete update
-        }
+        // Chart will automatically update when data changes - no manual update needed
       }
     } finally {
       setIsCameraSwitching(false)
@@ -1729,6 +1731,9 @@ export default function ThermalPlot({
   const toggleAllZones = () => {
     console.log('TOGGLE ALL ZONES BUTTON CLICKED!')
     console.log('Current allZonesHidden state:', allZonesHidden)
+    
+    // Set flag to prevent useEffect from interfering with zoom
+    isManualLegendClickRef.current = true
     
     // Store current zoom/pan state before making changes
     const chart = chartRef.current
@@ -1756,25 +1761,25 @@ export default function ThermalPlot({
     console.log('toggleAllZones called, thermalZoneNames:', thermalZoneNames)
     console.log('toggleAllZones called, allZones names:', allZones.map(z => z.name))
     
-    // Calculate actual current state - count how many zones are currently hidden
-    const currentlyHiddenCount = thermalZoneNames.filter(name => zonesVisibility[name] === false).length
-    const allZonesCurrentlyHidden = currentlyHiddenCount === thermalZoneNames.length
+    // Use allZonesHidden state to determine the action
+    // When allZonesHidden is false, we should hide all zones
+    // When allZonesHidden is true, we should show all zones
     
-    console.log('Currently hidden zones count:', currentlyHiddenCount, 'out of', thermalZoneNames.length)
-    console.log('All zones currently hidden:', allZonesCurrentlyHidden)
+    console.log('Current allZonesHidden state:', allZonesHidden)
     
-    if (allZonesCurrentlyHidden) {
+    if (allZonesHidden) {
       // Show all zones
       const newVisibility = { ...zonesVisibility }
       thermalZoneNames.forEach(name => { newVisibility[name] = true })
       console.log('Showing all zones, newVisibility:', newVisibility)
       
-      // Update chart dataset visibility
+      // Update chart dataset visibility WITHOUT triggering chart update
       thermalZoneNames.forEach(zoneName => {
         const datasetIndex = chart.data.datasets.findIndex(dataset => dataset.label === zoneName)
         if (datasetIndex !== -1) {
           const meta = chart.getDatasetMeta(datasetIndex)
           meta.hidden = false
+          // DO NOT call chart.update() - this resets zoom!
         }
       })
       
@@ -1784,17 +1789,18 @@ export default function ThermalPlot({
       localStorage.setItem('zonesVisibility', JSON.stringify(newVisibility))
       localStorage.setItem('visibleZones', JSON.stringify(thermalZoneNames))
     } else {
-      // Hide all zones
+      // Hide all zones (when allZonesHidden is false)
       const newVisibility = { ...zonesVisibility }
       thermalZoneNames.forEach(name => { newVisibility[name] = false })
       console.log('Hiding all zones, newVisibility:', newVisibility)
       
-      // Update chart dataset visibility
+      // Update chart dataset visibility WITHOUT triggering chart update
       thermalZoneNames.forEach(zoneName => {
         const datasetIndex = chart.data.datasets.findIndex(dataset => dataset.label === zoneName)
         if (datasetIndex !== -1) {
           const meta = chart.getDatasetMeta(datasetIndex)
           meta.hidden = true
+          // DO NOT call chart.update() - this resets zoom!
         }
       })
       
@@ -1805,28 +1811,10 @@ export default function ThermalPlot({
       localStorage.setItem('visibleZones', JSON.stringify([]))
     }
     
-    // Update chart to reflect the visibility changes
-    chart.update('none')
-    
-    // Use setTimeout to restore zoom after the zone toggle update
+    // Clear flag - no chart update needed since we're not calling chart.update()
     setTimeout(() => {
-      if (chart && currentZoom) {
-        const xScale = chart.scales.x
-        const yScale = chart.scales.y
-        
-        if (xScale && yScale) {
-          // Restore the exact zoom state
-          xScale.options.min = currentZoom.xMin
-          xScale.options.max = currentZoom.xMax
-          yScale.options.min = currentZoom.yMin
-          yScale.options.max = currentZoom.yMax
-          
-          // Force chart to update with preserved zoom
-          chart.update('none')
-          console.log('toggleAllZones - Restored zoom state:', currentZoom)
-        }
-      }
-    }, 10) // Small delay to ensure state updates are processed first
+      isManualLegendClickRef.current = false
+    }, 10)
   }
   const handleSaveGraph = () => {
     const chart = chartRef.current
@@ -1949,10 +1937,12 @@ export default function ThermalPlot({
     }
   
     try {
-      chart.update()
-      console.log('Reset zoom: Chart updated successfully')
+      // Don't call chart.update() as it can interfere with zoom state
+      console.log('Reset zoom: Chart reset completed')
       // Reset the hasUserZoomed flag so Y-axis limits are re-enabled
       setHasUserZoomed(false)
+      // Clear preserved Y-axis limits
+      setPreservedYAxis(null)
       // Reset zoom preservation test when zoom is reset
       setZoomPreserved(null)
     } catch (error) {
@@ -2677,11 +2667,12 @@ export default function ThermalPlot({
     // Update zonesVisibility state
     setZonesVisibility(updatedVisibility)
     
-    // Update chart dataset visibility
+    // Update chart dataset visibility WITHOUT triggering chart update
     const datasetIndex = chart.data.datasets.findIndex(dataset => dataset.label === zoneName)
     if (datasetIndex !== -1) {
       const meta = chart.getDatasetMeta(datasetIndex)
       meta.hidden = !newVisibility
+      // DO NOT call chart.update() - this resets zoom!
     }
     
     // Save to localStorage
@@ -2689,54 +2680,35 @@ export default function ThermalPlot({
     localStorage.setItem('zonesVisibility', JSON.stringify(updatedVisibility))
     localStorage.setItem('visibleZones', JSON.stringify(nextVisible))
     
-    // Update chart
-    chart.update('none')
+    // Don't update chart immediately - we'll do it during zoom restoration to prevent double updates
+    console.log('flickered: no (skipping initial update to prevent flicker)')
     
     // Determine the result immediately based on zoom state
     // - If chart is zoomed out (hasUserZoomed = false), show "not preserved"
     // - If chart is zoomed in (hasUserZoomed = true), show "preserved" (we will restore zoom)
     const zoomWasPreserved = !isZoomedOut
-    
-    console.log('=== ZOOM PRESERVATION TEST RESULTS ===')
+        
+        console.log('=== ZOOM PRESERVATION TEST RESULTS ===')
     console.log('Chart was zoomed out (showing full range) before click:', isZoomedOut)
     console.log('hasUserZoomed state:', hasUserZoomed)
     console.log('Final result - Zoom was preserved:', zoomWasPreserved)
-    console.log('Setting zoomPreserved to:', zoomWasPreserved)
-    console.log('=====================================')
-    
+        console.log('Setting zoomPreserved to:', zoomWasPreserved)
+        console.log('=====================================')
+        
     // Update the zoom preservation test result immediately
-    setZoomPreserved(zoomWasPreserved)
-    
-    // Update test results
-    setTestResults(prev => ({
-      ...prev,
-      zoomPreserved: zoomWasPreserved,
-      lastButtonState: allZonesHidden
-    }))
-    
-    // Only restore zoom if the chart was zoomed in (hasUserZoomed = true)
-    if (!isZoomedOut) {
-      // Chart was zoomed in, restore the zoom after a brief delay
-      setTimeout(() => {
-        if (chart && xScale && yScale) {
-          xScale.options.min = preservedZoom.xMin
-          xScale.options.max = preservedZoom.xMax
-          yScale.options.min = preservedZoom.yMin
-          yScale.options.max = preservedZoom.yMax
-          chart.update('none')
-          
-          // Clear flag to allow useEffect to run
-          setTimeout(() => {
-            isManualLegendClickRef.current = false
-          }, 50)
-        }
-      }, 10)
-    } else {
-      // Chart was zoomed out, don't restore zoom, just clear the flag
-      setTimeout(() => {
-        isManualLegendClickRef.current = false
-      }, 10)
-    }
+        setZoomPreserved(zoomWasPreserved)
+        
+        // Update test results
+        setTestResults(prev => ({
+          ...prev,
+          zoomPreserved: zoomWasPreserved,
+          lastButtonState: allZonesHidden
+        }))
+        
+    // Clear flag - no chart update needed since we're not calling chart.update()
+    setTimeout(() => {
+      isManualLegendClickRef.current = false
+    }, 10)
   }
   
 
@@ -2794,9 +2766,16 @@ export default function ThermalPlot({
           mode: 'xy',
           threshold: 10,
           onZoom: ({ chart }) => {
-            // Disable automatic chart updates during zoom to prevent interference
-            chart.updateMode = 'none'
             clampZoomPan(chart)
+            
+            // Store current Y-axis limits
+            const yScale = chart.scales.y
+            if (yScale) {
+              setPreservedYAxis({
+                min: yScale.min,
+                max: yScale.max
+              })
+            }
             
             // Track that user has zoomed into the chart
             setHasUserZoomed(true)
@@ -2808,11 +2787,23 @@ export default function ThermalPlot({
           enabled: true,
           mode: 'xy',
           onPan: ({ chart }) => {
-            // Disable automatic chart updates during pan to prevent interference
-            chart.updateMode = 'none'
             clampZoomPan(chart)
+            
+            // Store current Y-axis limits
+            const yScale = chart.scales.y
+            if (yScale) {
+              setPreservedYAxis({
+                min: yScale.min,
+                max: yScale.max
+              })
+            }
+            
+            // Track that user has panned the chart
+            setHasUserZoomed(true)
           },
         },
+        // Disable automatic zoom-out behavior
+        resetOnPan: false,
         limits: {
           x: {
             min:
@@ -2897,13 +2888,6 @@ export default function ThermalPlot({
           },
 
         },
-        onClick: function(e, legendItem, legend) {
-          console.log('🔥 LEGEND CLICK DETECTED!', legendItem.text)
-          // Simple approach: just prevent default behavior and handle manually
-          const zoneName = legendItem.text.replace(/\u0336/g, '')
-          handleManualLegendClick(zoneName)
-          return false
-        },
         onHover: function(e, legendItem, legend) {
           console.log('🔥 LEGEND HOVERED!', legendItem.text)
         },
@@ -2919,6 +2903,7 @@ export default function ThermalPlot({
         borderWidth: 1,
         titleFont: { size: 15 },
         bodyFont: { size: 14 },
+        animation: { duration: 0 },
         callbacks: {
           title: function (tooltipItems) {
             const date = new Date(tooltipItems[0].parsed.x)
@@ -2960,7 +2945,11 @@ export default function ThermalPlot({
         },
       },
     },
-    hover: { mode: 'index', intersect: false },
+    hover: { 
+      mode: 'index', 
+      intersect: false,
+      animationDuration: 0
+    },
     scales: {
       x: {
         type: 'time',
@@ -3436,8 +3425,11 @@ export default function ThermalPlot({
         },
       },
       y: {
-        min: dataMin,
-        max: dataMax,
+        ...(hasUserZoomed && preservedYAxis ? 
+          { min: preservedYAxis.min, max: preservedYAxis.max } : 
+          hasUserZoomed ? {} : 
+          { min: dataMin, max: dataMax }
+        ), // Use preserved limits if available, otherwise use data limits or none
         position: 'left',
         offset: false,
         beginAtZero: false,
@@ -3470,7 +3462,7 @@ export default function ThermalPlot({
       },
     },
   }
-  }, [timeRange, isDarkMode, tempUnit, dataMin, dataMax, currentTime, dataMaxTime, zonesVisibility, selectedCamera])
+  }, [timeRange, isDarkMode, tempUnit, dataMin, dataMax, currentTime, dataMaxTime, zonesVisibility, selectedCamera, hasUserZoomed, preservedYAxis])
 
   return (
     <>
@@ -3518,7 +3510,7 @@ export default function ThermalPlot({
         <div className="chart-container" style={{ position: 'relative' }}>
           {!isChangingTimeRange && dataSource.length > 0 && (
             <Line 
-              key={`chart-${timeRange}-${selectedCamera}-${refreshCounter}`}
+              key={`chart-${timeRange}-${selectedCamera}`}
               ref={chartRef} 
               data={data} 
               options={mergedOptions}
@@ -3540,7 +3532,6 @@ export default function ThermalPlot({
           )}
         </div>
       </div>
-
 
       <div
         ref={containerRef}
@@ -3687,6 +3678,7 @@ export default function ThermalPlot({
               setTimeout(() => {
                 setTimeRange(newTimeRange)
                 setHasUserZoomed(false) // Reset zoom state when time range changes
+                setPreservedYAxis(null)
                 console.log('timeRange set to:', newTimeRange)
               }, 50)
               

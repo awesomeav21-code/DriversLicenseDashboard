@@ -1,198 +1,135 @@
-i .page,
+/* === NEW CSS CLASSES FOR REMOVED INLINE STYLES === */
+.svg-margin-right {
+  margin-right: 0.375rem; /* 6px converted to rem */
+}
+
+.month-year-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem; /* 6px converted to rem */
+}
+
+.arrow-icon-styles {
+  stroke: #6ca956;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: #6ca956;
+  fill-rule: nonzero;
+  opacity: 1;
+}
+
+.right-arrow-container {
+  transform: scaleX(-1);
+  display: inline-block;
+}
+
+.sidebar-title-styles {
+  margin-bottom: 0.5rem; /* 8px converted to rem */
+  margin-left: 0.5rem; /* 8px converted to rem */
+  align-self: flex-start;
+  text-align: left;
+}
+
+.month-nav-button {
+  background: none;
+  border: none;
+  font-size: 1rem; /* 16px converted to rem */
+  cursor: pointer;
+  color: #233046;
+  padding: 0.125rem 0.09375rem; /* 2px 1.5px converted to rem */
+}
+
+.month-nav-button.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.month-nav-text {
+  font-weight: 400;
+  font-size: 1rem; /* 16px converted to rem */
+  color: #233046;
+}
+
+.sidebar-date-item-clickable {
+  cursor: pointer;
+}
+
+.no-events-message {
+  margin-top: 1rem; /* 16px converted to rem */
+  padding: 1.25rem; /* 20px converted to rem */
+  margin-left: 0.5625rem; /* 9px converted to rem */
+  margin-right: 0.5rem; /* 8px converted to rem */
+  border: none;
+  border-radius: 0.5rem; /* 8px converted to rem */
+  background-color: #e6f4ea;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  font-size: 0.77rem;
+  position: relative;
+  top: -0.875rem; /* -14px converted to rem */
+  user-select: none;
+}
+
+.mini-navbar-icon-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* 8px converted to rem */
+  font-size: 1.5rem; /* 24px converted to rem */
+  line-height: 1;
+  user-select: none;
+}
+
+.video-icon-svg {
+  width: 1.8125rem; /* 29px converted to rem */
+  height: 1.8125rem; /* 29px converted to rem */
+}
+
+.comma-normal {
+  text-decoration: none;
+  border: none;
+  text-shadow: none;
+  background: none;
+  color: inherit;
+  cursor: default;
+}
+
+.modal-title {
+  margin-top: 0;
+}
+
+.modal-form {
+  margin-bottom: 1.5rem; /* 24px converted to rem */
+}
+
+.form-field {
+  margin-bottom: 0.75rem; /* 12px converted to rem */
+}
+
+.submit-button {
+  font-weight: 600;
+}
+
+.page,
 .archive-page {
   --border-color: #e5e7eb; /* Added CSS variable for border color */
   --font-family: 'Inter', sans-serif; /* Define Inter as the base font */
   color: #b4bfcf;
   position: relative; 
-  top: -6px; 
+  top: 0; /* Remove negative positioning to prevent overlap */
   font-family: var(--font-family);  /* Use CSS variable */
-  padding: 15px 56px 0 56px;
-  max-width: 3000px !important;
+  padding: 0.9375rem 3.5rem 0 3.5rem; /* 15px 56px converted to rem */
   
   height: auto;
   min-height: 100vh;
   box-sizing: border-box;
   display: flex;
   flex-direction: column !important; 
+  z-index: 1; /* Ensure proper stacking order */
 }
 
 
-@media (min-width: 2100px) and (max-width: 2200px) {
-  .page,
-  .archive-page {
-    background-color: yellow !important; 
-    transform: scale(0.93)!important;
-    transform-origin: top center !important;
-    width: 100%;      /* Stay within the viewport */
-    max-width: 3000px !important;
-    margin: 0 auto;
-    height: 100vh !important;
-    min-height: 100vh !important;
-    box-sizing: border-box;
-    overflow: visible !important; /* Prevent hidden content */
-  }
-
-  .surveillance-container {
-    width: 100% !important; 
-    margin: 0 auto; 
-    
-  }
-  .mini-navbar,
-  .mini-navbar-outer {
-    width: 100% !important;
-    margin: 0 auto;   /* This is fine for centering if there's a max-width, otherwise optional */
-  }
-  .archive-cards-grid {
-    display: grid !important;
-    grid-template-columns: repeat(1, 315px) !important;  /* 2 fixed-width cards */
-    gap: 0 20px !important;      /* 20px gap between the cards */
-    max-width: 650px;            /* 2*315 + 20 */
-    margin: 0 auto;              /* Center the grid in parent */
-    padding: 0 !important;
-    justify-content: center;     /* extra centering if needed */
-    box-sizing: border-box;
-  }
-  .archive-card {
-    width: 315px !important;
-    max-width: 315px !important;
-    margin: 0 !important;
-  }
-  }
-  @media (min-width: 1820px) and (max-width: 2100px) {
-    .page,
-    .archive-page {
-      background-color: yellow !important; 
-      transform: scale(0.93)!important;
-      transform-origin: top center !important;
-      width: 100%;      /* Stay within the viewport */
-      max-width: 3000px !important;
-      margin: 0 auto;
-      height: 100vh !important;
-      min-height: 100vh !important;
-      box-sizing: border-box;
-      overflow: visible !important; /* Prevent hidden content */
-    }
-  
-    .surveillance-container {
-      width: 100% !important; 
-      margin: 0 auto; 
-      
-    }
-    .mini-navbar,
-    .mini-navbar-outer {
-      width: 100% !important;
-      margin: 0 auto;   /* This is fine for centering if there's a max-width, otherwise optional */
-    }
-    .archive-cards-grid {
-      display: grid !important;
-      grid-template-columns: repeat(1, 315px) !important;  /* 2 fixed-width cards */
-      gap: 0 20px !important;      /* 20px gap between the cards */
-      max-width: 650px;            /* 2*315 + 20 */
-      margin: 0 auto;              /* Center the grid in parent */
-      padding: 0 !important;
-      justify-content: center;     /* extra centering if needed */
-      box-sizing: border-box;
-    }
-    .archive-card {
-      width: 315px !important;
-      max-width: 315px !important;
-      margin: 0 !important;
-    }
-    }
-
-
-  @media (min-width: 1700px) and (max-width: 1800px) {
-    
-  
-    .surveillance-container {
-      width: 100% !important; 
-      margin: 0 auto; 
-    }
-  
-    .mini-navbar,
-    .mini-navbar-outer {
-      width: 100% !important;
-      margin: 0 auto;
-    }
-  
-    .archive-cards-grid {
-      display: grid !important;
-      grid-template-columns: repeat(2, 315px) !important;
-      gap: 20px 40px !important; /* Increased vertical and horizontal gap */
-      max-width: 650px;
-      margin: 0 auto;
-      padding: 0 !important;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-    .surveillance-container .formatted-date{ 
-      font-size: 1.15rem; 
-    }
-  
-    .archive-card {
-      width: 315px !important;
-      max-width: 315px !important;
-      margin: 0 !important;
-    }
-  }
-  @media (min-width: 1500px) and (max-width: 1600px) { /*for 90% zoom */ 
-    .page,
-    .archive-page {
-      background-color: yellow !important; 
-      transform: scale(0.93)!important;
-      transform-origin: top center !important;
-      width: 100%;      /* Stay within the viewport */
-      max-width: 3000px !important;
-      margin: 0 auto;
-      height: 100vh !important;
-      min-height: 100vh !important;
-      box-sizing: border-box;
-      overflow: visible !important; /* Prevent hidden content */
-    }
-  
-    .surveillance-container {
-      width: 100% !important; 
-      margin: 0 auto; 
-      
-    }
-    .mini-navbar,
-    .mini-navbar-outer {
-      width: 100% !important;
-      margin: 0 auto;   /* This is fine for centering if there's a max-width, otherwise optional */
-    }
-    .archive-cards-grid {
-      display: grid !important;
-      grid-template-columns: repeat(3, 315px) !important;  /* 2 fixed-width cards */
-      gap: 0 20px !important;      /* 20px gap between the cards */
-      max-width: 650px;            /* 2*315 + 20 */
-      margin: 0 auto;              /* Center the grid in parent */
-      padding: 0 !important;
-      justify-content: center;     /* extra centering if needed */
-      box-sizing: border-box;
-    }
-    .archive-card {
-      width: 315px !important;
-      max-width: 315px !important;
-      margin: 0 !important;
-    }
-  }
-
-
-@media (min-width: 1000px) and (max-width: 1200px) {
-  .page,
-  .archive-page {
-    background-color: #e0f7e0; /* light greenish for testing */
-    padding: 10px 20px 0 20px; /* reduce padding a bit */
-  }
-
-  /* For example, collapse your cards grid to 2 columns */
-  .archive-cards-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 16px !important;
-    max-width: 1000px !important;
-    margin: 0 auto !important;
-  }
-}
 
 
 .inner-container.date-list-container.selected:hover {
@@ -212,7 +149,7 @@ i .page,
   font-weight: 400;
   font-size: 1.05rem;
   color: #111111 !important; /* darker black */
-  min-width: 90px;
+  min-width: 5.625rem; /* 90px converted to rem */
   flex: 1 1 auto;
   justify-content: center;
   white-space: nowrap;
@@ -228,13 +165,13 @@ i .page,
   margin: 0 !important; /* remove extra spacing */
   padding: 0 !important;
   position: relative; 
-  top: -1px; 
-  transform: translateX(7px); 
-  text-shadow: 0 1px 1.5px rgba(0, 0, 0, 0.3); /* subtle dark shadow */
+  top: -0.0625rem; /* -1px converted to rem */
+  transform: translateX(0.4375rem); /* 7px converted to rem */
+  text-shadow: 0 0.0625rem 0.09375rem rgba(0, 0, 0, 0.3); /* 1px 1.5px converted to rem */
 }
 .year-text {
   margin-left: 0 !important; /* ensure no margin */
-  margin-left: -3px !important; 
+  margin-left: -0.1875rem !important; /* -3px converted to rem */ 
 }
 
 .mini-navbar-title {
@@ -243,7 +180,7 @@ i .page,
   align-items: center;
   gap: 8px;
 
-  margin-left: 12px;
+  margin-left: 0.75rem; /* 12px converted to rem */
   margin-right: auto;
   font-size: 1.15rem;
   font-weight: 600;
@@ -256,16 +193,16 @@ i .page,
   align-items: center;
   justify-content: center;
   gap: 0;
-  height: 28px;
+  height: 1.75rem; /* 28px converted to rem */
   padding: 0;
-  margin-left: 20px !important;
+  margin-left: 1.25rem !important; /* 20px converted to rem */
   margin-right: 0 !important;
-  border-radius: 6px;
-  border: 1px solid #ececec;
+  border-radius: 0.375rem; /* 6px converted to rem */
+  border: 0.0625rem solid #ececec; /* 1px converted to rem */
   box-shadow: none; 
   background: transparent;
-  margin-bottom: 2px;
-  width: calc(100% - 25px);  /* 20px left, 5px right */
+  margin-bottom: 0.125rem; /* 2px converted to rem */
+  width: calc(100% - 1.5625rem);  /* 25px converted to rem */
   box-sizing: border-box;
   font-family: var(--font-family);
 }
@@ -281,12 +218,10 @@ i .page,
 }
 
 .inner-container.month-nav > button {
-  flex: 0 0 34px;
-  min-width: 34px;
-  max-width: 34px;
+  flex: 0 0 2.125rem; /* 34px converted to rem */
+  min-width: 2.125rem; /* 34px converted to rem */
+  max-width: 2.125rem; /* 34px converted to rem */
   display: flex;
-  /* shift both arrows inward by 4px on X, keep vertical -2px */
-  transform: translateX(2px) translateY(-2px);
   align-items: center;
   justify-content: center;
   z-index: 2;
@@ -296,27 +231,27 @@ i .page,
   font-weight: 400;
   color: #a0aec0;
   cursor: pointer;
-  padding: 2px 8px;
+  padding: 0.125rem 0.5rem; /* 2px 8px converted to rem */
   transition: color 0.16s, background-color 0.3s, border-radius 0.3s;
-  border-radius: 6px;
+  border-radius: 0.375rem; /* 6px converted to rem */
   font-family: var(--font-family);
-
   margin-left: 0;
   margin-right: 0;
+  transform: none; /* Remove inconsistent transform */
 }
 .left-arrow,
 .right-arrow {
   display: inline-block;
-  width: 11px;   /* much smaller width */
-  height: 11px;  /* much smaller height */
+  width: 0.6875rem;   /* 11px converted to rem */
+  height: 0.6875rem;  /* 11px converted to rem */
   position: relative;
-  top: -3px;     /* move up by 4px */
+  top: -0.1875rem;     /* -3px converted to rem */
   /* optional: to keep SVG scaling nicely */
 }
 .left-arrow{ /*this is for the riught arrow mistakenly, remember this */ 
   position: relative; 
-  left: 25px !important; 
-  top: -3px; 
+  left: 1.5625rem !important; /* 25px converted to rem */
+  top: -0.1875rem; /* -3px converted to rem */ 
 }
 
 .left-arrow svg,
@@ -328,13 +263,10 @@ i .page,
 
 
 .inner-container.month-nav > button:first-child {
-  transform: translateX(-7px) translateY(-2px); /* left arrow moves right */
-  color: lightgreen ; 
-  
+  color: lightgreen; 
 }
 
 .inner-container.month-nav > button:nth-last-child(2) {
-  transform: translateX(-26px) translateY(-2px); /* right arrow moves left */
   color: lightgreen !important; 
 }
 
@@ -377,13 +309,12 @@ i .page,
   padding: 0;               /* Remove padding to avoid extra height */
   box-sizing: border-box;
   display: flex;
-  height: 150px;
+  height: 28px;             /* Fixed container height - removed duplicate */
   flex-direction: column;
   transform: translateY(4px);
   gap: 0;
   margin-top: 18px;
   max-height: none;
-  height: 28px;             /* Fixed container height */
   overflow: hidden;         /* Hide overflow */
   font-family: var(--font-family);
 }
@@ -405,7 +336,7 @@ i .page,
   box-sizing: border-box;
   font-family: var(--font-family);
   position: relative;
-  left: -13px;
+  left: 0; /* Standardize positioning */
 }
 
 /* Normal sidebar-date-item - ensure same height and padding as hover */
@@ -480,7 +411,6 @@ i .page,
   font-weight: 400 !important;
   width: 15px;
   height: 15px;
-  top: -0.59px; 
   min-width: 15px;
   max-width: 15px;
   line-height: 20px;
@@ -489,7 +419,8 @@ i .page,
   margin-top: 0;
   margin-left: 2px;
   position: relative; 
-  left: 7px; 
+  left: 0; /* Standardize positioning */
+  top: 0; /* Standardize positioning */
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -498,7 +429,7 @@ i .page,
   white-space: nowrap;
   text-overflow: ellipsis;
   font-family: var(--font-family);
-  transform: translateX(3px); 
+  transform: none; /* Remove inconsistent transform */
 }
 
 /* Date list container - no change needed */
@@ -541,21 +472,52 @@ i .page,
 
 .surveillance-header-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start; /* Use flex-start to allow proper scrolling */
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 1.125rem; /* 18px converted to rem */
   font-family: var(--font-family);
+  flex-wrap: nowrap; /* Prevent wrapping to maintain horizontal layout */
+  gap: 1rem; /* Increase gap between elements to prevent overlap */
+  min-width: 0; /* Allow shrinking */
+  overflow-x: auto; /* Enable horizontal scrolling when content is too wide */
+  overflow-y: hidden; /* Prevent vertical scrolling */
+  white-space: nowrap; /* Prevent text wrapping */
+  scrollbar-width: thin; /* Thin scrollbar for better UX */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
+  width: 100%; /* Ensure full width */
+  padding-right: 0; /* Remove padding to allow button to reach the very end */
+}
+
+/* Custom scrollbar styling for surveillance header row */
+.surveillance-header-row::-webkit-scrollbar {
+  height: 6px; /* Height of horizontal scrollbar */
+}
+
+.surveillance-header-row::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.surveillance-header-row::-webkit-scrollbar-thumb {
+  background: #6ca956;
+  border-radius: 3px;
+}
+
+.surveillance-header-row::-webkit-scrollbar-thumb:hover {
+  background: #578641;
 }
 
 .surveillance-header-row .showing-entries-text {
   font-weight: 700;
   font-size: 1.1rem;
   color: #233046;
-  min-width: 140px;
+  min-width: 0; /* Allow shrinking */
+  flex: 0 0 auto; /* Don't grow or shrink - maintain natural width */
   display: flex;
   align-items: center;
   justify-content: flex-start;
   font-family: var(--font-family);
+  white-space: nowrap; /* Prevent text wrapping */
 }
 .mini-navbar-icon-container svg {
   color: black !important;
@@ -580,17 +542,18 @@ i .page,
 
 .surveillance-header-row .formatted-date {
   font-weight: 700;
-  margin-top: 5px; 
+  margin-top: 0.3125rem; /* 5px converted to rem */ 
   font-family: var(--font-family);
   font-size: 1.25rem;  /* unchanged */
   color: #000;         /* pure black */
   white-space: nowrap;
-  margin-right: -1px;
-  transform: translateY(-6px) translateX(2px);
+  margin-right: 0; /* Remove negative margin */
+  transform: translateY(-0.375rem) translateX(0.125rem); /* -6px 2px converted to rem */
   text-shadow:
     0 1px 2px rgba(0,0,0,0.09),   /* lighter, smaller shadow */
     0.1px 0 0 #000,               /* thinner black edge */
    -0.1px 0 0 #000;
+  flex: 0 0 auto; /* Don't grow or shrink - maintain natural width */
 }
 
 .sidebar-month-arrow {
@@ -635,14 +598,17 @@ i .page,
 }
 
 
-/* Tighter gap between sidebar and content */
+/* Responsive gap between sidebar and content */
 .archive-main-row {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
   align-items: stretch;
-  gap: 10px;
+  gap: 1.25rem; /* 20px converted to rem - scales with container */
   font-family: var(--font-family);
+  width: 100%; /* Ensure full width */
+  padding-right: 1.25rem; /* Add right padding to prevent overlap */
+  box-sizing: border-box; /* Include padding in width calculation */
 }
 
 /* Reduced mini-navbar vertical margin */
@@ -695,36 +661,29 @@ i .page,
   color: #0f172a !important;
 }
 
-/* Make sidebar-event-dates a fixed width, not stretching! */
+/* Make sidebar-event-dates fully responsive */
 .sidebar-event-dates {
-  width: 220px !important;
-  max-width: 220px !important;
-  min-width: 0 !important;
-  flex: 0 0 220px !important;
+  width: 15rem; /* Fixed width - 240px */
+  flex: 0 0 15rem; /* Fixed flex basis to prevent growing */
   overflow-x: hidden !important; 
   background: #fff;
-  border-radius: 7px !important; /* reduced from 10px to 7px */
-  border: 1px solid var(--border-color) !important;
+  border-radius: 0.4375rem !important; /* 7px converted to rem */
+  border: 0.0625rem solid var(--border-color) !important; /* 1px converted to rem */
   box-shadow: none !important;
-  padding: 8px 10px 0 10px; /* remove bottom padding to test */
+  padding: 0.5rem 0.625rem 0 0.625rem; /* 8px 10px converted to rem */
   font-size: 1.01rem;
   color: #111827;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  margin-top: 0;
-  margin-left: -40px;
+  gap: 0.5rem; /* 8px converted to rem */
+  margin: 0 0 0 -2.5rem; /* -40px converted to rem - keep left margin */
   height: 100vh !important;
   min-height: 100vh !important;
-
-  margin-bottom: 0;
-  margin-right: 0;
-  min-height: 0;
-  height: 100%;
-  max-height: none;
   box-sizing: border-box;
   font-family: var(--font-family);
+  max-width: 15rem; /* Strict maximum width */
+  min-width: 12rem; /* Minimum width for usability */
 }
 
 
@@ -864,58 +823,57 @@ i .page,
 }
 
 .archive-content-column {
-  max-width: 2000px;
-  min-width: 600px;
   width: 100%;
-  margin-right: auto;
-  margin-left: 0;
-  margin-bottom: 0;
+  margin: 0;
   padding-bottom: 0;
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
+  flex: 1 1 0; /* Take up all remaining space */
+  min-width: 0; /* Allow shrinking */
   min-height: 0;
   font-family: var(--font-family);
+  max-width: 100%; /* Ensure it doesn't exceed parent width */
+  overflow: hidden; /* Prevent content from overflowing */
 }
 
 /* Remove margin-top for tighter vertical stacking */
 .surveillance-container {
   background-color: #fff;
-  border-radius: 7px !important;
+  border-radius: 0.4375rem !important; /* 7px converted to rem */
   box-shadow: none;
-  border: 1px solid var(--border-color);
-  padding: 22px 26px 26px 26px;
-  margin-bottom: 0;
-  /* max-height: 700px;  <-- REMOVE THIS */
-  margin-top: 0;
-  margin-left: 7px;
-  margin-right: -33px;
+  border: 0.0625rem solid var(--border-color); /* 1px converted to rem */
+  padding: 1.375rem 1.625rem 1.625rem 1.625rem; /* 22px 26px converted to rem */
+  margin: 0 1.25rem 0 0; /* Add right margin to prevent overlap */
   position: relative;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  padding-left: 17px; 
-  flex: 1 1 auto;
+  flex: 1 1 0; /* Take up all remaining space */
+  min-width: 0; /* Allow shrinking */
   min-height: 0;
   font-family: var(--font-family);
+  overflow: hidden; /* Prevent container from overflowing page boundaries */
+  width: 100%; /* Ensure full width */
+  max-width: 100%; /* Prevent exceeding container width */
+  z-index: 10; /* Ensure surveillance container is above overlapping elements */
 }.archive-temp-event-btn {
   margin-left: 0 !important;
-  margin-right: 12px !important;
+  margin-right: 0.75rem !important; /* 12px converted to rem */
   flex-shrink: 0 !important;
-  min-width: 80px !important;
-  padding: 4px 12px !important;
+  min-width: 5rem !important; /* 80px converted to rem */
+  padding: 0.25rem 0.75rem !important; /* 4px 12px converted to rem */
   font-weight: 700 !important;
   font-size: 0.75rem !important;
   cursor: pointer !important;
   background-color: #5FCC6E !important;
   color: #fff !important;
   border: none !important;
-  border-radius: 4px !important;
-  box-shadow: 0 1px 6px rgba(16, 185, 129, 0.4) !important;
+  border-radius: 0.25rem !important; /* 4px converted to rem */
+  box-shadow: 0 0.0625rem 0.375rem rgba(16, 185, 129, 0.4) !important; /* 1px 6px converted to rem */
   display: inline-flex !important;
   align-items: center !important;
-  gap: 4px !important;
-  height: 28px !important;
+  gap: 0.25rem !important; /* 4px converted to rem */
+  height: 1.75rem !important; /* 28px converted to rem */
   font-family: var(--font-family);
 }
 
@@ -928,7 +886,7 @@ i .page,
   color: #fff;
   border: none;
   border-radius: 0;
-  padding: 5px 10px;
+  padding: 0.3125rem 0.625rem; /* 5px 10px converted to rem */
   font-weight: 700;
   font-size: 0.83rem;
   cursor: pointer;
@@ -938,12 +896,15 @@ i .page,
   box-shadow: none;
   transition: background 0.13s;
   min-width: unset;
-  height: 26px;
+  height: 1.625rem; /* 26px converted to rem */
   position: relative; 
-  left: -10px; 
-  transform: translateY(-3px);
+  left: 0; /* Remove negative positioning */
+  transform: translateY(-0.1875rem); /* -3px converted to rem */
   font-family: var(--font-family);
-  
+  flex: 0 0 auto; /* Don't grow or shrink - maintain natural width */
+  white-space: nowrap; /* Prevent text wrapping */
+  margin-left: auto; /* Push to far right on larger screens */
+  margin-right: 0; /* Remove right margin to reach the very end of scrollable area */
 }
 .archive-download-btn:hover {
   background: #578641;
@@ -987,15 +948,15 @@ i .page,
 }
 .archive-cards-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr) ;
-  gap: 22px 14px;
-  max-width: none !important;
-  margin: 20px auto 0 auto;
-  padding: 0 10px;
+  grid-template-columns: repeat(3, 1fr); /* Always 3 columns per row */
+  gap: 1.25rem; /* Uniform horizontal and vertical gap */
   width: 100%;
+  margin: 1.25rem 0 0 0; /* 20px top margin */
+  padding: 0;
   box-sizing: border-box;
   font-family: var(--font-family);
 }
+
 
 .archive-no-events > div:first-child {
   margin-top: 65px; /* Or whatever value feels right */
@@ -1003,8 +964,8 @@ i .page,
 
 .archive-no-events {
   position: static; /* instead of relative */
-  top: 60px; /* consider reducing or removing if causing overlap */
-  right: -420px; /* consider adjusting or removing */
+  top: 0; /* Remove positioning that causes overlap */
+  right: 0; /* Remove negative positioning that causes overlap */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1026,7 +987,8 @@ i .page,
   text-align: center;
   transition: background 0.2s, box-shadow 0.2s;
   overflow: visible; /* make sure no scroll inside */
-  z-index: 10; /* bring it above overlapping elements */
+  z-index: 1; /* Lower z-index to prevent overlap */
+  margin: 0 auto; /* Center it properly */
 }.dark-mode .archive-no-events {
   background: rgba(30,40,60,0.74);
   color: #d7ffd0;
@@ -1043,18 +1005,17 @@ i .page,
   font-family: var(--font-family);
 }
 .archive-card {
-  max-width: 315px;
   width: 100%;
-  height: 460px;
+  height: 28.75rem; /* 460px converted to rem */
   background: transparent;
-  border-radius: 10px !important;
-  border: 1px solid #d1d5db;
+  border-radius: 0.625rem !important; /* 10px converted to rem */
+  border: 0.0625rem solid #d1d5db; /* 1px converted to rem */
   box-shadow: none;
   display: flex;
   flex-direction: column;
   overflow: visible;
   padding: 0;
-  margin: 0 0 16px 0;  /* vertical margin of 16px */
+  margin: 0;
   box-sizing: border-box;
   font-family: var(--font-family);
   transition: transform 0.2s ease;
@@ -1571,11 +1532,6 @@ i .page,
 .dark-mode .modal-content {
   background: #17223c !important;
   border-radius: 8px;
-}
-@media (min-width: 1199px) and (max-width: 1201px) {
-  body {
-    background-color: yellow;
-  }
 }
   
 

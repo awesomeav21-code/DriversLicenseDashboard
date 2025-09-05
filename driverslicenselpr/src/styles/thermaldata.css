@@ -98,7 +98,7 @@
   font-family: 'Segoe UI', sans-serif;
   cursor: pointer;
   font-weight: 500;
-  transition: background 0.18s, color 0.18s;
+  transition: none;
 }
 .camera-switcher-btn.selected {
   background: #4caf50;
@@ -164,11 +164,11 @@
   align-items: center;
   gap: clamp(4px, 1.5vw, 12px);    /* Responsive gap that gets smaller on small screens */
   position: relative;
-  margin: 0px auto 20px auto;      /* Original margin */
+  margin: -20px auto 20px auto;    /* Move up more by using larger negative top margin */
   flex-wrap: wrap;                 /* Allow buttons to stack responsively on smaller screens */
   cursor: default;                 /* Remove pointer cursor from container */
   color: #000;
-  transition: background-color 0.3s ease;
+  transition: none;
   width: 85vw; /* Responsive width - 85% of viewport width */
   box-sizing: border-box;          /* Include padding and border in width */
   z-index: 100;
@@ -200,7 +200,7 @@
   box-shadow: none;
   outline: none;
   box-sizing: border-box;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition: none;
   user-select: none;
   text-align: center;
   position: relative; 
@@ -235,7 +235,7 @@
   box-shadow: none;
   outline: none;
   box-sizing: border-box;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition: none;
   user-select: none;
   text-align: center;
   line-height: 1.2;
@@ -287,7 +287,7 @@
   box-shadow: none;
   outline: none;
   box-sizing: border-box;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition: none;
   margin-right: 4px;
   user-select: none;
   text-align: center;
