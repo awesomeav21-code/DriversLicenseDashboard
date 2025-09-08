@@ -1,9 +1,7 @@
 .zone-card {
-  width: 100%; /* Use full grid column width */
-  max-width: 100%; /* Don't exceed grid column width */
-  height: 200px; /* Increase height significantly */
-  min-height: 200px; /* Increase minimum height */
-  position: relative;
+  width: 100%; /* Fill grid column */
+  height: 160px; /* Fixed height, no aspect ratio */
+  position: relative; /* For absolute positioning of inner content */
   background-color: #f3f4f6;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -114,14 +112,8 @@
   max-width: 100% !important;
 }
 
-/* Ensure other zone cards are responsive rectangles */
+/* Ensure other zone cards are square in grid */
 .zone-card:not(.zone-card--global) {
-  height: 160px !important; /* Fixed height */
-  min-height: 160px !important; /* Fixed min-height */
-  max-height: 160px !important; /* Fixed max-height */
-  width: 100% !important; /* Full width */
-  min-width: 100% !important; /* Full min-width */
-  max-width: 100% !important; /* Full max-width */
-  flex-shrink: 0 !important; /* Never shrink */
-  flex-grow: 0 !important; /* Never grow */
+  width: 100% !important; /* Fill grid column */
+  height: 160px !important; /* Fixed height, no aspect ratio */
 }

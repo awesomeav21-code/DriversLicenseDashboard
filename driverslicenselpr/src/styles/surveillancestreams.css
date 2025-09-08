@@ -122,11 +122,37 @@
   padding: 0.9375rem 3.5rem 0 3.5rem; /* 15px 56px converted to rem */
   
   height: auto;
-  min-height: 100vh;
+  min-height: 60vh; /* Reduced from 100vh to 60vh for smaller screens */
+  max-height: 80vh; /* Add max height to prevent excessive growth */
   box-sizing: border-box;
   display: flex;
   flex-direction: column !important; 
   z-index: 1; /* Ensure proper stacking order */
+}
+
+/* Responsive height adjustments for smaller screens */
+@media (max-width: 1366px) {
+  .page,
+  .archive-page {
+    min-height: 50vh; /* Further reduce on medium screens */
+    max-height: 70vh;
+  }
+}
+
+@media (max-width: 1024px) {
+  .page,
+  .archive-page {
+    min-height: 40vh; /* Even smaller on tablets */
+    max-height: 60vh;
+  }
+}
+
+@media (max-width: 768px) {
+  .page,
+  .archive-page {
+    min-height: 30vh; /* Smallest on mobile */
+    max-height: 50vh;
+  }
 }
 
 

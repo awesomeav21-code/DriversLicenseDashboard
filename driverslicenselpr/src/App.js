@@ -242,6 +242,58 @@ export default function App() {
     }
   })
 
+  // Update data every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Generate new zones with random count
+      const zoneNames = [
+        'Busbar', 'Recloser', 'Bushing', 'Transformer', 'Switchgear', 'Cable',
+        'Insulator', 'Conductor', 'Ground', 'Neutral', 'Phase_A', 'Phase_B',
+        'Phase_C', 'Relay', 'Fuse', 'Breaker', 'Capacitor', 'Resistor'
+      ]
+      
+      const cameraNames = ['planck_1', 'planck_2']
+      const newZoneCount = Math.floor(Math.random() * 8) + 4 // 4-11 zones
+      
+      const newZones = []
+      for (let i = 0; i < newZoneCount; i++) {
+        const name = zoneNames[Math.floor(Math.random() * zoneNames.length)]
+        const camera = cameraNames[Math.floor(Math.random() * cameraNames.length)]
+        const temperature = Math.floor(Math.random() * 30) + 70 // 70-100°F
+        
+        newZones.push({
+          name: `${name}_${i + 1}`,
+          camera: camera,
+          temperature: temperature,
+          threshold: 75,
+          lastTriggered: new Date().toLocaleString(),
+          videoFeedUrl: 'https://www.w3schools.com/html/mov_bbb.mp4'
+        })
+      }
+      
+      // Update zones
+      setZones(newZones)
+      setAllZones(newZones)
+      setVisibleZones(newZones.map(z => z.name))
+
+      // Add new history entry
+      setHistory(prevHistory => {
+        const newEntry = {
+          time: new Date(),
+          readings: newZones.reduce((acc, zone) => {
+            acc[zone.name] = zone.temperature
+            return acc
+          }, {})
+        }
+        return [...prevHistory, newEntry].slice(-1000) // Keep last 1000 entries
+      })
+
+      console.log(`🔄 App.js: Updated to ${newZoneCount} zones with new temperatures`)
+    }, 10000) // 10 seconds
+
+    return () => clearInterval(interval)
+  }, [activeTab]) // Add activeTab as dependency so it re-runs when tab changes
+
   useEffect(() => {
     let mounted = true
     console.log('🔄 Starting data fetch from SSAM.temperature_logs.json...')
@@ -594,7 +646,7 @@ export default function App() {
                 </div>
               </div>
             )}
-            {activeTab === 'thermal' && (
+            <div style={{ display: activeTab === 'thermal' ? 'block' : 'none' }}>
               <ThermalPlot
                 zones={zones}
                 visibleZones={visibleZones}
@@ -610,7 +662,7 @@ export default function App() {
                 setSelectedCamera={setSelectedCamera}
                 history={history}
               />
-            )}
+            </div>
             {activeTab === 'streams' && (
               <SurveillanceStreams camera1Zones={camera1Zones} camera2Zones={camera2Zones} />
             )}

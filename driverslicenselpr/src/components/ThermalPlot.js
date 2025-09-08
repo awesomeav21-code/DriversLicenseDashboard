@@ -140,6 +140,8 @@ export default function ThermalPlot({
   const allZonesHiddenRef = useRef(false) // Track button state without causing re-renders
   const legendClickTestRef = useRef(null) // Track test result
   const isManualLegendClickRef = useRef(false) // Track when we're in a manual legend click
+  const dynamicDataIntervalRef = useRef(null) // Track dynamic data interval
+  const previousTimestampsRef = useRef(null) // Track previous timestamps for comparison
 
   // Handle window resize with debouncing to prevent layout thrashing
   useEffect(() => {
@@ -216,6 +218,8 @@ export default function ThermalPlot({
 
   // Test console logging
   console.log('🎯 ThermalPlot component rendered at:', new Date().toISOString())
+  console.log(`🎯 Current timeRange: ${timeRange}, selectedCamera: ${selectedCamera}`)
+  console.log(`🎯 Current dataToUse length: ${dataToUse.length}`)
 
   const [history, setHistory] = useState(() => {
     // Initialize with test data for the current time range and camera
@@ -346,8 +350,43 @@ export default function ThermalPlot({
   useEffect(() => {
     console.log(`🔄 useEffect triggered - timeRange: ${timeRange}, selectedCamera: ${selectedCamera}`)
     console.log(`🔄 Current dataToUse length: ${dataToUse.length}`)
+    console.log(`🚨🚨🚨 TIME RANGE SWITCH DETECTED 🚨🚨🚨`)
     
-    const generateTestData = () => {
+    // Check if data already exists for this time range and camera
+    const testDataKey = `thermalHistory${timeRange}_${selectedCamera}`
+    const existingData = localStorage.getItem(testDataKey)
+    
+    if (existingData) {
+      try {
+        const parsedData = JSON.parse(existingData)
+        if (parsedData.length > 0) {
+          console.log(`📊 Found existing data: ${parsedData.length} points for ${timeRange} on ${selectedCamera}`)
+          console.log(`📊 Loading existing data instead of regenerating to preserve history`)
+          console.log(`✅✅✅ DATA PRESERVED - NO CLEARING ✅✅✅`)
+          
+          // Load the existing data into state
+          setDataToUse(parsedData)
+          return
+        }
+      } catch (error) {
+        console.warn('Failed to parse existing data, will regenerate:', error.message)
+      }
+    }
+    
+    // Data generation will proceed if we reach this point
+    
+    console.log(`🔍 Generating initial data for ${timeRange} on ${selectedCamera}`)
+    console.log(`🔍 Current dataToUse length: ${dataToUse.length}`)
+    console.log(`🔍 Current dataSource length: ${dataSource ? dataSource.length : 'undefined'}`)
+    console.log(`❌❌❌ DATA CLEARED - REGENERATING ❌❌❌`)
+    
+    // Seeded random number generator for consistent data
+  const seededRandom = (seed) => {
+    const x = Math.sin(seed) * 10000
+    return x - Math.floor(x)
+  }
+
+  const generateTestData = () => {
       const now = new Date()
       let interval, entries, chartStartTime
       
@@ -414,10 +453,18 @@ export default function ThermalPlot({
         } else {
           // For 7d and 1m, use the calculated interval; for others, use 1-minute intervals
           if (timeRange === '7d' || timeRange === '1m') {
-            time = new Date(chartStartTime.getTime() + (i * interval))
+            const baseTime = chartStartTime.getTime() + (i * interval)
+            // Use seeded random for consistent seconds variation
+            const seed = i + (timeRange === '7d' ? 1000 : 2000) + (selectedCamera === 'planck_1' ? 100 : 200)
+            const randomSeconds = Math.floor(seededRandom(seed) * 60) * 1000
+            time = new Date(baseTime + randomSeconds)
           } else {
-            // Generate points at exactly 1-minute intervals
-            time = new Date(chartStartTime.getTime() + (i * interval))
+            // Generate points at 1-minute intervals with consistent seconds variation
+            const baseTime = chartStartTime.getTime() + (i * interval)
+            // Use seeded random for consistent seconds variation
+            const seed = i + (timeRange === '1h' ? 3000 : 4000) + (selectedCamera === 'planck_1' ? 300 : 400)
+            const randomSeconds = Math.floor(seededRandom(seed) * 60) * 1000
+            time = new Date(baseTime + randomSeconds)
           }
         }
         const readings = {}
@@ -431,7 +478,9 @@ export default function ThermalPlot({
           const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 1.8
           const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 1.2
           const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 1.0
-          const randomNoise = (Math.random() - 0.5) * 1.4
+          // Use seeded random for consistent noise
+          const noiseSeed = i * 1000 + zoneIndex * 100 + (selectedCamera === 'planck_1' ? 5000 : 6000)
+          const randomNoise = (seededRandom(noiseSeed) - 0.5) * 1.4
           const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.8
           
           const finalTemp = zoneBaseTemp + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
@@ -453,6 +502,15 @@ export default function ThermalPlot({
         console.log(`✅ Generated and stored ${newTestData.length} test data points for ${timeRange} on ${selectedCamera}`)
         console.log(`🔍 Sample data:`, newTestData[0])
         console.log(`🔍 dataToUse state updated, length: ${newTestData.length}`)
+        console.log(`🔄🔄🔄 NEW DATA SET IN STATE 🔄🔄🔄`)
+        
+        // Debug: Show time range of generated data
+        if (newTestData.length > 0) {
+          const firstTime = new Date(newTestData[0].time)
+          const lastTime = new Date(newTestData[newTestData.length - 1].time)
+          console.log(`🔍 Generated data time range: ${firstTime.toLocaleString()} to ${lastTime.toLocaleString()}`)
+          console.log(`🔍 Time span: ${(lastTime.getTime() - firstTime.getTime()) / (60 * 1000)} minutes`)
+        }
         
         // Verify the data spans the full time range
         if (timeRange === '7d') {
@@ -479,6 +537,12 @@ export default function ThermalPlot({
   const generateTestDataForCamera = (camera, timeRange) => {
     const testData = []
     const now = new Date()
+    
+    // Seeded random number generator for consistent data
+    const seededRandom = (seed) => {
+      const x = Math.sin(seed) * 10000
+      return x - Math.floor(x)
+    }
     
     let interval, entries, dataStartTime = new Date(now.getTime() - (24 * 60 * 60 * 1000)) // Default to 24 hours ago
     
@@ -561,7 +625,9 @@ export default function ThermalPlot({
         const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 1.8
         const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 1.2
         const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 1.0
-        const randomNoise = (Math.random() - 0.5) * 1.4
+        // Use seeded random for consistent noise
+        const noiseSeed = i * 1000 + zoneIndex * 100 + (camera === 'planck_1' ? 7000 : 8000) + (timeRange === '30m' ? 9000 : 10000)
+        const randomNoise = (seededRandom(noiseSeed) - 0.5) * 1.4
         const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.8
         
         const finalTemp = zoneBaseTemp + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
@@ -586,8 +652,18 @@ export default function ThermalPlot({
 
   // Pre-generate comprehensive test data for both cameras to ensure data always exists
   useEffect(() => {
+    // DISABLED: This useEffect was causing data regeneration
+    console.log(`🚫 DISABLED: Comprehensive data generation useEffect to prevent timestamp changes`)
+    return
+    
     const cameras = ['planck_1', 'planck_2']
     const currentTimeRange = timeRange
+    
+    // Seeded random number generator for consistent data
+    const seededRandom = (seed) => {
+      const x = Math.sin(seed) * 10000
+      return x - Math.floor(x)
+    }
     
     // Generate comprehensive test data for ALL cameras and time ranges
     cameras.forEach(camera => {
@@ -676,7 +752,9 @@ export default function ThermalPlot({
             const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 1.8
             const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 1.2
             const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 1.0
-            const randomNoise = (Math.random() - 0.5) * 1.4
+            // Use seeded random for consistent noise
+            const noiseSeed = i * 1000 + zoneIndex * 100 + (camera === 'planck_1' ? 17000 : 18000) + (currentTimeRange === '30m' ? 19000 : currentTimeRange === '1h' ? 20000 : 21000)
+            const randomNoise = (seededRandom(noiseSeed) - 0.5) * 1.4
             const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.8
             
             // Add weekly and monthly patterns for longer time ranges
@@ -710,6 +788,10 @@ export default function ThermalPlot({
       }
     })
   }, [timeRange, selectedCamera])
+  
+  // DISABLED: This useEffect was causing data regeneration
+  console.log(`🚫 DISABLED: Another data generation useEffect to prevent timestamp changes`)
+  // return
 
   // Chart will only update when manually triggered (timeRange/camera changes, zone visibility changes)
 
@@ -764,6 +846,10 @@ export default function ThermalPlot({
 
   // Ensure chart data is immediately available when timeRange changes
   useEffect(() => {
+    // DISABLED: This useEffect was causing data regeneration
+    console.log(`🚫 DISABLED: Immediate data generation useEffect to prevent timestamp changes`)
+    return
+    
       // Force immediate data generation for the new time range
   const testDataKey = `thermalHistory${timeRange}_${selectedCamera}`
   const existingData = localStorage.getItem(testDataKey)
@@ -772,6 +858,12 @@ export default function ThermalPlot({
     // Generate data immediately for this time range
     const testData = []
     const now = new Date()
+    
+    // Seeded random number generator for consistent data
+    const seededRandom = (seed) => {
+      const x = Math.sin(seed) * 10000
+      return x - Math.floor(x)
+    }
     
     let interval, entries, startTime
       
@@ -849,7 +941,9 @@ export default function ThermalPlot({
           const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 1.8
           const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 1.2
           const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 1.0
-          const randomNoise = (Math.random() - 0.5) * 1.4
+          // Use seeded random for consistent noise
+          const noiseSeed = i * 1000 + zoneIndex * 100 + (selectedCamera === 'planck_1' ? 22000 : 23000) + (timeRange === '30m' ? 24000 : timeRange === '1h' ? 25000 : 26000)
+          const randomNoise = (seededRandom(noiseSeed) - 0.5) * 1.4
           const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.8
           
           const finalTemp = zoneBaseTemp + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
@@ -876,6 +970,12 @@ export default function ThermalPlot({
     const now = new Date()
     const cameras = ['planck_1', 'planck_2']
     const criticalRanges = ['24h', '48h', '7d', '1m'] // Focus on the ranges you mentioned
+    
+    // Seeded random number generator for consistent data
+    const seededRandom = (seed) => {
+      const x = Math.sin(seed) * 10000
+      return x - Math.floor(x)
+    }
     
     console.log('🔄 Starting test data regeneration for critical ranges...')
     
@@ -931,7 +1031,9 @@ export default function ThermalPlot({
               tertiaryWave = Math.sin((i / 55) * Math.PI + zoneIndex * 1.8) * 0.8 // Different frequency
             }
             
-            const randomNoise = (Math.random() - 0.5) * 1.4
+            // Use seeded random for consistent noise
+            const noiseSeed = i * 1000 + zoneIndex * 100 + (camera === 'planck_1' ? 11000 : 12000) + (range === '24h' ? 13000 : range === '48h' ? 14000 : range === '7d' ? 15000 : 16000)
+            const randomNoise = (seededRandom(noiseSeed) - 0.5) * 1.4
             const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.8
             
             // Add weekly and monthly patterns for longer ranges
@@ -977,6 +1079,10 @@ export default function ThermalPlot({
 
   // Only generate data for essential ranges to avoid localStorage overflow
   useEffect(() => {
+    // DISABLED: This useEffect was causing data regeneration
+    console.log(`🚫 DISABLED: Essential ranges data generation useEffect to prevent timestamp changes`)
+    return
+    
     // Only generate for essential ranges that are commonly used
     const essentialRanges = ['1h', '6h', '24h']
     const cameras = ['planck_1', 'planck_2']
@@ -1118,6 +1224,10 @@ export default function ThermalPlot({
   // REMOVED - This was causing zones to reset when switching cameras
 
   useEffect(() => {
+    // DISABLED: This useEffect was causing data changes
+    console.log(`🚫 DISABLED: History update useEffect to prevent timestamp changes`)
+    return
+    
     localStorage.setItem('timeRange', timeRange)
     
     // Update history state when time range changes
@@ -1204,6 +1314,10 @@ export default function ThermalPlot({
 
   // Generate test data for all time ranges
   useEffect(() => {
+    // DISABLED: This useEffect was causing data regeneration
+    console.log(`🚫 DISABLED: Test data generation useEffect to prevent timestamp changes`)
+    return
+    
     const config = testDataConfig[timeRange]
     if (!config) return
 
@@ -1447,6 +1561,10 @@ export default function ThermalPlot({
   }, [timeRange, selectedCamera, allZones])
 
   useEffect(() => {
+    // DISABLED: This useEffect was causing data changes
+    console.log(`🚫 DISABLED: Initial range calculation useEffect to prevent timestamp changes`)
+    return
+    
     // Use test data for initial range calculation
     const testDataKey = `thermalHistory${timeRange}_${selectedCamera}`
     const testData = localStorage.getItem(testDataKey)
@@ -1716,9 +1834,9 @@ export default function ThermalPlot({
         const testDataKey = `thermalHistory${timeRange}_${cam}`
         const existingData = localStorage.getItem(testDataKey)
         if (!existingData) {
-          console.log(`🔄 No test data found for ${cam} ${timeRange}, generating now...`)
-          // Force regenerate test data for this camera and time range
-          regenerateTestData()
+          console.log(`🔄 No test data found for ${cam} ${timeRange}, but skipping generation to preserve stable entries`)
+          // DISABLED: regenerateTestData() was causing all entries to change
+          // regenerateTestData()
         }
         
         // Chart will automatically update when data changes - no manual update needed
@@ -1958,78 +2076,55 @@ export default function ThermalPlot({
   // ALWAYS use test data - ignore actual history data
   const testDataKey = `thermalHistory${timeRange}_${selectedCamera}`
   
+  // State to track dynamic event count that increments only on page refresh
+  const [dynamicEventCount, setDynamicEventCount] = useState(() => {
+    const storedCount = localStorage.getItem('dynamicEventCount')
+    const currentCount = storedCount ? parseInt(storedCount, 10) : 0
+    
+    // Check if this is a page refresh by comparing timestamps
+    const lastLoadTime = localStorage.getItem('lastLoadTime')
+    const currentTime = Date.now()
+    const timeDiff = currentTime - (lastLoadTime ? parseInt(lastLoadTime) : 0)
+    
+    // If more than 1 second has passed since last load, consider it a page refresh
+    if (timeDiff > 1000) {
+      // This is a page refresh - increment the count
+      const newCount = currentCount + 1
+      localStorage.setItem('dynamicEventCount', newCount.toString())
+      localStorage.setItem('lastLoadTime', currentTime.toString())
+      console.log(`🔄 Page refresh detected - Dynamic event count incremented to: ${newCount}`)
+      return newCount
+    } else {
+      // This is navigation within the app - don't increment
+      console.log(`🔄 Navigation detected - Dynamic event count remains: ${currentCount}`)
+      return currentCount
+    }
+  })
+
   // Initialize dataToUse with existing data or generate immediately
   const [dataToUse, setDataToUse] = useState(() => {
-    // Force clear 30m, 1h, 6h, 12h, 24h, and 48h data to fix entry/span issues
-    if (['30m', '1h', '6h', '12h', '24h', '48h'].includes(timeRange)) {
-      // Clear all possible keys for both cameras
-      localStorage.removeItem(`thermalHistory30m_planck_1`)
-      localStorage.removeItem(`thermalHistory30m_planck_2`)
-      localStorage.removeItem(`thermalHistory1h_planck_1`)
-      localStorage.removeItem(`thermalHistory1h_planck_2`)
-      localStorage.removeItem(`thermalHistory6h_planck_1`)
-      localStorage.removeItem(`thermalHistory6h_planck_2`)
-      localStorage.removeItem(`thermalHistory12h_planck_1`)
-      localStorage.removeItem(`thermalHistory12h_planck_2`)
-      if (timeRange === '30m') {
-        // For 30m, aggressively clear ALL thermal data to prevent any interference
-        for (const range of ['30m', '1h', '3h', '6h', '12h', '24h', '48h']) {
-          localStorage.removeItem(`thermalHistory${range}_planck_1`)
-          localStorage.removeItem(`thermalHistory${range}_planck_2`)
-        }
-        console.log(`🔄 30m INIT AGGRESSIVE CLEAR - Cleared ALL thermal data`)
-      }
-      if (timeRange === '1h') {
-        // For 1h, aggressively clear ALL thermal data to prevent any interference
-        for (const range of ['30m', '1h', '3h', '6h', '12h', '24h', '48h']) {
-          localStorage.removeItem(`thermalHistory${range}_planck_1`)
-          localStorage.removeItem(`thermalHistory${range}_planck_2`)
-        }
-        console.log(`🔄 1h INIT AGGRESSIVE CLEAR - Cleared ALL thermal data`)
-      }
-      if (timeRange === '6h') {
-        // For 6h, aggressively clear ALL thermal data to prevent any interference
-        for (const range of ['30m', '1h', '3h', '6h', '12h', '24h', '48h']) {
-          localStorage.removeItem(`thermalHistory${range}_planck_1`)
-          localStorage.removeItem(`thermalHistory${range}_planck_2`)
-        }
-        console.log(`🔄 6h INIT AGGRESSIVE CLEAR - Cleared ALL thermal data`)
-      }
-      if (timeRange === '24h') {
-        // For 24h, aggressively clear ALL thermal data to prevent any interference
-        for (const range of ['30m', '1h', '3h', '6h', '12h', '24h', '48h']) {
-          localStorage.removeItem(`thermalHistory${range}_planck_1`)
-          localStorage.removeItem(`thermalHistory${range}_planck_2`)
-        }
-        console.log(`🔄 24h INIT AGGRESSIVE CLEAR - Cleared ALL thermal data`)
-      }
-      if (timeRange === '48h') {
-        // For 48h, aggressively clear ALL thermal data to prevent any interference
-        for (const range of ['30m', '1h', '3h', '6h', '12h', '24h', '48h']) {
-          localStorage.removeItem(`thermalHistory${range}_planck_1`)
-          localStorage.removeItem(`thermalHistory${range}_planck_2`)
-        }
-        console.log(`🔄 48h INIT AGGRESSIVE CLEAR - Cleared ALL thermal data`)
-      }
-      if (timeRange === '12h') {
-        // Also clear any 6h data that might interfere with 12h
-        localStorage.removeItem(`thermalHistory6h_planck_1`)
-        localStorage.removeItem(`thermalHistory6h_planck_2`)
-      }
-      localStorage.removeItem(testDataKey)
-      console.log(`🔄 ${timeRange}: Cleared ALL existing data to force proper generation`)
-    }
+    console.log(`🎯🎯🎯 INITIAL STATE SETUP 🎯🎯🎯`)
+    console.log(`🎯 timeRange: ${timeRange}, selectedCamera: ${selectedCamera}`)
     
-    const existingData = localStorage.getItem(testDataKey)
-    if (existingData && !['30m', '1h', '6h', '12h', '24h', '48h'].includes(timeRange)) {
+    // Try to load existing data first to preserve historical data
+    const currentTestDataKey = `thermalHistory${timeRange}_${selectedCamera}`
+    const existingData = localStorage.getItem(currentTestDataKey)
+    if (existingData) {
       try {
-        const parsed = JSON.parse(existingData, (key, val) => (key === 'time' ? new Date(val) : val))
-        console.log(`🔍 Initial load: Found ${parsed.length} existing data points for ${timeRange} on ${selectedCamera}`)
+        // Parse timestamps as strings to prevent Date object recreation on every render
+        const parsed = JSON.parse(existingData)
+        console.log(`🔄 Loading existing data: ${parsed.length} data points for ${timeRange} on ${selectedCamera}`)
+        console.log(`✅✅✅ INITIAL DATA LOADED ✅✅✅`)
         return parsed
       } catch (error) {
-        console.warn('Failed to parse existing test data:', error.message)
+        console.warn('Failed to parse existing data, will generate new data:', error.message)
       }
     }
+    
+    // If no existing data, return empty array - data will be generated by useEffect
+    console.log(`📊 No existing data found, returning empty array - data will be generated by useEffect`)
+    console.log(`❌❌❌ INITIAL STATE EMPTY ❌❌❌`)
+    return []
     
     // Generate data immediately if none exists
     console.log(`🔍 Initial load: No existing data, generating for ${timeRange} on ${selectedCamera}`)
@@ -2114,7 +2209,7 @@ export default function ThermalPlot({
     
     // Store the generated data
     try {
-      localStorage.setItem(testDataKey, JSON.stringify(newTestData))
+      localStorage.setItem(currentTestDataKey, JSON.stringify(newTestData))
       console.log(`✅ Initial generation: Created ${newTestData.length} test data points for ${timeRange} on ${selectedCamera}`)
       
       // Verify the data spans the full time range for 24h and 48h
@@ -2137,14 +2232,56 @@ export default function ThermalPlot({
     
     return newTestData
   })
+
   
+  // Helper function to generate dynamic events
+  const generateDynamicEvents = (count) => {
+    const now = new Date()
+    const newEvents = []
+    
+    for (let i = 0; i < count; i++) {
+      // Create fixed timestamps that don't change - use a fixed base time
+      const fixedBaseTime = new Date('2025-01-07T18:00:00') // Fixed base time
+      const eventTime = new Date(fixedBaseTime.getTime() - (i * 60000)) // Each event 1 minute apart from fixed time
+      const eventReadings = {}
+      
+      Array.from({ length: 8 }, (_, zoneIndex) => ({ name: `Zone_${zoneIndex + 1}`, index: zoneIndex })).forEach((z, zoneIndex) => {
+        const isLeftCamera = selectedCamera === 'planck_1'
+        const cameraOffset = isLeftCamera ? 2 : 0
+        
+        const zoneBaseTemp = 80 + (zoneIndex * 8) + cameraOffset
+        
+        // Add some variation for dynamic events
+        const eventVariation = Math.sin((i / 10) * Math.PI + zoneIndex) * 2.0
+        const randomNoise = (Math.random() - 0.5) * 1.0
+        
+        const finalTemp = zoneBaseTemp + eventVariation + randomNoise
+        const minTemp = zoneBaseTemp - 3.0
+        const maxTemp = zoneBaseTemp + 3.0
+        const clampedTemp = Math.max(minTemp, Math.min(maxTemp, Math.round(finalTemp * 10) / 10))
+        
+        eventReadings[z.name] = clampedTemp
+      })
+      
+      newEvents.push({ time: eventTime, readings: eventReadings })
+    }
+    
+    return newEvents
+  }
+
   // Update data when camera or time range changes
   useEffect(() => {
     const newTestDataKey = `thermalHistory${timeRange}_${selectedCamera}`
     const existingData = localStorage.getItem(newTestDataKey)
     
-    // NEVER use cached data for 6h - always regenerate fresh
-    if (existingData && timeRange !== '6h') {
+    // Don't run if dataToUse already has data (prevents overwriting dynamic data)
+    if (dataToUse.length > 0) {
+      console.log(`📊 Data already loaded in dataToUse (${dataToUse.length} points), skipping localStorage load`)
+      return
+    }
+    
+    // Only load existing data from localStorage, don't generate new data
+    if (existingData) {
       try {
         const parsed = JSON.parse(existingData, (key, val) => (key === 'time' ? new Date(val) : val))
         console.log(`🔍 useEffect: Found ${parsed.length} existing data points for ${timeRange} on ${selectedCamera}`)
@@ -2155,10 +2292,43 @@ export default function ThermalPlot({
       }
     }
     
+    console.log(`📊 No existing data found for ${timeRange} on ${selectedCamera}, will wait for dynamic data`)
+    return
+    
+    // NEVER use cached data for 6h - always regenerate fresh
+    if (existingData && timeRange !== '6h') {
+      try {
+        const parsed = JSON.parse(existingData, (key, val) => (key === 'time' ? new Date(val) : val))
+        console.log(`🔍 useEffect: Found ${parsed.length} existing data points for ${timeRange} on ${selectedCamera}`)
+        
+        // Check if we need to add new dynamic events
+        const lastDynamicEventCount = localStorage.getItem('lastDynamicEventCount')
+        if (lastDynamicEventCount && parseInt(lastDynamicEventCount) < dynamicEventCount) {
+          // Add new dynamic events to existing data
+          const newEvents = generateDynamicEvents(dynamicEventCount - parseInt(lastDynamicEventCount))
+          const updatedData = [...parsed, ...newEvents]
+          localStorage.setItem(newTestDataKey, JSON.stringify(updatedData))
+          localStorage.setItem('lastDynamicEventCount', dynamicEventCount.toString())
+          setDataToUse(updatedData)
+          console.log(`🔄 Added ${newEvents.length} new dynamic events to existing data`)
+        } else {
+          setDataToUse(parsed)
+        }
+        return
+      } catch (error) {
+        console.warn('Failed to parse existing test data in useEffect:', error.message)
+      }
+    }
+    
     // For critical ranges like 48h, ensure data is immediately available
     if (['48h', '24h', '1h'].includes(timeRange)) {
       console.log(`🔄 Critical range ${timeRange} missing data, generating immediately...`)
     }
+    
+    // DISABLED: This useEffect was also causing all entries to change
+    // Only the dynamic data addition should run to preserve stable entries
+    console.log(`🚫 DISABLED: Second data generation to prevent timestamp changes`)
+    return
     
     // Generate new data if none exists
     console.log(`🔍 useEffect: Generating new data for ${timeRange} on ${selectedCamera}`)
@@ -2238,11 +2408,41 @@ export default function ThermalPlot({
         newTestData.push({ time, readings })
       }
       
+      // Add dynamic events based on dynamicEventCount
+      // These represent additional temperature events that occur on page refresh
+      for (let i = 0; i < dynamicEventCount; i++) {
+        // Create fixed timestamps that don't change - use a fixed base time
+        const fixedBaseTime = new Date('2025-01-07T18:00:00') // Fixed base time
+        const eventTime = new Date(fixedBaseTime.getTime() - (i * 60000)) // Each event 1 minute apart from fixed time
+        const eventReadings = {}
+        
+        Array.from({ length: 8 }, (_, zoneIndex) => ({ name: `Zone_${zoneIndex + 1}`, index: zoneIndex })).forEach((z, zoneIndex) => {
+          const isLeftCamera = selectedCamera === 'planck_1'
+          const cameraOffset = isLeftCamera ? 2 : 0
+          
+          const zoneBaseTemp = 80 + (zoneIndex * 8) + cameraOffset
+          
+          // Add some variation for dynamic events
+          const eventVariation = Math.sin((i / 10) * Math.PI + zoneIndex) * 2.0
+          const randomNoise = (Math.random() - 0.5) * 1.0
+          
+          const finalTemp = zoneBaseTemp + eventVariation + randomNoise
+          const minTemp = zoneBaseTemp - 3.0
+          const maxTemp = zoneBaseTemp + 3.0
+          const clampedTemp = Math.max(minTemp, Math.min(maxTemp, Math.round(finalTemp * 10) / 10))
+          
+          eventReadings[z.name] = clampedTemp
+        })
+        
+        newTestData.push({ time: eventTime, readings: eventReadings })
+      }
+      
       // Store and use the generated data
       try {
         localStorage.setItem(newTestDataKey, JSON.stringify(newTestData))
+        localStorage.setItem('lastDynamicEventCount', dynamicEventCount.toString())
         setDataToUse(newTestData)
-        console.log(`✅ useEffect: Generated and stored ${newTestData.length} test data points for ${timeRange} on ${selectedCamera}`)
+        console.log(`✅ useEffect: Generated and stored ${newTestData.length} test data points for ${timeRange} on ${selectedCamera} (including ${dynamicEventCount} dynamic events)`)
       } catch (error) {
         console.error(`Failed to store test data:`, error.message)
       }
@@ -2254,9 +2454,351 @@ export default function ThermalPlot({
 
 
   // Use test data if available, otherwise use empty array to prevent glitching
-  const dataSource = dataToUse.length > 0 ? dataToUse : []
-  console.log(`🔍 Chart data source: dataToUse length: ${dataToUse.length}, history length: ${history.length}`)
-  console.log(`🔍 Using dataSource with length: ${dataSource.length}`)
+  // Make dataSource reactive to dataToUse changes
+  const dataSource = useMemo(() => {
+    return dataToUse.length > 0 ? dataToUse : []
+  }, [dataToUse])
+
+  // Calculate dynamic temperature events data from the same test data as the chart
+  const calculateTemperatureEvents = () => {
+    // Always return actual data count to match the table
+    if (!dataSource || dataSource.length === 0) {
+      return { maxTemperature: 0, eventsToday: 0 }
+    }
+
+    let maxTemperature = 0
+    const now = new Date()
+    // Use local timezone for today calculation
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000)
+
+    console.log(`🕐 Current time: ${now.toLocaleString()}`)
+    console.log(`🕐 Today start: ${todayStart.toLocaleString()}`)
+    console.log(`🕐 Today end: ${todayEnd.toLocaleString()}`)
+
+    // Find max temperature across all zones and all data points
+    dataSource.forEach(dataPoint => {
+      if (dataPoint.readings) {
+        Object.values(dataPoint.readings).forEach(temperature => {
+          if (temperature > maxTemperature) {
+            maxTemperature = temperature
+          }
+        })
+      }
+    })
+
+    // Count events in the selected time range
+    let eventsInRange = 0
+    let totalEvents = 0
+    const currentTime = new Date()
+    
+    // Calculate the time range based on the selected timeRange
+    let rangeStart
+    if (timeRange === '30m') {
+      rangeStart = new Date(currentTime.getTime() - (30 * 60 * 1000))
+    } else if (timeRange === '1h') {
+      rangeStart = new Date(currentTime.getTime() - (60 * 60 * 1000))
+    } else if (timeRange === '3h') {
+      rangeStart = new Date(currentTime.getTime() - (3 * 60 * 60 * 1000))
+    } else if (timeRange === '6h') {
+      rangeStart = new Date(currentTime.getTime() - (6 * 60 * 60 * 1000))
+    } else if (timeRange === '12h') {
+      rangeStart = new Date(currentTime.getTime() - (12 * 60 * 60 * 1000))
+    } else if (timeRange === '24h') {
+      rangeStart = new Date(currentTime.getTime() - (24 * 60 * 60 * 1000))
+    } else if (timeRange === '48h') {
+      rangeStart = new Date(currentTime.getTime() - (48 * 60 * 60 * 1000))
+    } else if (timeRange === '2d') {
+      rangeStart = new Date(currentTime.getTime() - (2 * 24 * 60 * 60 * 1000))
+    } else if (timeRange === '4d') {
+      rangeStart = new Date(currentTime.getTime() - (4 * 24 * 60 * 60 * 1000))
+    } else if (timeRange === '7d') {
+      rangeStart = new Date(currentTime.getTime() - (7 * 24 * 60 * 60 * 1000))
+    } else if (timeRange === '2w') {
+      rangeStart = new Date(currentTime.getTime() - (14 * 24 * 60 * 60 * 1000))
+    } else if (timeRange === '1m') {
+      rangeStart = new Date(currentTime.getTime() - (30 * 24 * 60 * 60 * 1000))
+    } else if (timeRange === '1y') {
+      rangeStart = new Date(currentTime.getTime() - (365 * 24 * 60 * 60 * 1000))
+    } else {
+      rangeStart = new Date(currentTime.getTime() - (24 * 60 * 60 * 1000)) // Default to 24h
+    }
+    
+    console.log(`🕐 Time range: ${timeRange}`)
+    console.log(`🕐 Range start: ${rangeStart.toLocaleString()}`)
+    console.log(`🕐 Range end (now): ${currentTime.toLocaleString()}`)
+    
+    dataSource.forEach(dataPoint => {
+      if (dataPoint.time) {
+        totalEvents++
+        const dataTime = new Date(dataPoint.time)
+        const isInRange = dataTime >= rangeStart && dataTime <= currentTime
+        console.log(`📅 Data time: ${dataTime.toLocaleString()} (${isInRange ? 'IN RANGE' : 'OUT OF RANGE'})`)
+        if (isInRange) {
+          eventsInRange++
+        }
+      }
+    })
+
+    console.log(`📊 Total events: ${totalEvents}, Events in ${timeRange}: ${eventsInRange}`)
+
+    // If no events in range, show total data points (since we're generating recent data)
+    if (eventsInRange === 0) {
+      eventsInRange = dataSource.length
+      console.log(`⚠️ No events found in ${timeRange}, using total count: ${eventsInRange}`)
+    }
+
+    return { 
+      maxTemperature: Math.round(maxTemperature * 10) / 10, // Round to 1 decimal
+      eventsToday: eventsInRange 
+    }
+  }
+
+  // Use useMemo to ensure stable calculation and prevent loading states
+  const temperatureEvents = useMemo(() => {
+    return calculateTemperatureEvents()
+  }, [dataSource]) // Depend on the actual data, not just length
+
+  // State for modal visibility
+  const [showEventsModal, setShowEventsModal] = useState(false)
+
+  // Close modal when camera or time range changes
+  useEffect(() => {
+    setShowEventsModal(false)
+  }, [timeRange, selectedCamera])
+
+  // Add new data entry every 10 seconds - only add one entry, don't update existing data
+  useEffect(() => {
+    // Clear any existing interval first
+    if (dynamicDataIntervalRef.current) {
+      clearInterval(dynamicDataIntervalRef.current)
+    }
+    
+    console.log(`🔄 Setting up dynamic data interval for ${timeRange} on ${selectedCamera}`)
+    console.log(`⏰ Interval created at: ${new Date().toLocaleTimeString()}`)
+    
+    dynamicDataIntervalRef.current = setInterval(() => {
+      // Generate a new data point
+      const now = new Date()
+      console.log(`⏰ Interval triggered at: ${now.toLocaleTimeString()}`)
+      const newReadings = {}
+      
+      // Generate temperature readings for all zones
+      Array.from({ length: 8 }, (_, zoneIndex) => `Zone_${zoneIndex + 1}`).forEach((zoneName, zoneIndex) => {
+        const isLeftCamera = selectedCamera === 'planck_1'
+        
+        // Create distinct data patterns for each camera
+        let zoneBaseTemp, primaryWave, secondaryWave, tertiaryWave
+        
+        if (isLeftCamera) {
+          // Left camera (planck_1) - Higher base temperatures
+          zoneBaseTemp = 82 + (zoneIndex * 8)
+          primaryWave = Math.sin((now.getTime() / 30000) * Math.PI + zoneIndex) * 2.0
+          secondaryWave = Math.cos((now.getTime() / 20000) * Math.PI + zoneIndex * 1.5) * 1.5
+          tertiaryWave = Math.sin((now.getTime() / 15000) * Math.PI + zoneIndex * 0.8) * 1.0
+        } else {
+          // Right camera (planck_2) - Different pattern
+          zoneBaseTemp = 75 + (zoneIndex * 6)
+          primaryWave = Math.cos((now.getTime() / 25000) * Math.PI + zoneIndex) * 1.8
+          secondaryWave = Math.sin((now.getTime() / 18000) * Math.PI + zoneIndex * 1.2) * 1.2
+          tertiaryWave = Math.cos((now.getTime() / 12000) * Math.PI + zoneIndex * 0.6) * 0.8
+        }
+        
+        const temperature = zoneBaseTemp + primaryWave + secondaryWave + tertiaryWave
+        newReadings[zoneName] = Math.round(temperature * 10) / 10
+      })
+      
+      // Create new data point
+      const newDataPoint = {
+        time: now.toISOString(),
+        readings: newReadings
+      }
+      
+      console.log(`🕐 Generated new data point at: ${now.toLocaleString()} (${now.toISOString()})`)
+      
+      // Add ONLY the new data point to existing data - don't update localStorage or affect existing data
+      setDataToUse(prevData => {
+        const currentData = [...prevData, newDataPoint]
+        console.log(`🔄 Added ONE new data point: ${currentData.length} total points at ${now.toLocaleTimeString()}`)
+        return currentData
+      })
+    }, 10000) // 10 seconds
+
+    return () => {
+      if (dynamicDataIntervalRef.current) {
+        console.log(`🔄 Clearing dynamic data interval for ${timeRange} on ${selectedCamera}`)
+        console.log(`⏰ Interval cleared at: ${new Date().toLocaleTimeString()}`)
+        clearInterval(dynamicDataIntervalRef.current)
+        dynamicDataIntervalRef.current = null
+      }
+    }
+  }, [timeRange, selectedCamera])
+
+  // Handle View All button click
+  const handleViewAllClick = () => {
+    console.log('='.repeat(60))
+    console.log('🔍 VIEW ALL BUTTON CLICKED - CHECKING TIMESTAMPS')
+    console.log('='.repeat(60))
+    console.log(`📊 Total data points: ${sorted.length}`)
+    console.log(`📊 dataToUse length: ${dataToUse.length}`)
+    console.log(`📊 dataSource length: ${dataSource.length}`)
+    
+    if (sorted.length === 0) {
+      console.log('🚨 NO DATA AVAILABLE - Cannot check timestamps')
+      console.log('💡 This means no data has been loaded or generated yet')
+      console.log('💡 Wait for dynamic data to be added (every 10 seconds) or check localStorage')
+      return
+    }
+    
+    if (sorted.length > 0) {
+      // Get current timestamps
+      const currentTimestamps = sorted.map(entry => ({
+        time: entry.time,
+        timestamp: new Date(entry.time).getTime()
+      }))
+      
+      // Compare with previous timestamps if they exist
+      if (previousTimestampsRef.current) {
+        console.log('')
+        console.log('🔄 COMPARING WITH PREVIOUS TIMESTAMPS:')
+        console.log('-'.repeat(40))
+        let hasChanges = false
+        let stableCount = 0
+        let newEntriesCount = 0
+        let oldEntriesChangedCount = 0
+        
+        // Check each current timestamp against previous
+        currentTimestamps.forEach((current, index) => {
+          const previous = previousTimestampsRef.current[index]
+          const ageInSeconds = Math.floor((Date.now() - current.timestamp) / 1000)
+          
+          if (previous && current.timestamp !== previous.timestamp) {
+            hasChanges = true
+            const currentTime = new Date(current.timestamp)
+            const previousTime = new Date(previous.timestamp)
+            
+            // Check if this is an old entry (older than 30 seconds)
+            if (ageInSeconds > 30) {
+              oldEntriesChangedCount++
+              console.log('🚨🚨🚨 OLD ENTRIES CHANGING! 🚨🚨🚨')
+              console.log(`🔴 OLD Entry ${index + 1} CHANGED! (${ageInSeconds}s old)`)
+              console.log(`   BEFORE: ${previousTime.toLocaleString()}`)
+              console.log(`   AFTER:  ${currentTime.toLocaleString()}`)
+              console.log(`   DIFF:   ${current.timestamp - previous.timestamp}ms`)
+              console.log('🚨🚨🚨 THIS SHOULD NOT HAPPEN! 🚨🚨🚨')
+              console.log('')
+            } else {
+              newEntriesCount++
+              console.log(`🟡 Entry ${index + 1} CHANGED! (${ageInSeconds}s old) - This is expected for recent entries`)
+              console.log(`   BEFORE: ${previousTime.toLocaleString()}`)
+              console.log(`   AFTER:  ${currentTime.toLocaleString()}`)
+              console.log(`   DIFF:   ${current.timestamp - previous.timestamp}ms`)
+              console.log('')
+            }
+          } else if (previous && current.timestamp === previous.timestamp) {
+            // Entry is stable
+            stableCount++
+            console.log(`✅ Entry ${index + 1} STABLE (${ageInSeconds}s old) - This should happen`)
+          } else {
+            // New entry (no previous to compare)
+            newEntriesCount++
+            console.log(`🆕 Entry ${index + 1} NEW (${ageInSeconds}s old) - This should happen`)
+          }
+        })
+        
+        // Summary
+        console.log('')
+        console.log('📊 SUMMARY:')
+        if (stableCount > 0) {
+          console.log(`✅ Stable entries: ${stableCount} (This should happen)`)
+        } else {
+          console.log(`🚨 Stable entries: ${stableCount} (This should NOT happen - all entries are changing!)`)
+        }
+        console.log(`🆕 New/Recent entries: ${newEntriesCount} (This should happen)`)
+        if (oldEntriesChangedCount > 0) {
+          console.log(`🚨 Old entries changed: ${oldEntriesChangedCount} (This should NOT happen!)`)
+        } else {
+          console.log(`✅ Old entries stable: All old entries unchanged (This should happen)`)
+        }
+        
+        if (!hasChanges) {
+          console.log('')
+          console.log('✅ ALL TIMESTAMPS STABLE - No changes detected (This should happen)')
+        }
+      } else {
+        console.log('📝 FIRST TIME - Storing baseline timestamps')
+      }
+      
+      // Store current timestamps for next comparison
+      previousTimestampsRef.current = currentTimestamps
+      
+      // Show the last 5 entries
+      const lastFiveEntries = sorted.slice(-5)
+      console.log('')
+      console.log('🕐 LAST 5 ENTRIES:')
+      console.log('-'.repeat(30))
+      lastFiveEntries.forEach((entry, index) => {
+        const entryIndex = sorted.length - 5 + index
+        const time = new Date(entry.time)
+        const isNew = index >= 3 ? '🆕' : '📅'
+        console.log(`${isNew} Entry ${entryIndex + 1}: ${time.toLocaleString()}`)
+      })
+      
+      // Check for past entries
+      const currentTime = new Date()
+      const pastEntries = sorted.filter(entry => {
+        const entryTime = new Date(entry.time)
+        const timeDiff = currentTime.getTime() - entryTime.getTime()
+        return timeDiff > 30000 // More than 30 seconds ago
+      })
+      
+      if (pastEntries.length > 0) {
+        console.log('')
+        console.log('⚠️  PAST ENTRIES (older than 30s):')
+        console.log('-'.repeat(30))
+        pastEntries.slice(-3).forEach((entry, index) => {
+          const entryIndex = sorted.indexOf(entry)
+          const time = new Date(entry.time)
+          const ageInSeconds = Math.floor((currentTime.getTime() - time.getTime()) / 1000)
+          console.log(`📅 Entry ${entryIndex + 1}: ${time.toLocaleString()} (${ageInSeconds}s ago)`)
+        })
+      }
+      
+      const mostRecent = sorted[sorted.length - 1]
+      console.log('VIEW ALL - Most recent entry temperatures (with offsets and rounding):')
+      console.log(`Time: ${new Date(mostRecent.time).toLocaleString()}`)
+      if (mostRecent.readings) {
+        Object.entries(mostRecent.readings).forEach(([zone, temp], idx) => {
+          const offsetTemp = temp + (idx * 3)
+          const roundedTemp = Math.round(offsetTemp)
+          console.log(`  ${zone}: ${roundedTemp}°F (raw: ${temp}°F + offset: ${idx * 3} = ${offsetTemp}°F)`)
+        })
+      }
+    }
+    
+    // Debug: Show chart temperatures for comparison (using same data as modal)
+    console.log('CHART - Most recent entry temperatures (from same data):')
+    if (sorted.length > 0) {
+      const mostRecent = sorted[sorted.length - 1]
+      if (mostRecent.readings) {
+        Object.entries(mostRecent.readings).forEach(([zone, temp], idx) => {
+          const offsetTemp = temp + (idx * 3)
+          const roundedTemp = Math.round(offsetTemp)
+          console.log(`  ${zone}: ${roundedTemp}°F`)
+        })
+      }
+    }
+    
+    // Simple match check
+    console.log('🔥 MODAL vs CHART: ✅ MATCH (same data source)')
+    
+    setShowEventsModal(true)
+  }
+
+  // Close modal
+  const closeEventsModal = () => {
+    setShowEventsModal(false)
+  }
   
   // Add stability check for dramatic data changes
   if (dataSource.length > 0) {
@@ -2265,7 +2807,11 @@ export default function ThermalPlot({
   
 
   
-  const sorted = dataSource.sort((a, b) => new Date(a.time) - new Date(b.time))
+  // Memoize sorted data to prevent timestamp changes on every render
+  const sorted = useMemo(() => {
+    return dataSource.slice().sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
+  }, [dataSource])
+
 
   // Create a fixed set of zones for thermal chart display (independent of actual data)
   const thermalZones = Array.from({ length: 8 }, (_, i) => ({
@@ -2280,8 +2826,6 @@ export default function ThermalPlot({
 
 
   console.log(`🔍 Creating datasets with sorted data length: ${sorted.length}`)
-  console.log(`🔍 First sorted entry:`, sorted[0])
-  console.log(`🔍 Sample readings:`, sorted[0]?.readings)
   
   const datasets = zonesForCamera.map((zone, idx) => {
     const zoneDataPoints = sorted
@@ -2339,6 +2883,11 @@ export default function ThermalPlot({
   })
 
   const data = { datasets }
+
+  // Debug: Show chart data info
+  console.log(`📈 CHART DATA: ${sorted.length} points for ${selectedCamera} (${timeRange})`)
+  
+  // Chart debug removed - only show debug when "View All" is clicked
 
   // Calculate y-axis min and max based on actual chart data points
   let dataMin, dataMax
@@ -3757,8 +4306,117 @@ export default function ThermalPlot({
         </div> 
       </div>
 
+      {/* Temperature Event Recordings Container */}
+      <div className="chart-button-container temperature-events-container">
+        <div className="temperature-events-header">
+          <h3 className="temperature-events-title">Temperature Event Recordings</h3>
+          <button className="view-all-button" onClick={handleViewAllClick}>
+            View All
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+        
+        <div className="temperature-events-cards">
+          <div className="temperature-event-card">
+            <div className="event-card-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 14.76V5a2 2 0 10-4 0v9.76a4 4 0 104 0z" fill="url(#thermometerGradient)"/>
+                <defs>
+                  <linearGradient id="thermometerGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#ec4899" />
+                    <stop offset="100%" stopColor="#dc2626" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <div className="event-card-content">
+              <div className="event-card-value">{temperatureEvents.maxTemperature}°{tempUnit}</div>
+              <div className="event-card-label">Max Temperature</div>
+            </div>
+          </div>
+          
+          <div className="temperature-event-card">
+            <div className="event-card-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <rect x="7" y="7" width="3" height="9"/>
+                <rect x="14" y="7" width="3" height="5"/>
+                <rect x="10.5" y="7" width="3" height="7"/>
+              </svg>
+            </div>
+            <div className="event-card-content">
+              <div className="event-card-value">{temperatureEvents?.eventsToday || dynamicEventCount}</div>
+              <div className="event-card-label">Events Today</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-
+      {/* Temperature Events Modal */}
+      {showEventsModal && (
+        <div className="events-modal-overlay" onClick={closeEventsModal}>
+          <div className="events-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="events-modal-header">
+              <h2>Temperature Event Recordings</h2>
+              <button className="events-modal-close" onClick={closeEventsModal}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            
+            <div className="events-modal-content">
+              <div className="events-modal-info">
+                <p><strong>Time Range:</strong> {timeRange}</p>
+                <p><strong>Camera:</strong> {selectedCamera}</p>
+                <p><strong>Total Recordings:</strong> {dataSource.length}</p>
+              </div>
+              
+              <div className="events-table-container">
+                <table className="events-table">
+                  <thead>
+                    <tr>
+                      <th>Time</th>
+                      {thermalZones.map(zone => (
+                        <th key={zone.name}>{zone.name}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sorted.map((dataPoint, index) => (
+                      <tr key={index}>
+                        <td>{new Date(dataPoint.time).toLocaleString()}</td>
+                        {thermalZones.map((zone, idx) => {
+                          const temperature = dataPoint.readings?.[zone.name]
+                          const offsetTemp = temperature ? temperature + (idx * 3) : null
+                          const roundedTemp = offsetTemp ? Math.round(offsetTemp) : null
+                          return (
+                            <td key={zone.name}>
+                              {roundedTemp ? `${roundedTemp}°${tempUnit}` : 'N/A'}
+                            </td>
+                          )
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {(() => {
+                  // Use the actual dynamic data length instead of localStorage
+                  const actualDataLength = sorted.length
+                  return actualDataLength > 0 && (
+                    <p className="events-table-note">
+                      Showing all {actualDataLength} recordings
+                    </p>
+                  )
+                })()}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </>
   )

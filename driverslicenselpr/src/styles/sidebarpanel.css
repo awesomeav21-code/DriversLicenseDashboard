@@ -19,7 +19,7 @@
   gap: 12px !important;
   z-index: 0;
   margin: 0 0 50px 0; /* Reset margin */
-  left: -20px; /* Move sidebar 20px to the left */
+  margin-left: 10px; /* Move sidebar 10px to the right */
   border-radius: 10px !important;
   background-color: #ffffff;
   border: 1px solid #d1d5db;

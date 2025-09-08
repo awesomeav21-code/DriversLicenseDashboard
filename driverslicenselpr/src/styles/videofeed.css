@@ -457,19 +457,17 @@ body.dark-mode .live-data-wrapper {
 }
 
 .zone-grid {
-  display: grid; /* Use grid for consistent responsive behavior */
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Wider cards with 280px minimum */
+  display: grid; /* Use CSS Grid for better column control */
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); /* Cards fill grid width, minimum 160px */
   gap: 0.75rem; /* Fixed gap for consistent spacing */
   position: relative; 
   left: 0;
   width: 100%; /* Stay within camera section width */
-  max-width: 100%; /* Don't exceed camera section width */
-  margin: 0 auto; /* Center the grid */
   box-sizing: border-box;
   padding: 0.75rem; /* Fixed padding for consistent spacing */
+  overflow-x: auto; /* Horizontal scroll when cards don't fit */
   background-color: #f3f4f6; /* Match zone card background color */
   border-radius: 0.5rem;
-  overflow-x: auto; /* Horizontal scroll for large screens */
   overflow-y: auto; /* Vertical scroll if needed */
   height: auto; /* Let content determine height - no fixed height */
   min-height: auto; /* No minimum height constraint */
@@ -483,20 +481,16 @@ body.dark-mode .live-data-wrapper {
 /* Removed conflicting horizontal scroll rule */
 
 .zone-grid > * {
-  /* Ensure zone cards fill the grid columns */
-  width: 100% !important;
-  min-width: 100% !important;
-  max-width: 100% !important;
+  /* Allow zone cards to maintain their fixed square size */
   flex-shrink: 0 !important; /* Prevent shrinking */
+  flex-grow: 0 !important; /* Prevent growing */
 }
 
-/* Ensure zone cards don't change size in fullwidth mode */
+/* Ensure zone cards maintain square size in fullwidth mode */
 .zone-grid--fullwidth > * {
-  /* Ensure zone cards fill the grid columns in fullwidth mode too */
-  width: 100% !important;
-  min-width: 100% !important;
-  max-width: 100% !important;
+  /* Allow zone cards to maintain their fixed square size in fullwidth mode too */
   flex-shrink: 0 !important; /* Prevent shrinking */
+  flex-grow: 0 !important; /* Prevent growing */
 }
 
 .dark-mode .zone-grid {
