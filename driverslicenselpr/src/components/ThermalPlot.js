@@ -219,7 +219,6 @@ export default function ThermalPlot({
   // Test console logging
   console.log('🎯 ThermalPlot component rendered at:', new Date().toISOString())
   console.log(`🎯 Current timeRange: ${timeRange}, selectedCamera: ${selectedCamera}`)
-  console.log(`🎯 Current dataToUse length: ${dataToUse.length}`)
 
   const [history, setHistory] = useState(() => {
     // Initialize with test data for the current time range and camera
@@ -349,7 +348,6 @@ export default function ThermalPlot({
   // Generate test data when camera or time range changes
   useEffect(() => {
     console.log(`🔄 useEffect triggered - timeRange: ${timeRange}, selectedCamera: ${selectedCamera}`)
-    console.log(`🔄 Current dataToUse length: ${dataToUse.length}`)
     console.log(`🚨🚨🚨 TIME RANGE SWITCH DETECTED 🚨🚨🚨`)
     
     // Check if data already exists for this time range and camera
@@ -2233,6 +2231,8 @@ export default function ThermalPlot({
     return newTestData
   })
 
+  // Log dataToUse length after initialization
+  console.log(`🎯 Current dataToUse length: ${dataToUse.length}`)
   
   // Helper function to generate dynamic events
   const generateDynamicEvents = (count) => {
