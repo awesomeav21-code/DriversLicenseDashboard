@@ -37,19 +37,6 @@ function Header({
   const [selectedSubstationId, setSelectedSubstationId] = useState(substations[0].id)
   const [showSubstationDropdown, setShowSubstationDropdown] = useState(false)
   const substationDropdownRef = useRef(null)
-  const [shuffledSubstations, setShuffledSubstations] = useState([])
-
-  useEffect(() => {
-    function shuffle(array) {
-      let arr = [...array]
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1))
-        ;[arr[i], arr[j]] = [arr[j], arr[i]]
-      }
-      return arr
-    }
-    setShuffledSubstations(shuffle(substations))
-  }, [])
 
   const currentSubstation = substations.find(s => s.id === selectedSubstationId)
 

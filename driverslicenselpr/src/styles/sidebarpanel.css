@@ -38,8 +38,8 @@
 
 /* Dark mode background and borders */
 .sidebar-panel.dark-panel {
-  background-color: #0f172a;
-  border-color: #d1d5db !important;
+  background-color: #101e34;
+  border-color: #243456 !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   color: #f9fafb;
 }
@@ -82,7 +82,7 @@
 
 .sidebar-panel.dark-panel .controls-container {
   background-color: transparent;
-  border-color: #374151;
+  border-color: #243456;
 }
 
 /* Ensure internal content spacing remains the same */
@@ -106,7 +106,7 @@
 
 .sidebar-panel.dark-panel .logs-container {
   background-color: transparent;
-  border-color: #374151;
+  border-color: #243456;
 }
 
 /* Ensure internal content spacing remains the same */
@@ -184,8 +184,8 @@
 }
 
 .sidebar-panel.dark-panel .event-logs {
-  background-color: #0f172a !important;
-  border-color: #ffffff !important;
+  background-color: #101e34 !important;
+  border-color: #243456 !important;
   color: #f9fafb;
 }
 
@@ -330,7 +330,7 @@
 }
 
 .sidebar-panel.dark-panel .log-entry {
-  background-color: #0f172a !important;
+  background-color: #101e34 !important;
   border-color: transparent !important; /* Transparent border by default in dark mode */
   box-shadow: none !important; /* Remove default shadow in dark mode */
   color: #f9fafb;
@@ -382,7 +382,7 @@
 }
 
 .sidebar-panel.dark-panel .log-empty {
-  background-color: #0f172a;
+  background-color: #101e34;
   color: #d1d5db;
 }
 

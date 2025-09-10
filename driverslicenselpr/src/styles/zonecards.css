@@ -1,5 +1,5 @@
 .zone-card {
-  width: 100%; /* Fill grid column */
+  width: 100%; /* Fill the entire grid cell */
   height: 160px; /* Fixed height, no aspect ratio */
   position: relative; /* For absolute positioning of inner content */
   background-color: #f3f4f6;
@@ -10,18 +10,18 @@
   overflow: hidden;
   flex-grow: 1; /* Allow cards to grow */
   flex-shrink: 0; /* Prevent shrinking */
-  margin: 0; /* Remove negative margins */
+  margin: 0; /* Remove centering margin to fill grid */
 }
 
 .zone-card--fullwidth {
   background-color: #f3f4f6 !important; 
   flex: 1; /* Allow cards to grow */
-  width: 100%; /* Use full width */
+  width: 100%; /* Fill the entire grid cell */
   max-width: 100%; /* Don't exceed width */
   min-width: 100%; /* Don't shrink below 100% */
   position: relative !important; 
   left: 0 !important; /* Remove negative positioning */
-  margin: 0; /* Remove negative margins */
+  margin: 0; /* Remove centering margin to fill grid */
 }
 
 .zone-card-inner--fullwidth {
@@ -44,27 +44,27 @@
   justify-content: center;
   align-items: center;
   color: #111827;
-  font-size: clamp(9px, 1.3vw, 14px); /* Smaller responsive font size */
+  font-size: clamp(8px, 0.8vw, 12px); /* Reduced font size */
   line-height: 1.2;
   text-align: center;
   box-sizing: border-box;
 }
 
 .zone-name {
-  font-size: clamp(10px, 2.2vw, 20px); /* Smaller responsive font size */
+  font-size: clamp(9px, 1.2vw, 16px); /* Reduced font size */
   font-weight: 700;
   margin-bottom: 6px !important;
 }
 
 .zone-temp {
-  font-size: clamp(16px, 3.5vw, 28px); /* Smaller responsive font size */
+  font-size: clamp(14px, 2.2vw, 22px); /* Reduced font size */
   font-weight: 800;
   margin-bottom: 10px;
 }
 
 .zone-threshold,
 .zone-last {
-  font-size: clamp(8px, 2.2vw, 16px); /* Smaller responsive font size */
+  font-size: clamp(7px, 1.2vw, 12px); /* Reduced font size */
   color: #6b7280;
   margin-bottom: 12px;
 }
@@ -74,7 +74,7 @@
   text-transform: uppercase;
   margin-top: 8px;
   color: inherit;
-  font-size: clamp(8px, 1.8vw, 14px); /* Smaller responsive font size */
+  font-size: clamp(7px, 1.0vw, 11px); /* Reduced font size */
 }
 
 .zone-card.dark-zone {
@@ -108,12 +108,14 @@
   height: 160px !important; /* Same height as other cards */
   min-height: 140px !important; /* Same min-height as other cards */
   grid-column: span 2 !important; /* Make it span 2 grid columns to be wider */
-  width: 100% !important;
+  width: 100% !important; /* Fill the entire grid cell */
   max-width: 100% !important;
+  margin: 0; /* Remove centering margin to fill grid */
 }
 
 /* Ensure other zone cards are square in grid */
 .zone-card:not(.zone-card--global) {
-  width: 100% !important; /* Fill grid column */
+  width: 100% !important; /* Fill the entire grid cell */
   height: 160px !important; /* Fixed height, no aspect ratio */
+  margin: 0; /* Remove centering margin to fill grid */
 }

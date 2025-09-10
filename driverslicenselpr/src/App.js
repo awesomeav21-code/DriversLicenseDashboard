@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import Header from './components/Header'
 import Navigation from './components/Navigation'
 import VideoFeed from './components/VideoFeed'
@@ -21,6 +21,22 @@ function pickZonesAtLeastOnePerCameraUniqueNames(allZonesArr, count) {
   const picks = []
   const usedNames = new Set()
 
+  // First, ensure Global zone exists for both cameras
+  cameras.forEach((cam) => {
+    const globalZone = { 
+      name: 'Global', 
+      camera: cam, 
+      videoFeedUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+      temperature: Math.floor(Math.random() * 30) + 70, // Random temp between 70-100°F
+      threshold: Math.floor(Math.random() * 10) + 80, // Random threshold between 80-90°F
+      lastTriggered: new Date(Date.now() - Math.random() * 86400000), // Random time within last 24 hours
+      status: Math.random() > 0.5 ? 'ACTIVE' : 'CLEARED'
+    }
+    picks.push(globalZone)
+    usedNames.add('Global')
+  })
+
+  // Then add other zones for each camera
   cameras.forEach((cam) => {
     const candidates = Array.from(byName.values())
       .map((arr) => arr.find((z) => z.camera === cam))
@@ -200,6 +216,7 @@ export default function App() {
     const saved = localStorage.getItem('eventLogsVisible')
     return saved === null ? true : saved === 'true'
   })
+  const [showEventsPage, setShowEventsPage] = useState(false)
 
   
 
@@ -256,6 +273,20 @@ export default function App() {
       const newZoneCount = Math.floor(Math.random() * 8) + 4 // 4-11 zones
       
       const newZones = []
+      
+      // Always add Global zone for both cameras
+      cameraNames.forEach(camera => {
+        newZones.push({
+          name: 'Global',
+          camera: camera,
+          temperature: Math.floor(Math.random() * 30) + 70, // 70-100°F
+          threshold: 75,
+          lastTriggered: new Date().toLocaleString(),
+          videoFeedUrl: 'https://www.w3schools.com/html/mov_bbb.mp4'
+        })
+      })
+      
+      // Add other random zones
       for (let i = 0; i < newZoneCount; i++) {
         const name = zoneNames[Math.floor(Math.random() * zoneNames.length)]
         const camera = cameraNames[Math.floor(Math.random() * cameraNames.length)]
@@ -482,19 +513,17 @@ export default function App() {
 
   // Add responsive margin logic for dashboard container
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const [windowHeight, setWindowHeight] = useState(window.innerHeight);
 
   useEffect(() => {
     const handleResize = () => {
       setWindowWidth(window.innerWidth);
-      setWindowHeight(window.innerHeight);
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Calculate responsive left margin for dashboard container
-  const getDashboardLeftMargin = () => {
+  const getDashboardLeftMargin = useCallback(() => {
     const screenWidth = windowWidth;
     
     // Use consistent margins to maintain alignment with sidebar
@@ -511,7 +540,7 @@ export default function App() {
     } else {
       return '10px'; // Mobile and small screens - fixed margin
     }
-  };
+  }, [windowWidth]);
 
 
 
@@ -554,16 +583,10 @@ export default function App() {
   //   return () => window.removeEventListener('resize', updateHeaderOffset);
   // }, []);
 
-  // Add blue flash effect when margin changes
-  const [isFlashing, setIsFlashing] = useState(false);
-  
   useEffect(() => {
-    // Flash blue when window width changes
+    // Log when window width changes
     console.log('Window width changed to:', windowWidth, 'Margin will be:', getDashboardLeftMargin());
-    setIsFlashing(true);
-    const timer = setTimeout(() => setIsFlashing(false), 800);
-    return () => clearTimeout(timer);
-  }, [windowWidth]);
+  }, [windowWidth, getDashboardLeftMargin]);
 
   const handleHamburgerHover = () => setHamburgerHovered(true)
   const handleHamburgerUnhover = () => { if (!hamburgerLocked) setHamburgerHovered(false) }
@@ -578,7 +601,7 @@ export default function App() {
   return (
     <>
       <Header isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} tempUnit={tempUnit} setTempUnit={setTempUnit} />
-      <Navigation activeTab={activeTab} setActiveTab={setActiveTab} isDarkMode={isDarkMode} />
+      <Navigation activeTab={activeTab} setActiveTab={setActiveTab} isDarkMode={isDarkMode} showEventsPage={showEventsPage} setShowEventsPage={setShowEventsPage} />
 
       <div className="app-layout">
         {activeTab === 'dashboard' && (
@@ -661,10 +684,21 @@ export default function App() {
                 selectedCamera={selectedCamera}
                 setSelectedCamera={setSelectedCamera}
                 history={history}
+                onEventsPageChange={setShowEventsPage}
+                showEventsPage={showEventsPage}
+                setShowEventsPage={setShowEventsPage}
               />
             </div>
             {activeTab === 'streams' && (
-              <SurveillanceStreams camera1Zones={camera1Zones} camera2Zones={camera2Zones} />
+              <SurveillanceStreams 
+                camera1Zones={camera1Zones} 
+                camera2Zones={camera2Zones} 
+                isDarkMode={isDarkMode}
+                onTemperatureEventsClick={() => {
+                  setActiveTab('thermal')
+                  setShowEventsPage(true)
+                }}
+              />
             )}
           </div>
         </div>

@@ -1,3 +1,456 @@
+/* === SSAM STYLE MODAL === */
+.events-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+}
+
+.events-modal-ssam {
+  background: #fff;
+  border-radius: 8px;
+  width: 95vw;
+  height: 90vh;
+  max-width: 1400px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.dark-mode .events-modal-ssam {
+  background: #1f2937;
+  border: 1px solid #374151;
+}
+
+.events-modal-header-ssam {
+  background: #2d3748;
+  color: white;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #4a5568;
+}
+
+.modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ssam-logo {
+  color: #68d391;
+}
+
+.header-text h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.header-text p {
+  margin: 0;
+  font-size: 12px;
+  color: #a0aec0;
+}
+
+.modal-header-center {
+  text-align: center;
+}
+
+.modal-header-center h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.modal-header-center p {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: #a0aec0;
+}
+
+.modal-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.download-all-btn {
+  background: #68d391;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.download-all-btn:hover {
+  background: #5cb85c;
+}
+
+.events-modal-close {
+  background: none;
+  border: none;
+  color: #a0aec0;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+
+.events-modal-close:hover {
+  color: white;
+}
+
+.events-modal-content-ssam {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.events-sidebar {
+  width: 250px;
+  background: #f7fafc;
+  border-right: 1px solid #e2e8f0;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.events-sidebar h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.date-navigation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.nav-arrow {
+  background: none;
+  border: 1px solid #cbd5e0;
+  color: #4a5568;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.nav-arrow:hover {
+  background: #edf2f7;
+}
+
+.nav-arrow:hover .crossout-icon {
+  opacity: 1 !important;
+}
+
+.nav-arrow:disabled:hover {
+  background: #f7fafc;
+}
+
+.nav-arrow:disabled:hover .crossout-icon {
+  opacity: 1 !important;
+}
+
+.current-month {
+  flex: 1;
+  text-align: center;
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.today-btn {
+  background: #68d391;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.date-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.date-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.date-item:hover {
+  background: #edf2f7;
+}
+
+.date-item.selected {
+  background: #68d391;
+  color: white;
+}
+
+.date-text {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.event-count {
+  background: #68d391;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.date-item.selected .event-count {
+  background: white;
+  color: #68d391;
+}
+
+.dark-mode .date-item.selected .event-count {
+  color: #000000;
+}
+
+.events-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  background: white;
+  max-height: calc(100vh - 300px); /* Ensure it has a maximum height for scrolling */
+  min-height: 300px; /* Ensure minimum height */
+}
+
+.events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.event-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+  background: #fafafa;
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.event-timestamp {
+  font-size: 14px;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.download-event-btn {
+  background: #68d391;
+  color: white;
+  border: none;
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.download-event-btn:hover {
+  background: #5cb85c;
+}
+
+.event-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.event-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.event-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #2d3748;
+}
+
+.event-images {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.image-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  background-color: #f9f9f9;
+}
+
+.dark-mode .image-container {
+  background-color: #374151;
+  border-color: #6b7280;
+}
+
+.image-container h4 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #4a5568;
+  font-weight: 600;
+}
+
+.modal-image {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.image-fallback {
+  display: none;
+  width: 120px;
+  height: 120px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-fallback span {
+  color: #666;
+  font-size: 12px;
+}
+
+.thermal-image-placeholder,
+.normal-image-placeholder {
+  width: 80px;
+  height: 80px;
+  border: 1px solid #cbd5e0;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f7fafc;
+  color: #a0aec0;
+}
+
+.temperature-readings {
+  margin-top: 8px;
+}
+
+.temperature-readings h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #2d3748;
+  font-weight: 600;
+}
+
+.temp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.temp-reading {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 12px;
+  min-height: 80px;
+}
+
+.temp-reading.alarm {
+  background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+  border-color: #ff6b6b;
+  color: #ffffff;
+}
+
+.temp-label {
+  font-weight: 600;
+  color: #2d3748;
+  text-align: center;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.temp-values {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  justify-content: flex-end;
+}
+
+.current-temp {
+  font-weight: 600;
+}
+
+.threshold-temp {
+  color: #718096;
+  font-size: 11px;
+}
+
+.events-modal-footer {
+  background: #2d3748;
+  color: #a0aec0;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.footer-logo {
+  color: #68d391;
+}
+
+.events-modal-footer p {
+  margin: 0;
+}
+
 /* === CONTAINER FOR CHART AREA === */
 .thermal-container {
   background: #fff;
@@ -17,7 +470,7 @@
   background: #0f172a;
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.8);
   color: #eee;
-  border: 1px solid #fff !important
+  border: 1px solid #243456 !important
 }
 
 /* === CHART CONTAINER === */
@@ -82,7 +535,7 @@
 /* Dark mode container style */
 .dark-mode .camera-switcher-bar {
   background: #0f172a;              /* Same dark blue as other dark mode areas */
-  border: 1px solid #fff !important;            /* Darker border for contrast */
+  border: 1px solid #243456 !important;            /* Consistent border color */
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.8); /* Darker shadow */
   color: #eee;                     /* Light text color */
 }
@@ -137,18 +590,18 @@
   white-space: nowrap;               /* Prevent wrapping */
 }
 .dark-mode .chart-button{
-  border: 1px solid #fff!important; 
+  border: 1px solid #243456!important; 
 }
 .dark-mode .pdf-dropdown{
-  border: 1px solid #fff!important; 
+  border: 1px solid #243456!important; 
 }
 .dark-mode .chart-dropdown{
-  border: 1px solid #fff !important; 
+  border: 1px solid #243456 !important; 
 }
 /* Dark mode container style for chart buttons */
 .dark-mode .chart-button-wrapper {
   background: #0f172a;               /* Dark blue background */
-  border: 1px solid #fff !important;             /* Dark border */
+  border: 1px solid #243456 !important;             /* Consistent border color */
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.8); /* Dark shadow */
   color: #eee;                      /* Light text */
 }
@@ -178,7 +631,7 @@
 /* Dark mode for chart button container */
 .dark-mode .chart-button-container {
   background-color: #0f172a; /* Same dark blue as other dark mode areas */
-  border: 1px solid #fff!important;
+  border: 1px solid #243456!important;
   color: #fff; /* Always white text */
 }
 
@@ -259,7 +712,7 @@
 /* Dark mode buttons */
 .dark-mode .chart-button,
 .dark-mode .zoom-left-button {
-  border: 1px solid #fff;
+  border: 1px solid #243456;
   color: #ffffff;
 }
 
@@ -389,6 +842,49 @@
   justify-content: center !important;
 }
 
+/* Horizontal header container for Temperature Recordings */
+.temperature-recordings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100vw;
+  background: white;
+  padding: 16px 20px;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.temperature-recordings-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2d3748;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.temperature-recordings-icon {
+  width: 24px;
+  height: 24px;
+  color: #68d391;
+}
+
+.dark-mode .temperature-recordings-header {
+  background: #101e34;
+  border-bottom: 1px solid #24406e;
+}
+
+.dark-mode .temperature-recordings-title {
+  color: #ffffff;
+}
+
+.dark-mode .temperature-recordings-icon {
+  color: #4ade80;
+}
+
 .temperature-events-container.dark-mode {
   color: #eee;
 }
@@ -434,6 +930,19 @@
 .view-all-button svg {
   width: 12px;
   height: 12px;
+}
+
+/* Horizontal divider for temperature events */
+.temperature-events-divider {
+  width: calc(100% + 2 * clamp(8px, 1.8vw, 20px));
+  height: 1px;
+  background-color: #ddd;
+  margin: 8px calc(-1 * clamp(8px, 1.8vw, 20px));
+  border: none;
+}
+
+.dark-mode .temperature-events-divider {
+  background-color: #444;
 }
 
 .temperature-events-cards {
@@ -702,4 +1211,491 @@
 
 .dark-mode .events-table-note {
   color: #9ca3af;
+}
+
+/* === EVENTS PAGE STYLES === */
+.temperature-events-page {
+  width: 100%;
+  height: 100vh;
+  background: #f8fdf8;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+}
+
+.back-button {
+  background: #4a5568;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.back-button:hover {
+  background: #2d3748;
+}
+
+.download-all-btn {
+  background: #68d391;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.download-all-btn:hover {
+  background: #5cb85c;
+}
+
+/* Main content layout */
+.events-modal-content-ssam {
+  display: flex;
+  flex: 1;
+  background: transparent;
+  overflow: hidden;
+}
+
+/* Floating buttons for events page */
+.temperature-events-page .download-all-btn {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Left sidebar - Event Dates */
+.events-sidebar {
+  width: 300px;
+  background: #ffffff;
+  border-radius: 8px;
+  margin: 20px 0 20px 20px;
+  padding: 20px;
+  overflow-y: auto;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.events-sidebar h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.date-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding: 10px;
+  background: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.nav-arrow {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+
+.nav-arrow:hover {
+  background: #e9ecef;
+}
+
+.current-month {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.today-btn {
+  background: #68d391;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.today-btn:hover {
+  background: #5cb85c;
+}
+
+.date-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.date-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.date-item:hover {
+  background: #f8f9fa;
+  border-color: #68d391;
+}
+
+.date-item.selected {
+  background: #e6fffa;
+  border-color: #68d391;
+  border-width: 2px;
+}
+
+.date-text {
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.event-count {
+  background: #68d391;
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Right content - Event Details */
+.events-content {
+  flex: 1;
+  padding: 20px;
+  margin: 20px 20px 20px 20px;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  max-height: calc(100vh - 200px); /* Ensure it has a maximum height for scrolling */
+  min-height: 400px; /* Ensure minimum height */
+}
+
+.events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.event-card {
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.event-timestamp {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.download-event-btn {
+  background: #68d391;
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.download-event-btn:hover {
+  background: #5cb85c;
+}
+
+.event-details {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.event-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.event-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #4a5568;
+}
+
+.event-info strong {
+  color: #2d3748;
+}
+
+.event-images {
+  display: flex;
+  gap: 15px;
+}
+
+.image-container {
+  flex: 1;
+}
+
+.dark-mode .image-container {
+  background-color: #374151;
+  border-color: #6b7280;
+}
+
+.image-container h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.modal-image {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.image-fallback {
+  width: 100%;
+  height: 120px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.temperature-readings h4 {
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.temp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.temp-reading {
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 12px;
+  transition: all 0.2s;
+}
+
+.temp-reading.alarm {
+  background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+  border-color: #ff6b6b;
+  border-width: 2px;
+}
+
+.temp-label {
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 5px;
+}
+
+.temp-values {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.current-temp {
+  font-size: 14px;
+  color: #4a5568;
+}
+
+.threshold-temp {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+/* Dark mode styles for events page */
+.dark-mode .temperature-events-page {
+  background: #0f172a;
+}
+
+.dark-mode .events-page-header {
+  background: #2d3748;
+  border-bottom-color: #4a5568;
+}
+
+.dark-mode .back-button {
+  background: #4a5568;
+  color: #e2e8f0;
+}
+
+.dark-mode .back-button:hover {
+  background: #2d3748;
+}
+
+.dark-mode .events-sidebar {
+  background: #101e34;
+  border: 1px solid #243456;
+}
+
+.dark-mode .events-sidebar h3 {
+  color: #e2e8f0;
+}
+
+.dark-mode .date-navigation {
+  background: #0c1424;
+  border-color: #243456;
+}
+
+.dark-mode .current-month {
+  color: #e2e8f0;
+}
+
+.dark-mode .date-item {
+  background: #101e34;
+  border-color: #243456;
+}
+
+.dark-mode .date-item:hover {
+  background: #24406e;
+}
+
+.dark-mode .date-item.selected {
+  background: #065f46;
+  border-color: #68d391;
+}
+
+.dark-mode .date-item.selected .event-count {
+  background: white !important;
+  color: #000000 !important;
+}
+
+
+.dark-mode .date-text {
+  color: #e2e8f0;
+}
+
+.dark-mode .events-content {
+  background: #101e34;
+  border: 1px solid #243456;
+}
+
+.dark-mode .event-card {
+  background: #101e34;
+  border-color: #243456;
+}
+
+.dark-mode .event-timestamp {
+  color: #e2e8f0;
+}
+
+.dark-mode .event-info p {
+  color: #d1d5db;
+}
+
+.dark-mode .event-info strong {
+  color: #f9fafb;
+}
+
+.dark-mode .image-container h4 {
+  color: #ffffff;
+}
+
+.dark-mode .image-fallback {
+  background: #101e34;
+  border-color: #243456;
+  color: #ffffff;
+}
+
+.dark-mode .image-fallback span {
+  color: #ffffff;
+}
+
+.dark-mode .temperature-readings h4 {
+  color: #e2e8f0;
+}
+
+.dark-mode .temp-reading {
+  background: #101e34;
+  border-color: #243456;
+}
+
+.dark-mode .temp-reading.alarm {
+  background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+  border-color: #ff6b6b;
+}
+
+.dark-mode .temp-label {
+  color: #e2e8f0;
+}
+
+.dark-mode .current-temp {
+  color: #d1d5db;
+}
+
+.dark-mode .threshold-temp {
+  color: #9ca3af;
+}
+
+/* Time Range Switch Test Indicator Animations */
+@keyframes slideInFromRight {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }

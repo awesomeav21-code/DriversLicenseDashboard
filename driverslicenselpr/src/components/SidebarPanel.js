@@ -183,8 +183,6 @@ export default function SidebarPanel({
     return `${scrollHeight}px`;
   };
 
-  const scrollContainerHeight = getScrollContainerHeight();
-
   // State to track window width for responsive margins
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [dashboardHeight, setDashboardHeight] = useState(600); // Default height
@@ -193,7 +191,6 @@ export default function SidebarPanel({
   const getEventLogsMaxHeight = () => {
     // Reduced linear reduction: smaller screen = less height reduction (content moves up less)
     const baseHeight = 100; // Start at 100% for very large screens
-    const reductionPerPixel = 0.008; // Reduced from 0.015 to 0.008 - less reduction per pixel
     const calculatedHeight = Math.max(92, baseHeight - (windowWidth * 0.003)); // Increased minimum from 87 to 92, reduced multiplier from 0.005 to 0.003
     return `${calculatedHeight}%`;
   };

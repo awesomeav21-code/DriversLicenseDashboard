@@ -3,7 +3,7 @@
 import React from 'react';
 import '../styles/navigation.css';
 
-export default function Navigation({ activeTab, setActiveTab, isDarkMode }) {
+export default function Navigation({ activeTab, setActiveTab, isDarkMode, showEventsPage = false, setShowEventsPage }) {
   return (
     <nav
       className={`navigation ${isDarkMode ? 'dark-nav' : 'light-nav'}`}
@@ -15,7 +15,10 @@ export default function Navigation({ activeTab, setActiveTab, isDarkMode }) {
     >
       <button
         className={`nav-button ${activeTab === 'dashboard' ? 'active' : ''}`}
-        onClick={() => setActiveTab('dashboard')}
+        onClick={() => {
+          setActiveTab('dashboard')
+          if (setShowEventsPage) setShowEventsPage(false)
+        }}
       >
         {/* Dashboard Icon */}
         <svg
@@ -37,8 +40,11 @@ export default function Navigation({ activeTab, setActiveTab, isDarkMode }) {
       </button>
 
       <button
-        className={`nav-button ${activeTab === 'thermal' ? 'active' : ''}`}
-        onClick={() => setActiveTab('thermal')}
+        className={`nav-button ${activeTab === 'thermal' && !showEventsPage ? 'active' : ''}`}
+        onClick={() => {
+          setActiveTab('thermal')
+          if (setShowEventsPage) setShowEventsPage(false)
+        }}
       >
         {/* Thermal Icon */}
         <svg
@@ -58,7 +64,10 @@ export default function Navigation({ activeTab, setActiveTab, isDarkMode }) {
 
       <button
         className={`nav-button ${activeTab === 'streams' ? 'active' : ''}`}
-        onClick={() => setActiveTab('streams')}
+        onClick={() => {
+          setActiveTab('streams')
+          if (setShowEventsPage) setShowEventsPage(false)
+        }}
       >
         {/* Camera Icon */}
         <svg

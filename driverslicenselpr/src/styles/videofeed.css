@@ -43,7 +43,7 @@
 }
 
 .video-feed-wrapper.dark-video .live-data-wrapper {
-  background-color: #0f172a;
+  background-color: #101e34;
   border-color: #444;
   box-shadow: none;
   color: #eee;
@@ -114,7 +114,7 @@
 }
 
 .video-feed-wrapper.dark-video {
-  background-color: #0f172a;
+  background-color: #101e34;
   color: #e2e8f0;
 }
 
@@ -143,7 +143,7 @@
 }
 
 body.dark-mode .live-data-wrapper {
-  background-color: #0f172a;
+  background-color: #101e34;
   border-color: #ffffff;
   box-shadow: none;
 }
@@ -185,30 +185,30 @@ body.dark-mode .live-data-wrapper {
 
 /* Dark mode for big dashboard container */
 .dark-video .video-feed-wrapper {
-  background-color: #0f172a;
+  background-color: #101e34;
   color: #e2e8f0;
 }
 
 .dark-video .video-feed-inner-wrapper {
-  background-color: #0f172a;
+  background-color: #101e34;
   color: #e2e8f0;
 }
 
 .dark-video .live-data-wrapper {
-  background-color: #0f172a;
+  background-color: #101e34;
   color: #e2e8f0;
 }
 
 /* Dark mode for camera streams panel */
 .dark-video .camera-streams-panel {
-  background-color: #0f172a;
+  background-color: #101e34;
   color: #e2e8f0;
   border-color: #374151;
 }
 
 /* Dark mode for camera streams panel fullwidth */
 .dark-video .camera-streams-panel--fullwidth {
-  background-color: #0f172a;
+  background-color: #101e34;
   color: #e2e8f0;
   border-color: #374151;
 }
@@ -349,7 +349,7 @@ body.dark-mode .live-data-wrapper {
 /* Removed media queries that were causing random shifting */
 
 .dark-video .camera-section {
-  background-color: #0f172a;
+  background-color: #101e34;
   border: clamp(0.03cqw, 0.07cqw, 0.1cqw) solid #fff;
 }
 
@@ -494,7 +494,7 @@ body.dark-mode .live-data-wrapper {
 }
 
 .dark-mode .zone-grid {
-  background-color: #0f172a;
+  background-color: #101e34;
 }
 
 .cameras-row.center {
@@ -502,7 +502,7 @@ body.dark-mode .live-data-wrapper {
 }
 
 .dark-mode .camera-streams-panel {
-  background-color: #0f172a;
+  background-color: #101e34;
   color: #e2e8f0;
   border: clamp(0.03cqw, 0.07cqw, 0.1cqw) solid #fff;
 }
@@ -546,9 +546,9 @@ body.dark-mode .live-data-wrapper {
   display: flex;
   flex-wrap: wrap; /* Allow wrapping on smaller screens */
   justify-content: center; /* Center items in the container */
-  column-gap: clamp(20px, 8vw, 120px); /* Responsive gap */
-  row-gap: clamp(10px, 4vw, 20px); /* Responsive row gap */
-  padding: clamp(0.5rem, 2vw, 1rem); /* Responsive padding */
+  column-gap: clamp(20px, 4vw, 80px); /* Reduced dynamic factor for gap */
+  row-gap: clamp(10px, 2vw, 15px); /* Reduced dynamic factor for row gap */
+  padding: clamp(0.5rem, 1vw, 0.75rem); /* Reduced dynamic factor for padding */
   box-sizing: border-box;
 
   border: 0.1rem solid #d1d5db; /* Same border as camera sections */
@@ -578,15 +578,30 @@ body.dark-mode .live-data-wrapper {
   opacity: 1;
 }
 
+/* Responsive behavior for medium screens - reduce spacing gradually */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .camera-streams-panel {
+    column-gap: clamp(40px, 6vw, 80px); /* Gradual reduction in gap */
+    row-gap: clamp(20px, 3vw, 40px); /* Gradual reduction in vertical gap */
+    padding: clamp(1rem, 2vw, 1.5rem) clamp(0.75rem, 1.5vw, 1rem); /* Gradual padding reduction */
+  }
+  
+  .camera-streams-panel--fullwidth {
+    column-gap: clamp(40px, 6vw, 80px); /* Gradual reduction in gap */
+    row-gap: clamp(20px, 3vw, 40px); /* Gradual reduction in vertical gap */
+    padding: clamp(1rem, 2vw, 1.5rem) clamp(0.75rem, 1.5vw, 1rem); /* Gradual padding reduction */
+  }
+}
+
 /* Responsive behavior for smaller screens - allow vertical stacking */
 @media (max-width: 768px) {
   .camera-streams-panel {
     flex-wrap: wrap !important; /* Allow wrapping on smaller screens */
     flex-direction: column; /* Stack items vertically */
     align-items: center; /* Center items horizontally */
-    column-gap: 80px; /* Keep uniform horizontal gap */
-    row-gap: 80px; /* Use same uniform gap for vertical spacing */
-    padding: 1.5rem 1rem; /* Increase padding for better spacing */
+    column-gap: 40px; /* Reduced horizontal gap */
+    row-gap: 40px; /* Reduced vertical gap for tighter spacing */
+    padding: 1rem 0.75rem; /* Reduced padding for tighter spacing */
     min-height: auto; /* Let content determine height */
     margin-top: 0; /* Remove negative margin on small screens to prevent overlap */
   }
@@ -595,9 +610,9 @@ body.dark-mode .live-data-wrapper {
     flex-wrap: wrap !important; /* Allow wrapping on smaller screens */
     flex-direction: column; /* Stack items vertically */
     align-items: center; /* Center items horizontally */
-    column-gap: 80px; /* Keep uniform horizontal gap */
-    row-gap: 80px; /* Use same uniform gap for vertical spacing */
-    padding: 1.5rem 1rem; /* Increase padding for better spacing */
+    column-gap: 40px; /* Reduced horizontal gap */
+    row-gap: 40px; /* Reduced vertical gap for tighter spacing */
+    padding: 1rem 0.75rem; /* Reduced padding for tighter spacing */
     margin-top: 0; /* Remove negative margin on small screens to prevent overlap */
   }
   
@@ -665,6 +680,25 @@ body.dark-mode .live-data-wrapper {
 .dark-video .stream-group h3 {
   color: #e2e8f0;
 }
+
+/* Dark mode styling for camera stream images */
+.dark-video .stream-group img {
+  filter: brightness(0.8) contrast(1.2) !important; /* Darken and increase contrast for better visibility */
+  box-shadow: 0 0 0.2rem rgba(255, 255, 255, 0.3) !important; /* White glow instead of green */
+}
+
+.dark-video .stream-group .dynamic-stream-image {
+  filter: brightness(0.8) contrast(1.2) !important; /* Darken and increase contrast for better visibility */
+  box-shadow: 0 0 0.2rem rgba(255, 255, 255, 0.3) !important; /* White glow instead of green */
+}
+
+/* Dark mode styling for imported PNG icons (Surveillance.png, Thermal.png) */
+.dark-video .stream-group img[src*="Surveillance.png"],
+.dark-video .stream-group img[src*="Thermal.png"] {
+  filter: brightness(0) invert(1) !important; /* Make imported PNG icons white in dark mode */
+  box-shadow: 0 0 0.2rem rgba(255, 255, 255, 0.3) !important; /* White glow */
+}
+
 
 /* Fixed image sizing - no responsive scaling */
 .stream-group img:not(.dynamic-stream-image) {
@@ -750,17 +784,17 @@ body.dark-mode .live-data-wrapper {
   padding-left: 4px !important;
 }
 
-/* Make all camera buttons in streams panel responsive - smaller on small screens, larger on big screens */
+/* Make all camera buttons in streams panel smaller with matching text size */
 .camera-streams-panel .stream-group .camera-btn {
   width: auto !important;
-  min-width: clamp(100px, 10vw, 150px) !important;
+  min-width: clamp(80px, 8vw, 120px) !important; /* Smaller button width */
   max-width: none !important;
-  height: clamp(35px, 3.5vw, 50px) !important;
-  min-height: clamp(35px, 3.5vw, 50px) !important;
-  max-height: clamp(35px, 3.5vw, 50px) !important;
-  font-size: clamp(15px, 1.5vw, 22px) !important;
+  height: clamp(28px, 2.8vw, 40px) !important; /* Smaller button height */
+  min-height: clamp(28px, 2.8vw, 40px) !important;
+  max-height: clamp(28px, 2.8vw, 40px) !important;
+  font-size: clamp(0.8rem, 1.2vw, 1.5rem) !important; /* Match icon title size */
   font-weight: 400 !important; /* Reduced font weight from 600 to 400 for thinner text */
-  padding: clamp(5px, 0.9vw, 10px) clamp(12px, 1.5vw, 16px) !important;
+  padding: clamp(4px, 0.6vw, 8px) clamp(8px, 1vw, 12px) !important; /* Smaller padding */
   text-align: left !important;
   overflow: visible !important;
   text-overflow: clip !important;
@@ -796,14 +830,46 @@ body.dark-mode .live-data-wrapper {
 }
 
 .dark-video .camera-btn {
-  background-color: #4ade80;
-  color: #0f172a;
+  background-color: #e8f5e8 !important; /* Keep original light green background */
+  color: #000000 !important; /* Keep original black text */
+  border: 0.1rem solid #d1d5db !important; /* Keep original border */
 }
 
 .dark-video .camera-btn:hover {
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
-  border-color: #8DB600 !important; /* Green border on hover in dark mode */
-  background-color: #1a2e1a !important; /* Very light green background on hover in dark mode */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; /* Keep original hover shadow */
+  border-color: #6ca956 !important; /* Keep original green border on hover */
+  background-color: #f0f9f0 !important; /* Keep original light green background on hover */
+  color: #000000 !important; /* Keep original black text on hover */
+}
+
+/* Override the more specific camera streams panel button styles in dark mode */
+.dark-video .camera-streams-panel .stream-group .camera-btn {
+  background-color: #e8f5e8 !important; /* Keep original light green background */
+  color: #000000 !important; /* Keep original black text */
+  border: 0.1rem solid #d1d5db !important; /* Keep original border */
+}
+
+.dark-video .camera-streams-panel .stream-group .camera-btn:hover {
+  background-color: #f0f9f0 !important; /* Keep original light green background on hover */
+  color: #000000 !important; /* Keep original black text on hover */
+  border-color: #6ca956 !important; /* Keep original green border on hover */
+}
+
+/* Ensure camera buttons in streams panel stay exactly the same in dark mode */
+.dark-video .camera-streams-panel .stream-group .left-camera-btn,
+.dark-video .camera-streams-panel .stream-group .right-camera-btn {
+  background-color: #e8f5e8 !important; /* Keep original light green background */
+  color: #000000 !important; /* Keep original black text */
+  border: 0.1rem solid #d1d5db !important; /* Keep original border */
+  box-shadow: none !important; /* Remove any dark mode box shadows */
+}
+
+.dark-video .camera-streams-panel .stream-group .left-camera-btn:hover,
+.dark-video .camera-streams-panel .stream-group .right-camera-btn:hover {
+  background-color: #f0f9f0 !important; /* Keep original light green background on hover */
+  color: #000000 !important; /* Keep original black text on hover */
+  border-color: #6ca956 !important; /* Keep original green border on hover */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; /* Keep original hover shadow */
 }
 
 /* All responsive sizing now handled by clamp() functions above */

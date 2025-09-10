@@ -149,10 +149,9 @@ body.dark-mode .mini-navbar-outer::after {
   /* Visual styling with proper border */
   background-color: #fff !important; /* White background with !important to override any inherited backgrounds */
   background: linear-gradient(to right, #fff 0%, #fff 100%) !important; /* Solid white background to cover mint green */
-  border-radius: clamp(0.3cqw, 0.4cqw, 0.5cqw);
+  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw);
   box-shadow: 0 clamp(0.3cqw, 0.4cqw, 0.5cqw) clamp(1.8cqw, 2.4cqw, 3cqw) 0 rgba(30, 40, 60, 0.10);
   border: 0.1rem solid #d1d5db; /* Same border as camera sections */
-  border-right: 0.2rem solid #ff6b6b; /* Test right edge with distinctive red border */
   box-sizing: border-box;
   
   /* Constrain children within container */
@@ -168,7 +167,8 @@ body.dark-mode .mini-navbar-outer::after {
 }
 
 body.dark-mode .big-dashboard-container {
-  background: #0f172a;
+  background: #101e34 !important;
+  background-color: #101e34 !important;
   /* Border removed - handled by inline styles */
   color: #e0e8f0;
   box-shadow: 0 clamp(0.3cqw, 0.4cqw, 0.5cqw) clamp(1.8cqw, 2.4cqw, 3cqw) 0 rgba(10, 18, 28, 0.45);
@@ -367,15 +367,16 @@ body.dark-mode .main-content {
 }
 
 body.dark-mode .camera-btn {
-  background: #1a273b;
-  color: #73d2b5;
-  border: clamp(0.08cqw, 0.1cqw, 0.12cqw) solid #23375b;
+  background: #e8f5e8 !important; /* Keep original light green background */
+  color: #000000 !important; /* Keep original black text */
+  border: 0.1rem solid #d1d5db !important; /* Keep original border */
 }
 
 body.dark-mode .camera-btn:hover,
 body.dark-mode .camera-btn:focus {
-  background: #18355b;
-  color: #a6f8dc;
+  background: #f0f9f0 !important; /* Keep original light green background on hover */
+  color: #000000 !important; /* Keep original black text on hover */
+  border-color: #6ca956 !important; /* Keep original green border on hover */
 }
 
 body, html, .page-wrapper, .main-content, .content-area {
@@ -441,7 +442,7 @@ body.dark-mode .fixed-popup {
   /* Same visual styling */
   background-color: #fff !important;
   background: linear-gradient(to right, #fff 0%, #fff 100%) !important;
-  border-radius: clamp(0.3cqw, 0.4cqw, 0.5cqw);
+  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw);
   box-shadow: 0 clamp(0.3cqw, 0.4cqw, 0.5cqw) clamp(1.8cqw, 2.4cqw, 3cqw) 0 rgba(30, 40, 60, 0.10);
   border: 0.1rem solid #d1d5db;
   box-sizing: border-box;

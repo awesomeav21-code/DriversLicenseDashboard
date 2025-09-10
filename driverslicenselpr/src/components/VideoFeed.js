@@ -38,14 +38,6 @@ export default function VideoFeed({
     return saved === 'true';
   });
 
-  // Fixed image sizing - no dynamic scaling
-  const getImageSize = () => {
-    return {
-      width: '80px !important',
-      height: '80px !important',
-      borderRadius: '50% !important'
-    };
-  };
 
   useEffect(() => {
     localStorage.setItem('isAlertOn', isAlertOn);

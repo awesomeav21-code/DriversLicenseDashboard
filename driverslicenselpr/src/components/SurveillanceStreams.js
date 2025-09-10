@@ -240,19 +240,6 @@ function getNextMonth(date) {
   return d;
 }
 
-function getLatestEventDateInMonth(events, month) {
-  const year = month.getFullYear();
-  const m = month.getMonth();
-  const dates = events
-    .map(ev => ev.time && getLocalYYYYMMDD(ev.time))
-    .filter(date =>
-      !!date &&
-      new Date(date).getMonth() === m &&
-      new Date(date).getFullYear() === year
-    );
-  if (dates.length === 0) return '';
-  return dates.sort((a, b) => b.localeCompare(a))[0];
-}
 
 function getEarliestEventDateInMonth(events, month) {
   const year = month.getFullYear();
@@ -427,6 +414,8 @@ const SurveillanceStreams = ({
   camera1Zones = [],
   camera2Zones = [],
   isDarkMode = false,
+  onTemperatureEventsClick = () => {},
+  setActiveTab = () => {},
 }) => {
   const nowISOString = new Date().toISOString();
 
@@ -534,7 +523,6 @@ const SurveillanceStreams = ({
 
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [selectedDate, setSelectedDate] = useState(initialSelectedDate);
-  const [isSidebarHover, setIsSidebarHover] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [isInitialized, setIsInitialized] = useState(false);
@@ -705,7 +693,10 @@ const SurveillanceStreams = ({
               <span>Surveillance Camera Recordings</span>
             </div>
           </div>
-          <button className="archive-temp-event-btn" onClick={handleDownloadTempEvents}>
+          <button className="archive-temp-event-btn" onClick={() => {
+            setActiveTab('thermal');
+            onTemperatureEventsClick();
+          }}>
             <span className="thermo-icon">🌡️</span>
             Temperature Event Recordings
           </button>
@@ -722,8 +713,9 @@ const SurveillanceStreams = ({
               setSelectedMonth(month);
             }}
             onDateSelect={setSelectedDate}
-            onHoverChange={setIsSidebarHover}
+            onHoverChange={() => {}}
           />
+
 
           <div className="archive-content-column">
             <div className="surveillance-container">

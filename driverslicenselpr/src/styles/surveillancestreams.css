@@ -119,7 +119,7 @@
   position: relative; 
   top: 0; /* Remove negative positioning to prevent overlap */
   font-family: var(--font-family);  /* Use CSS variable */
-  padding: 0.9375rem 3.5rem 0 3.5rem; /* 15px 56px converted to rem */
+  padding: 0.9375rem 0 0 3.5rem; /* 15px 0 0 56px - remove right padding completely */
   
   height: auto;
   min-height: 60vh; /* Reduced from 100vh to 60vh for smaller screens */
@@ -130,30 +130,6 @@
   z-index: 1; /* Ensure proper stacking order */
 }
 
-/* Responsive height adjustments for smaller screens */
-@media (max-width: 1366px) {
-  .page,
-  .archive-page {
-    min-height: 50vh; /* Further reduce on medium screens */
-    max-height: 70vh;
-  }
-}
-
-@media (max-width: 1024px) {
-  .page,
-  .archive-page {
-    min-height: 40vh; /* Even smaller on tablets */
-    max-height: 60vh;
-  }
-}
-
-@media (max-width: 768px) {
-  .page,
-  .archive-page {
-    min-height: 30vh; /* Smallest on mobile */
-    max-height: 50vh;
-  }
-}
 
 
 
@@ -498,7 +474,7 @@
 
 .surveillance-header-row {
   display: flex;
-  justify-content: flex-start; /* Use flex-start to allow proper scrolling */
+  justify-content: space-between; /* Use space-between to separate date and button */
   align-items: center;
   margin-bottom: 1.125rem; /* 18px converted to rem */
   font-family: var(--font-family);
@@ -512,6 +488,12 @@
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
   width: 100%; /* Ensure full width */
   padding-right: 0; /* Remove padding to allow button to reach the very end */
+  position: relative; /* Add relative positioning */
+  z-index: 45; /* High z-index to ensure header row is never covered */
+  height: 2.5rem; /* Fixed height to prevent size changes */
+  min-height: 2.5rem; /* Minimum height */
+  max-height: 2.5rem; /* Maximum height */
+  box-sizing: border-box; /* Include padding/borders in height calculation */
 }
 
 /* Custom scrollbar styling for surveillance header row */
@@ -544,9 +526,16 @@
   justify-content: flex-start;
   font-family: var(--font-family);
   white-space: nowrap; /* Prevent text wrapping */
+  height: 100%; /* Take full height of parent */
 }
 .mini-navbar-icon-container svg {
   color: black !important;
+}
+
+/* Dark mode styling for video icon */
+.dark-mode .mini-navbar-icon-container svg {
+  color: #fff !important;
+  fill: #fff !important;
 }
 
 
@@ -568,18 +557,23 @@
 
 .surveillance-header-row .formatted-date {
   font-weight: 700;
-  margin-top: 0.3125rem; /* 5px converted to rem */ 
+  margin-top: 0; /* Remove top margin to center properly in fixed height */
   font-family: var(--font-family);
   font-size: 1.25rem;  /* unchanged */
   color: #000;         /* pure black */
   white-space: nowrap;
   margin-right: 0; /* Remove negative margin */
-  transform: translateY(-0.375rem) translateX(0.125rem); /* -6px 2px converted to rem */
+  transform: none; /* Removed negative transforms that were causing positioning issues */
   text-shadow:
     0 1px 2px rgba(0,0,0,0.09),   /* lighter, smaller shadow */
     0.1px 0 0 #000,               /* thinner black edge */
    -0.1px 0 0 #000;
   flex: 0 0 auto; /* Don't grow or shrink - maintain natural width */
+  position: relative; /* Add relative positioning */
+  z-index: 50; /* High z-index to ensure date text is never covered */
+  display: flex;
+  align-items: center; /* Center vertically within the fixed height */
+  height: 100%; /* Take full height of parent */
 }
 
 .sidebar-month-arrow {
@@ -633,7 +627,7 @@
   gap: 1.25rem; /* 20px converted to rem - scales with container */
   font-family: var(--font-family);
   width: 100%; /* Ensure full width */
-  padding-right: 1.25rem; /* Add right padding to prevent overlap */
+  padding-right: 0; /* Remove right padding that was covering the surveillance container's right edge */
   box-sizing: border-box; /* Include padding in width calculation */
 }
 
@@ -655,7 +649,7 @@
   border-left: 1px solid #d1d5db !important;
   border-right: 1px solid #d1d5db !important;
   box-shadow: none !important;
-  z-index: 2 !important;
+  z-index: 30 !important; /* Increased to be above surveillance container */
   margin-bottom: 3px !important;
   margin-top: -3px !important;  /* reduced gap for more balanced spacing */
   left: 0;
@@ -850,7 +844,7 @@
 
 .archive-content-column {
   width: 100%;
-  margin: 0;
+  margin: 0; /* Remove left margin that might be covering surveillance container */
   padding-bottom: 0;
   display: flex;
   flex-direction: column;
@@ -865,24 +859,30 @@
 /* Remove margin-top for tighter vertical stacking */
 .surveillance-container {
   background-color: #fff;
-  border-radius: 0.4375rem !important; /* 7px converted to rem */
+  border-radius: 0.75rem !important; /* 12px converted to rem - increased for more rounded corners */
   box-shadow: none;
   border: 0.0625rem solid var(--border-color); /* 1px converted to rem */
-  padding: 1.375rem 1.625rem 1.625rem 1.625rem; /* 22px 26px converted to rem */
-  margin: 0 1.25rem 0 0; /* Add right margin to prevent overlap */
+  padding: 1.375rem 1.625rem 1.625rem 1.625rem; /* 22px 26px converted to rem - back to normal */
+  margin: 0 0 0 0 !important; /* No left margin - flush with sidebar */
   position: relative;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  flex: 1 1 0; /* Take up all remaining space */
+  flex: 0 1 auto; /* Don't grow to fill all space */
   min-width: 0; /* Allow shrinking */
   min-height: 0;
   font-family: var(--font-family);
-  overflow: hidden; /* Prevent container from overflowing page boundaries */
-  width: 100%; /* Ensure full width */
-  max-width: 100%; /* Prevent exceeding container width */
-  z-index: 10; /* Ensure surveillance container is above overlapping elements */
-}.archive-temp-event-btn {
+  
+  overflow: visible; /* Changed from hidden to visible to prevent clipping */
+  width: calc(100% - 20px); /* Fixed width minus the right margin */
+  max-width: none; /* Remove percentage-based max-width */
+  z-index: 10; /* Reduced to be below navbar but above other content */
+  /* Fixed right margin for uniform spacing across all screen sizes */
+  margin-right: 20px !important;
+}
+
+
+.archive-temp-event-btn {
   margin-left: 0 !important;
   margin-right: 0.75rem !important; /* 12px converted to rem */
   flex-shrink: 0 !important;
@@ -922,15 +922,19 @@
   box-shadow: none;
   transition: background 0.13s;
   min-width: unset;
-  height: 1.625rem; /* 26px converted to rem */
+  height: 100%; /* Take full height of parent to align with date */
+  min-height: 2rem; /* Minimum height */
+  max-height: 2.5rem; /* Maximum height to match header row */
   position: relative; 
   left: 0; /* Remove negative positioning */
-  transform: translateY(-0.1875rem); /* -3px converted to rem */
+  transform: none; /* Removed negative transform that was causing positioning issues */
   font-family: var(--font-family);
   flex: 0 0 auto; /* Don't grow or shrink - maintain natural width */
   white-space: nowrap; /* Prevent text wrapping */
   margin-left: auto; /* Push to far right on larger screens */
   margin-right: 0; /* Remove right margin to reach the very end of scrollable area */
+  z-index: 50; /* High z-index to ensure download button is never covered */
+  align-self: center; /* Center within the fixed height header row */
 }
 .archive-download-btn:hover {
   background: #578641;
@@ -1026,7 +1030,7 @@
 .archive-divider {
   border: none;
   border-top: 1px solid #f0f0f0; /* much lighter gray */
-  margin: -3px -26px 0 -17px; /* moved up by 5px: top margin now 7px */
+  margin: 0 -26px 0 -17px; /* removed negative top margin to prevent overlap */
   width: auto;
   font-family: var(--font-family);
 }
@@ -1108,7 +1112,7 @@
   line-height: 1.8;
   position: relative;
   z-index: 2;
-  margin-top: -6px;
+  margin-top: 0; /* removed negative margin to prevent overlap */
   width: 100%;
   box-sizing: border-box;
   flex-wrap: nowrap; /* NEW - prevent wrapping */
@@ -1273,7 +1277,7 @@
 
   max-width: 140px;
   position: relative; 
-  top: -20px;
+  top: 0; /* removed negative positioning to prevent overlap */
   white-space: nowrap;
   font-family: var(--font-family);
 }
@@ -1324,6 +1328,8 @@
   overflow-x: hidden; /* avoid horizontal scroll */
   width: 100%;        /* remove width calc if not needed */
   margin-right: 0;    /* reset margin if not needed */
+  padding: 0 0.5rem;  /* Add horizontal padding to respect container's rounded corners */
+  box-sizing: border-box;
 }
 
 /* END OF SECTION */
@@ -1469,6 +1475,15 @@
   border-color: #243456 !important;
 }
 
+/* Ensure dark mode surveillance container has uniform right margin */
+.dark-mode .surveillance-container {
+  margin: 0 0 0 0 !important; /* No left margin - flush with sidebar */
+  width: calc(100% - 20px); /* Fixed width minus the right margin */
+  max-width: none; /* Remove percentage-based max-width */
+  margin-right: 20px !important; /* Fixed 20px gap from right edge - uniform across all screen sizes */
+}
+
+
 /* Buttons and interactive elements */
 .dark-mode .archive-temp-event-btn,
 .dark-mode .today-button {
@@ -1586,10 +1601,63 @@
 .dark-mode .archive-temp-event-btn,
 .dark-mode .today-button {
   border: 1.5px solid #243456 !important;
-  box-shadow: none !important;
 }
-.dark-mode .inner-container.sidebar-date-item{
-  background-color: #0f172a!important; 
+
+/* Hover effects for temperature event cards */
+.temperature-event-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.temperature-event-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-radius: 8px !important;
+  padding: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.temperature-event-card:hover .event-card-content {
+  transform: scale(1.02);
+}
+
+.temperature-event-card:hover .event-card-value {
+  color: #4a90e2 !important;
+  font-weight: 600;
+}
+
+.temperature-event-card:hover .event-card-label {
+  color: #666 !important;
+  font-weight: 500;
+}
+
+.temperature-event-card:hover .event-card-icon {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+
+.temperature-event-card:hover .event-card-icon svg {
+  stroke: #4a90e2 !important;
+}
+
+/* Dark mode hover effects for temperature event cards */
+.dark-mode .temperature-event-card:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode .temperature-event-card:hover .event-card-value {
+  color: #60a5fa !important;
+}
+
+.dark-mode .temperature-event-card:hover .event-card-label {
+  color: #d1d5db !important;
+}
+
+.dark-mode .temperature-event-card:hover .event-card-icon svg {
+  stroke: #60a5fa !important;
 }
 /* Remove background for selected hover to keep things clean */
 .dark-mode .inner-container.date-list-container.selected,
@@ -1623,4 +1691,23 @@
   color: #fff !important;
   fill: #fff !important;
   /* If using SVG, fill sets the arrow color */
+}
+
+/* Dark mode styling for download icons */
+.dark-mode .archive-download-btn svg,
+.dark-mode .archive-download-iconn svg,
+.dark-mode .download-icon svg {
+  stroke: #fff !important;
+  fill: #fff !important;
+}
+
+/* Dark mode styling for thermo/temperature icon */
+.dark-mode .thermo-icon {
+  filter: brightness(0) invert(1) !important; /* Makes emoji white in dark mode */
+}
+
+/* Dark mode styling for no video icon */
+.dark-mode .archive-no-video-btn svg {
+  stroke: #fff !important;
+  fill: #fff !important;
 }
