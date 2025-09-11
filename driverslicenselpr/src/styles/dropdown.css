@@ -5,12 +5,13 @@
     top: 56px;
     right: 0;
     background-color: white;
-    border: 1px solid #ccc;
+
+    border: 3px solid green !important;
     padding: 10px;
     border-radius: 6px;
     width: 200px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    z-index: 10000;
+    z-index: 10001;
     color: black;
     font-size: 14px;
     white-space: normal;

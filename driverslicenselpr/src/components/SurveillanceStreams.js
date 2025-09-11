@@ -321,9 +321,28 @@ const SidebarDates = ({
   const now = new Date();
   const isNextMonthAllowed = () => {
     const nextMonth = getNextMonth(selectedMonth);
+    const now = new Date();
+    
+    // Don't allow going past the current month
     if (nextMonth.getFullYear() > now.getFullYear()) return false;
     if (nextMonth.getFullYear() === now.getFullYear() && nextMonth.getMonth() > now.getMonth()) return false;
+    
     return true;
+  };
+
+  const isPrevMonthAllowed = () => {
+    if (allEvents.length === 0) return false;
+    
+    // Check if there are any events in months before the current selected month
+    const hasEventsBeforeCurrentMonth = allEvents.some(event => {
+      if (!event.time) return false;
+      const eventDate = new Date(event.time);
+      const eventMonth = new Date(eventDate.getFullYear(), eventDate.getMonth(), 1);
+      const currentMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
+      return eventMonth < currentMonth;
+    });
+    
+    return hasEventsBeforeCurrentMonth;
   };
 
   return (
@@ -339,10 +358,15 @@ const SidebarDates = ({
       <div className="inner-container month-nav">
         <button
           aria-label="Previous Month"
-          className="month-nav-button"
-          onClick={() => onMonthChange(getPrevMonth(selectedMonth))}
+          className={`month-nav-button ${!isPrevMonthAllowed() ? 'disabled' : ''}`}
+          onClick={() => {
+            if (isPrevMonthAllowed()) {
+              onMonthChange(getPrevMonth(selectedMonth));
+            }
+          }}
+          disabled={!isPrevMonthAllowed()}
         >
-          <span className="right-arrow">
+          <span className="right-arrow" style={{ position: 'relative', left: '-0.5rem' }}>
             <RightArrowIcon />
           </span>
         </button>

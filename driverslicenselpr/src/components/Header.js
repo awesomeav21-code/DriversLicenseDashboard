@@ -37,6 +37,19 @@ function Header({
   const [selectedSubstationId, setSelectedSubstationId] = useState(substations[0].id)
   const [showSubstationDropdown, setShowSubstationDropdown] = useState(false)
   const substationDropdownRef = useRef(null)
+  const [shuffledSubstations, setShuffledSubstations] = useState([])
+
+  useEffect(() => {
+    function shuffle(array) {
+      let arr = [...array]
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[arr[i], arr[j]] = [arr[j], arr[i]]
+      }
+      return arr
+    }
+    setShuffledSubstations(shuffle(substations))
+  }, [])
 
   const currentSubstation = substations.find(s => s.id === selectedSubstationId)
 
@@ -51,6 +64,9 @@ function Header({
   const [lastName, setLastName] = useState('')
   const [profileColor, setProfileColor] = useState('#1c7ed6')
   const [tempColor, setTempColor] = useState(profileColor)
+  const [substationMargin, setSubstationMargin] = useState('8px')
+  const [substationWidth, setSubstationWidth] = useState('auto')
+  const [testCounter, setTestCounter] = useState(0)
 
   const helpRef = useRef(null)
   const settingsRef = useRef(null)
@@ -80,6 +96,44 @@ function Header({
   
   // Ref for file input to reset value after upload
   const logoInputRef = useRef(null)
+
+  // Calculate substation transform and width - moves LEFT as screen gets larger, width increases as screen gets smaller
+  useEffect(() => {
+    const calculateTransform = () => {
+      const width = window.innerWidth
+      // Move left by 1px for every 100px of screen width
+      const offset = -Math.floor(width / 100) * 1
+      return `translateX(${offset}px)`
+    }
+
+    const calculateWidth = () => {
+      const width = window.innerWidth
+      // Increase width dramatically as screen gets larger - add 50px for every 100px increase
+      const baseWidth = 140
+      const widthIncrease = Math.floor(width / 100) * 50
+      const finalWidth = baseWidth + widthIncrease
+      return `${Math.max(finalWidth, 140)}px`
+    }
+
+    const updateTransform = () => {
+      const newTransform = calculateTransform()
+      const newWidth = calculateWidth()
+      setSubstationMargin(newTransform)
+      setSubstationWidth(newWidth)
+      setTestCounter(prev => prev + 1) // Force re-render
+    }
+
+    // Set initial transform
+    updateTransform()
+
+    // Add resize listener
+    window.addEventListener('resize', updateTransform)
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', updateTransform)
+    }
+  }, [])
 
   // Close dropdowns/modals on outside click
   useEffect(() => {
@@ -247,12 +301,12 @@ function Header({
           return (
     <>
       <header className="header">
-        <div className="logo-container" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div className="logo-container">
           <div className="ssam-logo-group">
             <img src={AssetLogo} alt="SSAM Logo" className="ssam-image" />
           </div>
-          <div className="divider-container" style={{ height: '100%' }}>
-            <div className="divider" style={{ height: '100%', alignSelf: 'stretch' }} />
+          <div className="divider-container">
+            <div className="divider"></div>
           </div>
 
           {/* Logo display area */}
@@ -266,7 +320,6 @@ function Header({
   src={uploadedLogo ? `${uploadedLogo}?${Date.now()}` : ANECLogo}
   alt="ANEC Logo"
   className="logo-image anec-filter"
-  style={{ maxHeight: '60px', objectFit: 'contain' }}
 />
             {uploadedLogo && (
               <span style={{ marginTop: 4, fontSize: 12, color: isDarkMode ? '#a5b4fc' : '#4b5563' }}>
@@ -274,12 +327,20 @@ function Header({
               </span>
             )}
           </div>
+        </div>
 
-          {/* Substation dropdown */}
+        {/* Center section for substation */}
+        <div className="header-center">
           <div
             ref={substationDropdownRef}
-            style={{ position: 'relative', zIndex: 1000 }}
             className="substation-container"
+            style={{ 
+              transform: substationMargin,
+              width: substationWidth,
+              border: '3px solid red', // Visual test - red border
+              backgroundColor: 'rgba(255, 0, 0, 0.1)', // Visual test - red background
+              minHeight: '40px' // Visual test - ensure height is visible
+            }}
           >
             <div
               role="button"
@@ -293,22 +354,12 @@ function Header({
               }}
               className="substation-clickable"
               style={{
-                marginLeft: '20px',
-                marginTop: '10px',
-                display: 'flex',
-                alignItems: 'center',
                 backgroundColor: showSubstationDropdown
                   ? (isDarkMode ? '#1c2336' : '#e0f0ff')
                   : (isDarkMode ? '#2f3747' : '#f0f4f8'),
-                borderRadius: '12px',
-                padding: '12px 16px',
-                cursor: 'pointer',
                 color: showSubstationDropdown
                   ? (isDarkMode ? '#a5b4fc' : '#1c3a70')
                   : (isDarkMode ? 'white' : 'black'),
-                fontWeight: '600',
-                fontSize: '14px',
-                userSelect: 'none',
                 transition: 'background-color 0.3s, color 0.3s',
               }}
               aria-label="Select Substation"
@@ -322,13 +373,10 @@ function Header({
                 className="substation-dropdown"
                 style={{
                   position: 'absolute',
-                  top: '74px',
-                  left: 0,
                   backgroundColor: isDarkMode ? '#1c2336' : 'white',
                   borderRadius: 8,
                   boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
                   border: isDarkMode ? '1px solid #2a3346' : '1px solid #e5eaf0',
-                  marginTop: 6,
                   zIndex: 2000,
                 }}
               >
@@ -654,6 +702,7 @@ function Header({
               </div>
             )}
           </div>
+
 
           {/* Profile dropdown */}
           <div

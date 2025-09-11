@@ -1,13 +1,13 @@
 .navigation {
   width: 100% !important;
   max-width: 100% !important;
-  margin: 0 0 16px 0 !important; /* Reduced bottom margin to 16px */
-  padding: 8px 12px; /* Reduced left/right padding */
+  margin: 0 0 clamp(8px, 1.5vw, 16px) 0 !important; /* Smaller responsive bottom margin */
+  padding: clamp(4px, 0.8vw, 8px) clamp(6px, 1.2vw, 12px); /* Smaller responsive padding */
   background-color: #fff !important;
   display: flex !important;
   justify-content: center !important; /* Keep buttons centered */
   align-items: center !important;
-  gap: 32px !important; /* Spacing between buttons */
+  gap: clamp(8px, 2.5vw, 32px) !important; /* Much smaller responsive spacing between buttons */
   border-radius: 0 !important;
   border: 1px solid #d1d5db;
   border-bottom: none !important;
@@ -39,11 +39,11 @@
 }
 
 .nav-button {
-  padding: 6px 24px;
-  font-size: 16px;
+  padding: clamp(2px, 0.6vw, 6px) clamp(8px, 2vw, 24px); /* Much smaller responsive padding */
+  font-size: clamp(10px, 1.5vw, 16px); /* Much smaller responsive font size */
   font-weight: 500;
   border: none;
-  border-radius: 6px;
+  border-radius: clamp(3px, 0.6vw, 6px); /* Smaller responsive border radius */
   background-color: transparent;
   color: black;
   cursor: pointer;
@@ -52,10 +52,9 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  height: 40px;
-  gap: 8px;
+  height: clamp(24px, 4vw, 40px); /* Much smaller responsive height */
+  gap: clamp(2px, 0.8vw, 8px); /* Much smaller responsive gap */
   position: relative; 
-  left: 60px !important; 
   flex-direction: row;
   margin: 0;
 }
@@ -64,14 +63,14 @@
   background-color: #4CAF50;
   color: black;
   margin-top: 0;
-  border-radius: 6px;
+  border-radius: clamp(3px, 0.6vw, 6px); /* Smaller responsive border radius */
 }
 
 .nav-button:not(.active):hover {
   background-color: #4CAF50;
   color: black;
   margin-top: 0;
-  border-radius: 6px;
+  border-radius: clamp(3px, 0.6vw, 6px); /* Smaller responsive border radius */
 }
 
 /* Dark mode button overrides */
@@ -86,8 +85,8 @@
 }
 
 .nav-icon {
-  width: 20px;
-  height: 20px;
+  width: clamp(12px, 2vw, 20px); /* Much smaller responsive icon size */
+  height: clamp(12px, 2vw, 20px); /* Much smaller responsive icon size */
   stroke: #000;
   fill: none;
   background: none;

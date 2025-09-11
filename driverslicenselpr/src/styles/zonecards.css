@@ -107,7 +107,7 @@
 .zone-card--global {
   height: 160px !important; /* Same height as other cards */
   min-height: 140px !important; /* Same min-height as other cards */
-  grid-column: span 2 !important; /* Make it span 2 grid columns to be wider */
+  grid-column: 1 / -1 !important; /* Make it span all available columns */
   width: 100% !important; /* Fill the entire grid cell */
   max-width: 100% !important;
   margin: 0; /* Remove centering margin to fill grid */

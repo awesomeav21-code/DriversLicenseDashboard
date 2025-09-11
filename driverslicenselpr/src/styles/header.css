@@ -1,17 +1,21 @@
 /* Header container */
 .header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  height: 120px;
+  min-height: clamp(3rem, 6vh, 5rem);
+  height: auto;
   border-bottom: 1px solid #2c3e66;
   background-color: #0c1424;
   position: relative;
   z-index: 9999;
-  padding: 24px 40px;  /* vertical padding */
+  padding: clamp(0.5rem, 1.5vw, 1rem) clamp(1rem, 2vw, 1.5rem);
   box-sizing: border-box;
   overflow: visible;
+  width: 100%;
+  gap: clamp(0.5rem, 1vw, 1rem);
 }
+
 .logo.transparent-logo img:hover,
 .logo.transparent-logo svg:hover {
   cursor: pointer !important;
@@ -33,48 +37,50 @@
 /* Help Manual Panel Styles */
 .manual-panel {
   position: absolute;
-  top: 56px;
+  top: 50px;
   right: 0;
   background-color: white;
   border: 1px solid #ccc;
-  border-radius: 10px;
-  padding: 24px;
-  width: 420px;
+  border-radius: 8px;
+  padding: clamp(12px, 2vw, 16px);
+  width: clamp(280px, 85vw, 320px);
   max-width: 90vw;
-  z-index: 10000;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  z-index: 99999; /* Very high z-index to ensure visibility */
+  box-shadow: 0 clamp(0.4em, 1vw, 0.5em) clamp(1.2em, 2.5vw, 1.6em) rgba(0, 0, 0, 0.2);
   font-family: 'Segoe UI', sans-serif;
-  font-size: 14px;
+  font-size: clamp(0.7em, 1.2vw, 0.9em);
   color: #1f2937;
   line-height: 1.6;
   overflow-y: auto;
-  max-height: 600px;
+  max-height: clamp(20em, 40vh, 30em);
+  pointer-events: auto; /* Ensure it can receive mouse events */
+  display: block; /* Ensure it's visible */
 }
 
 .manual-panel h3 {
-  font-size: 20px;
+  font-size: clamp(1em, 2vw, 1.2em);
   font-weight: 700;
-  margin-bottom: 16px;
+  margin-bottom: clamp(0.8em, 1.5vw, 1em);
   color: #111827;
-  border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 8px;
+  border-bottom: clamp(0.1em, 0.1vw, 0.2em) solid #e5e7eb;
+  padding-bottom: clamp(0.4em, 0.8vw, 0.5em);
 }
 
 .manual-panel .manual-section {
-  margin-bottom: 24px;
+  margin-bottom: clamp(1.1em, 2vw, 1.5em);
 }
 
 .manual-panel .manual-section h4 {
-  font-size: 16px;
+  font-size: clamp(0.9em, 1.8vw, 1em);
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: clamp(0.25em, 0.6vw, 0.4em);
   color: #111827;
 }
 
 .manual-panel .manual-section p {
-  font-size: 14px;
+  font-size: clamp(0.8em, 1.4vw, 0.9em);
   color: #374151;
-  margin: 6px 0 12px;
+  margin: clamp(0.25em, 0.6vw, 0.4em) 0 clamp(0.6em, 1.2vw, 0.8em);
 }
 
 .manual-panel ul {
@@ -85,8 +91,8 @@
 
 .manual-panel ul li {
   position: relative;
-  padding-left: 20px;
-  margin-bottom: 8px;
+  padding-left: clamp(1em, 2vw, 1.2em);
+  margin-bottom: clamp(0.4em, 0.8vw, 0.5em);
   color: #1f2937;
 }
 
@@ -94,9 +100,9 @@
   content: '';
   position: absolute;
   left: 0;
-  top: 7px;
-  width: 6px;
-  height: 6px;
+  top: clamp(0.3em, 0.7vw, 0.4em);
+  width: clamp(0.25em, 0.6vw, 0.4em);
+  height: clamp(0.25em, 0.6vw, 0.4em);
   background-color: #22c55e;
   border-radius: 50%;
 }
@@ -110,18 +116,25 @@
 /* Logo section */
 .logo-container {
   display: flex;
-  align-items: stretch;
-  gap: 24px;
-  flex-shrink: 0;
-  height: 100%;
-
-  /* FIX: Let logo-container expand fully to fill space */
-  flex-grow: 1;
-  min-width: 0;
+  align-items: center;
+  gap: clamp(0.5rem, 1vw, 0.75rem);
+  justify-self: start;
+  overflow: visible;
 }
 
+/* Center section for substation */
+.header-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  justify-self: center;
+  overflow: visible;
+  position: relative;
+}
+
+
 .logo-image {
-  height: 60px;
+  height: 1.8rem;
   width: auto;
   display: block;
 }
@@ -132,24 +145,8 @@
 
 /* RED Divider */
 .divider-container {
-  position: relative !important;
-  height: 120px !important;
-  display: flex !important;
-  align-items: stretch !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  width: auto !important;
-}
-.divider {
-  position: absolute !important;
-  top: 0 !important; /* changed from -24px */
-  bottom: 0 !important;
-  left: 0 !important;
-  width: 1px !important;
-  background-color: gray !important;
-  border-radius: 1px !important;
-  margin: 0 !important;
-  align-self: stretch !important;
+  width: 1px;
+  background-color: #666;
 }
 
 /* SSAM logo */
@@ -157,38 +154,56 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .ssam-image {
-  height: 60px;
+  height: clamp(1.5rem, 2.5vw, 2rem);
   width: auto;
   object-fit: contain;
+  max-width: 100%;
 }
 
 /* Header icons */
 .header-icons {
   display: flex;
   align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-  flex-wrap: nowrap;
+  gap: 0.2rem;
+  justify-content: flex-end;
+  justify-self: end;
+  overflow: visible;
 }
 
+/* Add spacing between alert toggle and settings */
+.icon-container.alert-toggle {
+  margin-right: 0.25rem;
+}
+
+/* Add spacing between settings and profile */
+.dropdown-parent:last-child {
+  margin-left: 0.25rem;
+}
+
+
 .icon-container {
-  width: auto;
-  height: 36px;
-  min-width: 30px;
+  width: 2.5rem;
+  height: 2.5rem;
+  min-width: 2.5rem;
+  max-width: 2.5rem;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
+  border-radius: 0.25rem;
   background-color: rgba(255, 255, 255, 0.04);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 6px;
+  padding: 0.5rem;
   margin: 0;
   box-sizing: border-box;
   transition: background-color 0.2s ease, border 0.2s ease;
   position: relative;
+  flex-shrink: 0;
+  cursor: pointer;
+  z-index: 10001;
 }
 
 .icon-container:hover {
@@ -198,7 +213,7 @@
 
 .icon-button {
   all: unset;
-  font-size: 14px;
+  font-size: 0.75em;
   color: #f0f3f7;
   display: flex;
   align-items: center;
@@ -207,7 +222,14 @@
   height: 100%;
   transition: color 0.2s ease, transform 0.2s ease;
   margin: 0;
-  padding: 0 4px;
+  padding: 0;
+  cursor: pointer;
+  z-index: 10002;
+}
+
+.icon-button svg {
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .icon-button:hover {
@@ -218,7 +240,7 @@
 /* Alert toggle */
 .alert-toggle.on {
   background-color: #e63946;
-  margin-top: 8px;
+  margin-top: clamp(0.4em, 0.8vw, 0.5em);
 }
 .alert-toggle:not(.on) {
   background-color: #6c757d;
@@ -229,77 +251,83 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: clamp(0.25em, 0.6vw, 0.4em);
   width: 100%;
   height: 100%;
-  font-size: 13px;
+  font-size: clamp(0.7em, 1.3vw, 0.8em);
   color: white;
   font-weight: bold;
-  padding: 0 6px;
+  padding: 0 clamp(0.25em, 0.6vw, 0.4em);
 }
 
 /* Dropdown */
 .dropdown {
   position: absolute;
-  top: 56px;
+  top: 50px;
   right: 0;
   background-color: white;
-  border: 1px solid #ccc;
-  padding: 10px;
-  border-radius: 6px;
-  width: 200px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  z-index: 10000;
+  border: clamp(0.1em, 0.1vw, 0.2em) solid #ccc;
+  padding: clamp(0.5em, 1vw, 0.6em);
+  border-radius: clamp(0.25em, 0.6vw, 0.4em);
+  width: clamp(10em, 20vw, 12em);
+  box-shadow: 0 clamp(0.1em, 0.3vw, 0.1em) clamp(0.4em, 0.8vw, 0.5em) rgba(0, 0, 0, 0.15);
+  z-index: 99999; /* Very high z-index to appear above everything */
   color: black;
-  font-size: 14px;
+  font-size: clamp(0.8em, 1.4vw, 0.9em);
   white-space: normal;
   word-break: break-word;
+  pointer-events: auto; /* Ensure it can receive mouse events */
+  display: block; /* Ensure it's visible */
 }
 .substation-dropdown{ 
-  left: 355px !important; 
-  top: 50px !important;
-  min-width: 250px; 
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  top: 100% !important;
+  min-width: 200px; 
+  position: absolute !important;
+  margin-top: 0.5rem !important;
 }
-/* override the help‑icon’s inline blue stroke */
+/* override the help‑icon's inline blue stroke */
 button[aria-label="Help"] svg {
   stroke: #888888 !important;
-  width: 32px !important;
-  height: 32px !important;
-  stroke-width: 1 !important;
+  stroke-width: clamp(0.1em, 0.1vw, 0.2em) !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
 }
 
 /* Settings dropdown */
 .settings-dropdown {
   position: absolute;
-  top: 56px;
+  top: 50px;
   right: 0;
-  width: 280px;
+  width: clamp(12em, 80vw, 17em);
   background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  padding: 16px;
-  z-index: 10000;
+  border-radius: clamp(0.6em, 1.2vw, 0.8em);
+  box-shadow: 0 clamp(0.4em, 1vw, 0.5em) clamp(1.2em, 2.5vw, 1.6em) rgba(0, 0, 0, 0.12);
+  padding: clamp(0.6em, 1.2vw, 1em);
+  z-index: 99999; /* Very high z-index to appear above everything */
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: clamp(0.6em, 1.2vw, 1em);
   font-family: sans-serif;
   color: #111827;
   border: none;
+  pointer-events: auto; /* Ensure it can receive mouse events */
 }
 
 .settings-title {
-  font-size: 18px;
+  font-size: clamp(1em, 1.8vw, 1.1em);
   font-weight: 600;
   color: #111827;
-  margin-bottom: 8px;
+  margin-bottom: clamp(0.4em, 0.8vw, 0.5em);
 }
 
 .setting-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px solid #e5e7eb;
-  padding-top: 12px;
+  border-top: clamp(0.1em, 0.1vw, 0.2em) solid #e5e7eb;
+  padding-top: clamp(0.6em, 1.2vw, 0.8em);
 }
 
 .setting-text {
@@ -309,15 +337,15 @@ button[aria-label="Help"] svg {
 }
 
 .setting-name {
-  font-size: 14px;
+  font-size: clamp(0.8em, 1.4vw, 0.9em);
   font-weight: 500;
   color: #111827;
 }
 
 .setting-description {
-  font-size: 12px;
+  font-size: clamp(0.6em, 1.2vw, 0.8em);
   color: #6b7280;
-  margin-top: 2px;
+  margin-top: clamp(1px, 0.2vw, 2px);
 }
 
 /* Toggle row */
@@ -325,22 +353,22 @@ button[aria-label="Help"] svg {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
-  font-size: 13px;
+  gap: clamp(0.25em, 0.6vw, 0.4em);
+  font-size: clamp(0.7em, 1.3vw, 0.8em);
   font-weight: 500;
-  min-width: 120px;
+  min-width: clamp(100px, 12vw, 120px);
 }
 
 .toggle-row span {
-  min-width: 18px;
+  min-width: clamp(1em, 1.8vw, 1.1em);
   text-align: center;
 }
 
 .switch {
   position: relative;
   display: inline-block;
-  width: 36px;
-  height: 20px;
+  width: clamp(30px, 3.6vw, 36px);
+  height: clamp(1em, 2vw, 1.2em);
 }
 
 .switch input {
@@ -357,17 +385,17 @@ button[aria-label="Help"] svg {
   right: 0;
   bottom: 0;
   background-color: #d1d5db;
-  border-radius: 34px;
+  border-radius: clamp(28px, 3.4vw, 34px);
   transition: 0.4s;
 }
 
 .slider:before {
   position: absolute;
   content: "";
-  height: 14px;
-  width: 14px;
-  left: 3px;
-  bottom: 3px;
+  height: clamp(0.8em, 1.4vw, 0.9em);
+  width: clamp(0.8em, 1.4vw, 0.9em);
+  left: clamp(2px, 0.3vw, 3px);
+  bottom: clamp(2px, 0.3vw, 3px);
   background-color: white;
   transition: 0.4s;
   border-radius: 50%;
@@ -378,15 +406,34 @@ input:checked + .slider {
 }
 
 input:checked + .slider:before {
-  transform: translateX(16px);
+  transform: translateX(clamp(14px, 1.6vw, 16px));
 }
 
 .settings-icon {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: clamp(0.6em, 1.2vw, 0.8em);
   flex-shrink: 0;
   flex-wrap: nowrap;
+}
+
+/* Make settings icon use same sizing as other icons */
+.settings-icon img,
+.settings-icon .icon-img {
+  width: 3rem !important;
+  height: 3rem !important;
+}
+
+/* FORCE settings icon to NEVER change size */
+.settings-icon img,
+.settings-icon .icon-img,
+.settings-icon-container .icon-img {
+  width: 3rem !important;
+  height: 3rem !important;
+  min-width: 3rem !important;
+  min-height: 3rem !important;
+  max-width: 3rem !important;
+  max-height: 3rem !important;
 }
 
 .icon-container.dropdown-parent > button[aria-label="Settings"] {
@@ -400,29 +447,38 @@ input:checked + .slider:before {
   background-color: transparent !important;
 }
 
+/* Ensure settings icon maintains size */
+.settings-icon-container .icon-img {
+  width: 2.4rem !important;
+  height: 2.4rem !important;
+  min-width: 2.4rem !important;
+  min-height: 2.4rem !important;
+}
+
 /* Profile */
 .profile-button {
   all: unset;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-direction: row-reverse;
-  gap: 8px;
   background-color: transparent;
   color: white;
-  padding: 6px 10px;
+  padding: 0.5rem;
   border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 6px;
+  border-radius: 0.25rem;
   font-weight: bold;
   cursor: pointer;
-  font-size: 13px;
-  height: 36px;
-  min-width: 140px; /* Increased min-width to fit name */
+  font-size: 0.75rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  min-width: 2.5rem;
+  max-width: 2.5rem;
   box-sizing: border-box;
   transition: background-color 0.2s ease, border 0.2s ease, box-shadow 0.2s ease;
   box-shadow: none;
   white-space: nowrap;
-  overflow: visible;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .profile-button:hover {
@@ -435,16 +491,16 @@ input:checked + .slider:before {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 120px;
+  max-width: clamp(6em, 12vw, 8em);
 }
 
 .profile-circle {
   background-color: #22c55e;
   color: white;
-  width: 22px;
-  height: 22px;
+  width: 1.5rem;
+  height: 1.5rem;
   border-radius: 50%;
-  font-size: 13px;
+  font-size: 0.9rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -454,21 +510,21 @@ input:checked + .slider:before {
 }
 
 .profile-caret {
-  font-size: 13px;
+  font-size: 1.3vw; /* Relative font size */
   transform: rotate(90deg);
 }
 
 .profile-menu-list {
   list-style: none;
   margin: 0;
-  padding: 8px 0;
+  padding: 0.8vw 0; /* Relative padding */
 }
 
 .profile-menu-item {
-  padding: 8px 16px;
+  padding: 0.8vw 1.6vw; /* Relative padding */
   cursor: pointer;
   color: black;
-  margin-top: 6px;
+  margin-top: 0.6vw; /* Relative margin */
 }
 
 .profile-menu-item:hover,
@@ -491,71 +547,74 @@ input:checked + .slider:before {
   justify-content: center;
   background-color: rgba(255, 255, 255, 0.08);
   color: white;
-  border-radius: 10px;
-  padding: 12px 28px;
-  font-size: 18px;
+  border-radius: 1vw; /* Relative border radius */
+  padding: 1vh 3vw; /* Relative padding */
+  font-size: 2vw; /* Relative font size */
   font-weight: 600;
   margin-left: auto;
-  margin-right: 24px;
-  height: 60px;
+  margin-right: 2vw; /* Relative margin */
+  height: 5vh; /* Relative height */
   box-sizing: border-box;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 0.1vw solid rgba(255, 255, 255, 0.25); /* Relative border */
+  box-shadow: 0 0.4vw 1.2vw rgba(0, 0, 0, 0.15); /* Relative box shadow */
 }
 
 .substation-title {
-  margin-right: 8px;
+  margin-right: 1vw; /* Relative margin */
   align-items: center;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.75);
-  font-size: 16px;
+  font-size: 1.5vw; /* Relative font size */
 }
 
-/* Fix: override margin-left auto to allow movement */
-.substation-info-box {
-  border: 2px solid rgba(0, 123, 255, 0.6); /* blue border */
-  background-color: rgba(0, 123, 255, 0.1); /* transparent blue bg */
-  padding: 10px 14px;
-  border-radius: 8px;
-  display: flex !important;
-  position: relative; 
-  left: 20px!important; 
-  align-items: center;
-  color: #003366;
-  margin-left: 125px !important; /* moves it 40px right */
-  width: fit-content !important;
-}
-
-/* NEW CLASS: Substation clickable container moved more left */
+/* Substation clickable container - unified and contained */
 .substation-clickable {
   cursor: pointer;
   user-select: none;
   font-weight: 700;
-  font-size: 16px;
+  font-size: clamp(0.4rem, 1.5vw, 0.7em);
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-width: 180px;
-  padding: 8px 16px;
-  border-radius: 8px;
+  gap: clamp(0.1rem, 0.4vw, 0.2em);
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  padding: clamp(0.1rem, 0.4vw, 0.2em) clamp(0.2rem, 0.6vw, 0.3em);
+  border-radius: clamp(0.2rem, 0.3vw, 0.25rem);
   outline: none;
-  color: gray !important;
-  background-color: #222b3b !important;
-  border: 1px solid #e5e7eb;
-  box-shadow: none;
+  color: #e5e7eb !important;
+  background-color: #1e293b !important;
+  border: 1px solid #475569;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: background-color 0.3s, border 0.3s, box-shadow 0.3s;
-  position: relative;
-  left: 308px ; /* your shift */
+  position: relative !important;
+  margin: 0 auto !important;
+  z-index: 10000 !important;
+  overflow: visible; /* Allow arrow to be visible */
+  flex-shrink: 0 !important; /* Prevent shrinking */
+  text-overflow: ellipsis; /* Add ellipsis for overflow text */
+  white-space: nowrap; /* Prevent text wrapping */
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box; /* Include padding and border in width calculation */
 }
 .substation-container{ 
-  left: -195px!important; 
-  width: 290px;
+  position: relative;
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  overflow: visible;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform-origin: center center;
 }
+
 .substation-clickable.active {
   color: #444; /* or white if dark */
   background-color: #eaf6ff;
-  border: 1.5px solid #3b82f6;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+  border: clamp(1px, 0.15vw, 1.5px) solid #3b82f6;
+  box-shadow: 0 clamp(1px, 0.2vw, 2px) clamp(0.4em, 0.8vw, 0.5em) rgba(59, 130, 246, 0.4);
 }
 
 .substation-clickable.dark {
@@ -573,16 +632,16 @@ input:checked + .slider:before {
 
 /* Added to shift mini-navbar and sidebar right */
 .mini-navbar-outer {
-  padding-left: 60px; /* increase left padding */
-  max-width: 1400px;
+  padding-left: clamp(50px, 6vw, 60px); /* increase left padding */
+  max-width: clamp(1200px, 90vw, 1400px);
   margin-right: auto;
-  padding: 0 20px;
+  padding: 0 clamp(1em, 2vw, 1.2em);
   box-sizing: border-box;
 }
 
 .sidebar-event-dates {
-  flex: 0 0 220px;
-  margin-left: 40px; /* shifts sidebar 40px to the right */
+  flex: 0 0 clamp(180px, 22vw, 220px);
+  margin-left: clamp(30px, 4vw, 40px); /* shifts sidebar 40px to the right */
   overflow-y: auto;
 }
 
@@ -592,7 +651,7 @@ input:checked + .slider:before {
 .dark-video input.profile-input[type="text"]:focus {
   background-color: #0f172a;      /* darkest navy blue */
   color: #f9fafb;                 /* white text */
-  border: 1px solid #334155;      /* subtle border */
+  border: clamp(0.1em, 0.1vw, 0.2em) solid #334155;      /* subtle border */
   caret-color: #f9fafb;           /* white cursor */
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
@@ -604,7 +663,7 @@ input:checked + .slider:before {
 .dark-video input.profile-input:focus {
   border-color: #22c55e;          /* green accent on focus */
   outline: none;
-  box-shadow: 0 0 4px #22c55e;
+  box-shadow: 0 0 clamp(3px, 0.4vw, 4px) #22c55e;
 }
 
 /* ---------------- DARK MODE FOR MANUAL PANEL ------------------- */
@@ -632,5 +691,401 @@ input:checked + .slider:before {
 }
 
 .dark-mode .manual-panel {
-  box-shadow: 0 8px 24px rgba(0,0,0,0.8) !important;
+  box-shadow: 0 clamp(0.4em, 1vw, 0.5em) clamp(1.2em, 2.5vw, 1.6em) rgba(0,0,0,0.8) !important;
 }
+
+/* ==================== LOGO RESPONSIVE MEDIA QUERIES ==================== */
+
+/* Tablets (768px and below) */
+@media (max-width: 768px) {
+  .logo-image {
+    height: 1rem; /* 0.55x multiplier */
+  }
+  
+  .ssam-image {
+    height: clamp(0.8rem, 1.5vw, 1.1rem); /* 0.55x multiplier */
+  }
+}
+
+/* Small mobile devices (480px and below) */
+@media (max-width: 480px) {
+  .logo-image {
+    height: 0.7rem; /* 0.4x multiplier */
+  }
+  
+  .ssam-image {
+    height: clamp(0.6rem, 1.2vw, 0.8rem); /* 0.4x multiplier */
+  }
+}
+
+/* Extra small mobile devices (360px and below) */
+@media (max-width: 360px) {
+  .logo-image {
+    height: 0.5rem; /* 0.3x multiplier */
+  }
+  
+  .ssam-image {
+    height: clamp(0.4rem, 1vw, 0.6rem); /* 0.3x multiplier */
+  }
+}
+
+/* Ultra small mobile devices (280px and below) */
+@media (max-width: 280px) {
+  .logo-image {
+    height: 0.4rem; /* 0.2x multiplier */
+  }
+  
+  .ssam-image {
+    height: clamp(0.3rem, 0.8vw, 0.5rem); /* 0.2x multiplier */
+  }
+}
+
+/* ==================== SUBSTATION BOX RESPONSIVE MEDIA QUERIES ==================== */
+/* Substation positioning is now handled dynamically with JavaScript */
+
+/* Flashing animation for visual indicator */
+@keyframes flash {
+  0% { 
+    border-color: green;
+    box-shadow: 0 0 10px green;
+  }
+  50% { 
+    border-color: lime;
+    box-shadow: 0 0 20px lime;
+  }
+  100% { 
+    border-color: green;
+    box-shadow: 0 0 10px green;
+  }
+}
+
+/* ==================== DIVIDER RESPONSIVE MEDIA QUERIES ==================== */
+
+/* All screen sizes - keep divider consistent */
+@media (max-width: 9999px) {
+  .divider-container {
+    height: 40px !important;
+    width: 1px !important;
+    min-width: 1px !important;
+    background-color: #666 !important;
+  }
+  
+  .divider {
+    top: -10px !important;
+    width: 1px !important;
+    height: 60px !important;
+    background-color: #666 !important;
+  }
+}
+
+/* ==================== ICONS RESPONSIVE MEDIA QUERIES ==================== */
+
+/* All screen sizes - maintain consistent icon spacing */
+@media (max-width: 9999px) {
+  .header-icons {
+    gap: 0.2rem !important; /* Force consistent spacing on all screens */
+  }
+}
+
+/* Tablets (768px and below) - 0.8x scaling */
+@media (max-width: 768px) {
+  .header-icons {
+    gap: 0.2rem !important; /* Keep uniform spacing */
+  }
+  
+  .icon-container {
+    width: 2rem; /* 0.8x of 2.5rem */
+    height: 2rem;
+    min-width: 2rem;
+    max-width: 2rem;
+    padding: 0.4rem;
+  }
+  
+  .icon-button svg {
+    width: 1.2rem; /* 0.8x of 1.5rem */
+    height: 1.2rem;
+  }
+  
+  button[aria-label="Help"] svg {
+    width: 1.2rem !important;
+    height: 1.2rem !important;
+  }
+  
+  .alert-button {
+    font-size: clamp(0.6em, 1.1vw, 0.7em);
+  }
+  
+  .switch {
+    width: clamp(24px, 2.9vw, 29px); /* 0.8x scaling */
+    height: clamp(0.8em, 1.6vw, 1em);
+  }
+  
+  .slider:before {
+    height: clamp(0.64em, 1.12vw, 0.72em); /* 0.8x scaling */
+    width: clamp(0.64em, 1.12vw, 0.72em);
+  }
+  
+  input:checked + .slider:before {
+    transform: translateX(clamp(11.2px, 1.28vw, 12.8px)); /* 0.8x scaling */
+  }
+  
+  .profile-button {
+    width: 2rem; /* 0.8x of 2.5rem */
+    height: 2rem;
+    min-width: 2rem;
+    max-width: 2rem;
+    font-size: 0.6rem;
+  }
+  
+  .profile-circle {
+    width: 1.2rem; /* 0.8x of 1.5rem */
+    height: 1.2rem;
+    font-size: 0.72rem;
+  }
+  
+  /* Settings icon scaling */
+  .settings-icon img,
+  .settings-icon .icon-img,
+  .settings-icon-container .icon-img {
+    width: 2.4rem !important; /* 0.8x of 3rem */
+    height: 2.4rem !important;
+    min-width: 2.4rem !important;
+    min-height: 2.4rem !important;
+    max-width: 2.4rem !important;
+    max-height: 2.4rem !important;
+  }
+  
+  .settings-icon-container .icon-img {
+    width: 1.92rem !important; /* 0.8x of 2.4rem */
+    height: 1.92rem !important;
+    min-width: 1.92rem !important;
+    min-height: 1.92rem !important;
+  }
+}
+
+/* Small mobile devices (480px and below) - 0.6x scaling */
+@media (max-width: 480px) {
+  .icon-container {
+    width: 1.5rem; /* 0.6x of 2.5rem */
+    height: 1.5rem;
+    min-width: 1.5rem;
+    max-width: 1.5rem;
+    padding: 0.3rem;
+  }
+  
+  .icon-button svg {
+    width: 0.9rem; /* 0.6x of 1.5rem */
+    height: 0.9rem;
+  }
+  
+  button[aria-label="Help"] svg {
+    width: 0.9rem !important;
+    height: 0.9rem !important;
+  }
+  
+  .alert-button {
+    font-size: clamp(0.5em, 1vw, 0.6em);
+  }
+  
+  .switch {
+    width: clamp(18px, 2.16vw, 22px); /* 0.6x scaling */
+    height: clamp(0.6em, 1.2vw, 0.75em);
+  }
+  
+  .slider:before {
+    height: clamp(0.48em, 0.84vw, 0.54em); /* 0.6x scaling */
+    width: clamp(0.48em, 0.84vw, 0.54em);
+  }
+  
+  input:checked + .slider:before {
+    transform: translateX(clamp(8.4px, 0.96vw, 9.6px)); /* 0.6x scaling */
+  }
+  
+  .profile-button {
+    width: 1.5rem; /* 0.6x of 2.5rem */
+    height: 1.5rem;
+    min-width: 1.5rem;
+    max-width: 1.5rem;
+    font-size: 0.45rem;
+  }
+  
+  .profile-circle {
+    width: 0.9rem; /* 0.6x of 1.5rem */
+    height: 0.9rem;
+    font-size: 0.54rem;
+  }
+  
+  /* Settings icon scaling */
+  .settings-icon img,
+  .settings-icon .icon-img,
+  .settings-icon-container .icon-img {
+    width: 1.8rem !important; /* 0.6x of 3rem */
+    height: 1.8rem !important;
+    min-width: 1.8rem !important;
+    min-height: 1.8rem !important;
+    max-width: 1.8rem !important;
+    max-height: 1.8rem !important;
+  }
+  
+  .settings-icon-container .icon-img {
+    width: 1.44rem !important; /* 0.6x of 2.4rem */
+    height: 1.44rem !important;
+    min-width: 1.44rem !important;
+    min-height: 1.44rem !important;
+  }
+}
+
+/* Extra small mobile devices (360px and below) - 0.5x scaling */
+@media (max-width: 360px) {
+  .icon-container {
+    width: 1.25rem; /* 0.5x of 2.5rem */
+    height: 1.25rem;
+    min-width: 1.25rem;
+    max-width: 1.25rem;
+    padding: 0.25rem;
+  }
+  
+  .icon-button svg {
+    width: 0.75rem; /* 0.5x of 1.5rem */
+    height: 0.75rem;
+  }
+  
+  button[aria-label="Help"] svg {
+    width: 0.75rem !important;
+    height: 0.75rem !important;
+  }
+  
+  .alert-button {
+    font-size: clamp(0.45em, 0.9vw, 0.55em);
+  }
+  
+  .switch {
+    width: clamp(15px, 1.8vw, 18px); /* 0.5x scaling */
+    height: clamp(0.5em, 1vw, 0.625em);
+  }
+  
+  .slider:before {
+    height: clamp(0.4em, 0.7vw, 0.45em); /* 0.5x scaling */
+    width: clamp(0.4em, 0.7vw, 0.45em);
+  }
+  
+  input:checked + .slider:before {
+    transform: translateX(clamp(7px, 0.8vw, 8px)); /* 0.5x scaling */
+  }
+  
+  .profile-button {
+    width: 1.25rem; /* 0.5x of 2.5rem */
+    height: 1.25rem;
+    min-width: 1.25rem;
+    max-width: 1.25rem;
+    font-size: 0.375rem;
+  }
+  
+  .profile-circle {
+    width: 0.75rem; /* 0.5x of 1.5rem */
+    height: 0.75rem;
+    font-size: 0.45rem;
+  }
+  
+  /* Settings icon scaling */
+  .settings-icon img,
+  .settings-icon .icon-img,
+  .settings-icon-container .icon-img {
+    width: 1.5rem !important; /* 0.5x of 3rem */
+    height: 1.5rem !important;
+    min-width: 1.5rem !important;
+    min-height: 1.5rem !important;
+    max-width: 1.5rem !important;
+    max-height: 1.5rem !important;
+  }
+  
+  .settings-icon-container .icon-img {
+    width: 1.2rem !important; /* 0.5x of 2.4rem */
+    height: 1.2rem !important;
+    min-width: 1.2rem !important;
+    min-height: 1.2rem !important;
+  }
+}
+
+/* Ultra small mobile devices (280px and below) - 0.4x scaling */
+@media (max-width: 280px) {
+  .icon-container {
+    width: 1rem; /* 0.4x of 2.5rem */
+    height: 1rem;
+    min-width: 1rem;
+    max-width: 1rem;
+    padding: 0.2rem;
+  }
+  
+  .icon-button svg {
+    width: 0.6rem; /* 0.4x of 1.5rem */
+    height: 0.6rem;
+  }
+  
+  button[aria-label="Help"] svg {
+    width: 0.6rem !important;
+    height: 0.6rem !important;
+  }
+  
+  .alert-button {
+    font-size: clamp(0.4em, 0.8vw, 0.5em);
+  }
+  
+  .switch {
+    width: clamp(12px, 1.44vw, 14px); /* 0.4x scaling */
+    height: clamp(0.4em, 0.8vw, 0.5em);
+  }
+  
+  .slider:before {
+    height: clamp(0.32em, 0.56vw, 0.36em); /* 0.4x scaling */
+    width: clamp(0.32em, 0.56vw, 0.36em);
+  }
+  
+  input:checked + .slider:before {
+    transform: translateX(clamp(5.6px, 0.64vw, 6.4px)); /* 0.4x scaling */
+  }
+  
+  .profile-button {
+    width: 1rem; /* 0.4x of 2.5rem */
+    height: 1rem;
+    min-width: 1rem;
+    max-width: 1rem;
+    font-size: 0.3rem;
+  }
+  
+  .profile-circle {
+    width: 0.6rem; /* 0.4x of 1.5rem */
+    height: 0.6rem;
+    font-size: 0.36rem;
+  }
+  
+  /* Settings icon scaling */
+  .settings-icon img,
+  .settings-icon .icon-img,
+  .settings-icon-container .icon-img {
+    width: 1.2rem !important; /* 0.4x of 3rem */
+    height: 1.2rem !important;
+    min-width: 1.2rem !important;
+    min-height: 1.2rem !important;
+    max-width: 1.2rem !important;
+    max-height: 1.2rem !important;
+  }
+  
+  .settings-icon-container .icon-img {
+    width: 0.96rem !important; /* 0.4x of 2.4rem */
+    height: 0.96rem !important;
+    min-width: 0.96rem !important;
+    min-height: 0.96rem !important;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+

@@ -43,6 +43,11 @@
 .month-nav-button.disabled {
   cursor: not-allowed;
   opacity: 0.5;
+  position: relative;
+}
+
+.month-nav-button.disabled:hover {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='8' fill='%236b7280'/%3E%3Cline x1='6' y1='6' x2='14' y2='14' stroke='white' stroke-width='2'/%3E%3C/svg%3E") 10 10, not-allowed;
 }
 
 .month-nav-text {
@@ -75,15 +80,15 @@
 .mini-navbar-icon-container {
   display: flex;
   align-items: center;
-  gap: 0.5rem; /* 8px converted to rem */
-  font-size: 1.5rem; /* 24px converted to rem */
+  gap: clamp(0.3rem, 0.8vw, 0.5rem); /* responsive gap */
+  font-size: clamp(1.2rem, 2.5vw, 1.5rem); /* responsive font size */
   line-height: 1;
   user-select: none;
 }
 
 .video-icon-svg {
-  width: 1.8125rem; /* 29px converted to rem */
-  height: 1.8125rem; /* 29px converted to rem */
+  width: clamp(1.4rem, 2.2vw, 1.8125rem); /* responsive width */
+  height: clamp(1.4rem, 2.2vw, 1.8125rem); /* responsive height */
 }
 
 .comma-normal {
@@ -180,11 +185,11 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 8px;
+  gap: clamp(6px, 1vw, 8px); /* responsive gap */
 
-  margin-left: 0.75rem; /* 12px converted to rem */
+  margin-left: clamp(0.5rem, 1vw, 0.75rem); /* responsive margin */
   margin-right: auto;
-  font-size: 1.15rem;
+  font-size: clamp(1rem, 1.8vw, 1.15rem); /* responsive font size */
   font-weight: 600;
   color: #233046;
   font-family: var(--font-family);
@@ -250,10 +255,16 @@
   top: -0.1875rem;     /* -3px converted to rem */
   /* optional: to keep SVG scaling nicely */
 }
-.left-arrow{ /*this is for the riught arrow mistakenly, remember this */ 
+
+.left-arrow{ 
   position: relative; 
-  left: 1.5625rem !important; /* 25px converted to rem */
+  left: 0; /* Keep arrow within container */
   top: -0.1875rem; /* -3px converted to rem */ 
+}
+
+.inner-container.month-nav .right-arrow {
+  position: relative;
+  left: -0.5rem !important; /* Move right arrow to the left */
 }
 
 .left-arrow svg,
@@ -262,6 +273,7 @@
   fill: lightgreen !important; 
   height: 100%;
 }
+
 
 
 .inner-container.month-nav > button:first-child {
@@ -650,8 +662,8 @@
   border-right: 1px solid #d1d5db !important;
   box-shadow: none !important;
   z-index: 30 !important; /* Increased to be above surveillance container */
-  margin-bottom: 3px !important;
-  margin-top: -3px !important;  /* reduced gap for more balanced spacing */
+  margin-bottom: clamp(2px, 0.5vw, 3px) !important;
+  margin-top: clamp(-2px, -0.5vw, -3px) !important;  /* responsive gap for more balanced spacing */
   left: 0;
   right: 0;
   font-family: var(--font-family);
@@ -665,15 +677,15 @@
   box-shadow: none;
   width: 100% !important;
   font-family: var(--font-family);
-  padding: 12.5px 0 12.5px 0 !important;   /* increased top & bottom padding for extra height */
+  padding: clamp(8px, 1.5vw, 12.5px) 0 clamp(8px, 1.5vw, 12.5px) 0 !important;   /* responsive top & bottom padding */
   display: flex !important;
   align-items: center !important;
   font-weight: 700;
-  font-size: 1.22rem;
+  font-size: clamp(1rem, 2vw, 1.22rem); /* responsive font size */
   color: #222;
-  min-height: 59px;                       /* original was 52px */
+  min-height: clamp(45px, 7vw, 59px);   /* responsive min-height */
   box-sizing: border-box;
-  padding-left: 12px;
+  padding-left: clamp(8px, 1.5vw, 12px); /* responsive left padding */
 }
 
 
@@ -884,22 +896,22 @@
 
 .archive-temp-event-btn {
   margin-left: 0 !important;
-  margin-right: 0.75rem !important; /* 12px converted to rem */
+  margin-right: clamp(0.5rem, 1.2vw, 0.75rem) !important; /* responsive margin */
   flex-shrink: 0 !important;
-  min-width: 5rem !important; /* 80px converted to rem */
-  padding: 0.25rem 0.75rem !important; /* 4px 12px converted to rem */
+  min-width: clamp(4rem, 8vw, 5rem) !important; /* responsive min-width */
+  padding: clamp(0.2rem, 0.4vw, 0.25rem) clamp(0.5rem, 1.2vw, 0.75rem) !important; /* responsive padding */
   font-weight: 700 !important;
-  font-size: 0.75rem !important;
+  font-size: clamp(0.65rem, 1.2vw, 0.75rem) !important; /* responsive font size */
   cursor: pointer !important;
   background-color: #5FCC6E !important;
   color: #fff !important;
   border: none !important;
-  border-radius: 0.25rem !important; /* 4px converted to rem */
-  box-shadow: 0 0.0625rem 0.375rem rgba(16, 185, 129, 0.4) !important; /* 1px 6px converted to rem */
+  border-radius: clamp(0.2rem, 0.4vw, 0.25rem) !important; /* responsive border radius */
+  box-shadow: 0 clamp(0.05rem, 0.1vw, 0.0625rem) clamp(0.3rem, 0.6vw, 0.375rem) rgba(16, 185, 129, 0.4) !important; /* responsive box shadow */
   display: inline-flex !important;
   align-items: center !important;
-  gap: 0.25rem !important; /* 4px converted to rem */
-  height: 1.75rem !important; /* 28px converted to rem */
+  gap: clamp(0.15rem, 0.4vw, 0.25rem) !important; /* responsive gap */
+  height: clamp(1.4rem, 2.8vw, 1.75rem) !important; /* responsive height */
   font-family: var(--font-family);
 }
 

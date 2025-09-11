@@ -351,6 +351,7 @@ body.dark-mode .live-data-wrapper {
 .dark-video .camera-section {
   background-color: #101e34;
   border: clamp(0.03cqw, 0.07cqw, 0.1cqw) solid #fff;
+  padding: 16px; /* Match light mode padding exactly */
 }
 
 .dark-video .camera-streams-panel {
@@ -464,7 +465,7 @@ body.dark-mode .live-data-wrapper {
   left: 0;
   width: 100%; /* Stay within camera section width */
   box-sizing: border-box;
-  padding: 0.75rem; /* Fixed padding for consistent spacing */
+  padding: 0.75rem 0.5rem; /* Keep original vertical padding, increased horizontal padding */
   overflow-x: auto; /* Horizontal scroll when cards don't fit */
   background-color: #f3f4f6; /* Match zone card background color */
   border-radius: 0.5rem;
@@ -493,8 +494,66 @@ body.dark-mode .live-data-wrapper {
   flex-grow: 0 !important; /* Prevent growing */
 }
 
-.dark-mode .zone-grid {
-  background-color: #101e34;
+.dark-video .zone-grid {
+  display: grid; /* Use CSS Grid for better column control */
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); /* Cards fill grid width, minimum 160px */
+  gap: 0.75rem; /* Fixed gap for consistent spacing */
+  position: relative; 
+  left: 0;
+  width: 100%; /* Stay within camera section width */
+  box-sizing: border-box;
+  padding: 0.75rem 0.5rem; /* Match light mode: keep vertical padding, increased horizontal padding */
+  overflow-x: auto; /* Horizontal scroll when cards don't fit */
+  background-color: #0f172a; /* Match zone card background color in dark mode */
+  border-radius: 0.5rem; /* Match light mode border radius */
+  overflow-y: auto; /* Vertical scroll if needed */
+  height: auto; /* Let content determine height - no fixed height */
+  min-height: auto; /* No minimum height constraint */
+  max-height: none; /* Allow unlimited height for vertical scrolling */
+  flex: 1; /* Take remaining space in camera section */
+  align-content: start; /* Position cards at the top */
+  box-shadow: none; /* Remove any shadows */
+}
+
+.dark-video .zone-grid-wrapper {
+  position: relative;
+  left: 0;
+  width: 100%; /* Use full width of parent */
+  max-width: 100%;
+  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw); /* Match light mode border radius */
+}
+
+.dark-video .zone-grid-wrapper--fullwidth {
+  position: relative;
+  left: 0;
+  width: 100%;
+  max-width: 100%;
+  border-radius: clamp(0.3cqw, 0.7cqw, 1cqw); /* Match light mode border radius */
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.dark-video .zone-grid--fullwidth {
+  background-color: #0f172a; /* Match zone card background color in dark mode */
+  width: 100%; /* Stay within camera section width */
+  max-width: 100%; /* Don't exceed camera section width */
+  position: relative;
+  left: 0;
+  display: grid; /* Use grid for responsive columns */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Wider cards with 280px minimum */
+  gap: 0.25rem; /* Fixed small gap between cards */
+  padding: 0.25rem; /* Match light mode padding */
+  box-sizing: border-box;
+  overflow-x: auto; /* Horizontal scroll */
+  overflow-y: auto; /* Vertical scroll if needed */
+  border-radius: 0.5rem; /* Match light mode border radius */
+  height: auto; /* Let content determine height - no fixed height */
+  min-height: auto; /* No minimum height constraint */
+  max-height: 100%; /* Don't exceed camera section height */
+  flex: 1; /* Take remaining space in camera section */
+  margin: 0 auto; /* Center the grid */
+  align-content: start; /* Position cards at the top */
+  box-shadow: none; /* Remove any shadows */
 }
 
 .cameras-row.center {
@@ -769,7 +828,7 @@ body.dark-mode .live-data-wrapper {
   box-sizing: border-box !important;
   display: inline-block !important;
   line-height: 1.2 !important;
-  transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out;
 }
 
 /* Force left alignment for Right Camera button text only */
@@ -833,13 +892,16 @@ body.dark-mode .live-data-wrapper {
   background-color: #e8f5e8 !important; /* Keep original light green background */
   color: #000000 !important; /* Keep original black text */
   border: 0.1rem solid #d1d5db !important; /* Keep original border */
+  transition: all 0.2s ease-in-out !important; /* Add transition for smooth hover effects */
 }
 
 .dark-video .camera-btn:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; /* Keep original hover shadow */
-  border-color: #6ca956 !important; /* Keep original green border on hover */
-  background-color: #f0f9f0 !important; /* Keep original light green background on hover */
-  color: #000000 !important; /* Keep original black text on hover */
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.6), 0 0 0 3px rgba(34, 197, 94, 0.4) !important; /* Strong green glow shadow */
+  border-color: #16a34a !important; /* Darker green border on hover */
+  background-color: #22c55e !important; /* Bright green background on hover */
+  color: #ffffff !important; /* White text on hover for contrast */
+  transform: translateY(-3px) scale(1.05) !important; /* More dramatic lift and scale effect */
+  transition: all 0.3s ease-in-out !important; /* Smooth transition */
 }
 
 /* Override the more specific camera streams panel button styles in dark mode */
@@ -847,12 +909,16 @@ body.dark-mode .live-data-wrapper {
   background-color: #e8f5e8 !important; /* Keep original light green background */
   color: #000000 !important; /* Keep original black text */
   border: 0.1rem solid #d1d5db !important; /* Keep original border */
+  transition: all 0.2s ease-in-out !important; /* Add transition for smooth hover effects */
 }
 
 .dark-video .camera-streams-panel .stream-group .camera-btn:hover {
-  background-color: #f0f9f0 !important; /* Keep original light green background on hover */
-  color: #000000 !important; /* Keep original black text on hover */
-  border-color: #6ca956 !important; /* Keep original green border on hover */
+  background-color: #22c55e !important; /* Bright green background on hover */
+  color: #ffffff !important; /* White text on hover for contrast */
+  border-color: #16a34a !important; /* Darker green border on hover */
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.6), 0 0 0 3px rgba(34, 197, 94, 0.4) !important; /* Strong green glow shadow */
+  transform: translateY(-3px) scale(1.05) !important; /* More dramatic lift and scale effect */
+  transition: all 0.3s ease-in-out !important; /* Smooth transition */
 }
 
 /* Ensure camera buttons in streams panel stay exactly the same in dark mode */
@@ -862,14 +928,17 @@ body.dark-mode .live-data-wrapper {
   color: #000000 !important; /* Keep original black text */
   border: 0.1rem solid #d1d5db !important; /* Keep original border */
   box-shadow: none !important; /* Remove any dark mode box shadows */
+  transition: all 0.2s ease-in-out !important; /* Add transition for smooth hover effects */
 }
 
 .dark-video .camera-streams-panel .stream-group .left-camera-btn:hover,
 .dark-video .camera-streams-panel .stream-group .right-camera-btn:hover {
-  background-color: #f0f9f0 !important; /* Keep original light green background on hover */
-  color: #000000 !important; /* Keep original black text on hover */
-  border-color: #6ca956 !important; /* Keep original green border on hover */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; /* Keep original hover shadow */
+  background-color: #22c55e !important; /* Bright green background on hover */
+  color: #ffffff !important; /* White text on hover for contrast */
+  border-color: #16a34a !important; /* Darker green border on hover */
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.6), 0 0 0 3px rgba(34, 197, 94, 0.4) !important; /* Strong green glow shadow */
+  transform: translateY(-3px) scale(1.05) !important; /* More dramatic lift and scale effect */
+  transition: all 0.3s ease-in-out !important; /* Smooth transition */
 }
 
 /* All responsive sizing now handled by clamp() functions above */

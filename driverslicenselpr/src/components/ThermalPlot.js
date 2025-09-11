@@ -125,6 +125,47 @@ function smoothData(data, windowSize = 5) {
   return smoothed
 }
 
+// Filter data to ensure only 1-2 degree differences between consecutive points
+function filterTemperatureDifferences(data) {
+  if (!data || data.length === 0) return data
+  
+  const filteredData = [data[0]] // Keep first point as is
+  
+  for (let i = 1; i < data.length; i++) {
+    const currentPoint = data[i]
+    const previousPoint = filteredData[filteredData.length - 1]
+    const filteredReadings = {}
+    
+    Object.keys(currentPoint.readings || {}).forEach(zone => {
+      const currentTemp = currentPoint.readings[zone]
+      const previousTemp = previousPoint.readings[zone]
+      
+      if (typeof currentTemp === 'number' && typeof previousTemp === 'number') {
+        const tempDiff = Math.abs(currentTemp - previousTemp)
+        
+        // If difference is more than 2 degrees, limit it to 1-2 degrees
+        if (tempDiff > 2) {
+          const maxChange = 1.5 // Maximum 1.5 degree change
+          const direction = currentTemp > previousTemp ? 1 : -1
+          filteredReadings[zone] = previousTemp + (direction * maxChange)
+        } else {
+          filteredReadings[zone] = currentTemp
+        }
+      } else {
+        filteredReadings[zone] = currentTemp
+      }
+    })
+    
+    filteredData.push({
+      ...currentPoint,
+      readings: filteredReadings
+    })
+  }
+  
+  return filteredData
+}
+
+
 export default function ThermalPlot({
   zones = [],
   allZones = [],
@@ -146,6 +187,11 @@ export default function ThermalPlot({
   const isManualLegendClickRef = useRef(false) // Track when we're in a manual legend click
   const dynamicDataIntervalRef = useRef(null) // Track dynamic data interval
   const previousTimestampsRef = useRef(null) // Track previous timestamps for comparison
+  const isProcessingDataRef = useRef(false) // Track if we're currently processing data to prevent recursion
+  const dataPreservationRef = useRef(new Map()) // Track preserved data to prevent clearing
+  const eventsTodayRef = useRef(0) // Track events that happened today
+  const lastDateRef = useRef(new Date().toDateString()) // Track the last date to detect midnight
+  const [eventsTodayState, setEventsTodayState] = useState(0) // State for UI updates
 
   // Handle window resize with debouncing to prevent layout thrashing
   useEffect(() => {
@@ -198,6 +244,7 @@ export default function ThermalPlot({
     }
   }, []) // Only run on unmount
 
+
   // Separate useEffect to measure container width after render
   useEffect(() => {
     const measureWidth = () => {
@@ -223,6 +270,7 @@ export default function ThermalPlot({
   const [zoomPreserved, setZoomPreserved] = useState(null) // null, true (preserved), false (reset)
   const [preservedYAxis, setPreservedYAxis] = useState(null) // Store Y-axis limits when user zooms
   const [allZonesHidden, setAllZonesHidden] = useState(false) // Always start with zones visible
+
   const [legendClickTestResult, setLegendClickTestResult] = useState(null) // null, true (connected), false (not connected)
   const [testResults, setTestResults] = useState({
     zoomPreserved: null,
@@ -385,33 +433,68 @@ export default function ThermalPlot({
     // eslint-disable-next-line
   }, [selectedCamera])
 
-  // Generate test data when camera or time range changes
+  // DISABLED: This useEffect was causing data clearing on time range switches
   useEffect(() => {
-    console.log("🔄 TIME RANGE CHANGED - useEffect is running")
-    console.log(`🔄 useEffect triggered - timeRange: ${timeRange}, selectedCamera: ${selectedCamera}`)
-    console.log(`🚨🚨🚨 TIME RANGE SWITCH DETECTED 🚨🚨🚨`)
-    console.log(`📊 Current dataToUse length before switch: ${dataToUse.length}`)
-    console.log(`📊 Current dataSource length before switch: ${dataSource ? dataSource.length : 'undefined'}`)
+    console.log("🚫 DISABLED: Main data useEffect to prevent data clearing")
+    console.log(`🚫 DISABLED: timeRange: ${timeRange}, selectedCamera: ${selectedCamera}`)
+    console.log(`🚫 DISABLED: Current dataToUse length: ${dataToUse.length}`)
     
-    
-    // Simple test log to make sure console is working
-    console.log("TEST: This should appear in console when time range changes")
-    
-    // Add a counter to track how many times this runs
-    if (!window.useEffectCounter) window.useEffectCounter = 0
-    window.useEffectCounter++
-    console.log(`🔄 useEffect run count: ${window.useEffectCounter}`)
-    
-    if (window.useEffectCounter > 5) {
-      console.error("🚨 INFINITE LOOP DETECTED - STOPPING DEBUG LOGS")
-      return
-    }
-    
-    // Check if data already exists for this time range and camera
+    // SIMPLE APPROACH: Just load existing data if it exists, don't regenerate
     const testDataKey = `thermalHistory${timeRange}_${selectedCamera}`
     const existingData = localStorage.getItem(testDataKey)
-    console.log(`🔍 Checking for existing data with key: ${testDataKey}`)
-    console.log(`🔍 Existing data found: ${existingData ? 'YES' : 'NO'}`)
+    
+    if (existingData && dataToUse.length === 0) {
+      try {
+        const parsed = JSON.parse(existingData)
+        console.log(`✅ SIMPLE LOAD: Loading ${parsed.length} existing data points`)
+        setDataToUse(parsed)
+      } catch (error) {
+        console.error(`❌ SIMPLE LOAD: Failed to parse data:`, error.message)
+      }
+    } else if (existingData) {
+      console.log(`✅ SIMPLE LOAD: Data already loaded (${dataToUse.length} points)`)
+    } else {
+      console.log(`❌ SIMPLE LOAD: No existing data found for ${testDataKey}`)
+      console.log(`🔧 SIMPLE LOAD: Will generate new data for ${timeRange}`)
+      
+      // Generate new data if none exists
+      if (timeRange === '30m') {
+        console.log(`🔧 Generating 30m data`)
+        const now = new Date()
+        const testData = []
+        const entries = 60 // 30 minutes = 60 data points (1 per 30 seconds)
+        const interval = 30 * 1000 // 30 second intervals
+        
+        for (let i = 0; i < entries; i++) {
+          const time = new Date(now.getTime() - (entries - i) * interval)
+          const readings = {}
+          
+          Array.from({ length: 8 }, (_, zoneIndex) => `Zone_${zoneIndex + 1}`).forEach((zoneName, zoneIndex) => {
+            const isLeftCamera = selectedCamera === 'planck_1'
+            const cameraOffset = isLeftCamera ? 2 : 0
+            const zoneBaseTemp = 80 + (zoneIndex * 1) + cameraOffset
+            
+            const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 0.2
+            const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 0.3
+            const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 0.1
+            const randomNoise = (Math.random() - 0.5) * 0.2
+            const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.2
+            
+            const finalTemp = zoneBaseTemp + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
+            readings[zoneName] = Math.round(finalTemp * 10) / 10
+          })
+          
+          testData.push({ time: time.toISOString(), readings })
+        }
+        
+        const filteredData = filterTemperatureDifferences(testData)
+        setDataToUse(filteredData)
+        localStorage.setItem(testDataKey, JSON.stringify(filteredData))
+        console.log(`✅ Generated and saved ${filteredData.length} data points for 30m`)
+      }
+    }
+    
+    return
     
     // Also check for combined data from all cameras
     const combinedDataKey = `thermalHistory${timeRange}_all_cameras`
@@ -428,9 +511,11 @@ export default function ThermalPlot({
           console.log(`📊 Loading combined data to show all camera history`)
           console.log(`✅✅✅ COMBINED DATA LOADED - SHOWING ALL CAMERAS ✅✅✅`)
           
-          // Load the combined data into state
-          setDataToUse(parsedCombinedData)
-          console.log(`✅ Combined data loaded successfully - dataToUse should now have ${parsedCombinedData.length} points`)
+          // Load the combined data into state with temperature filtering
+          const filteredCombinedData = filterTemperatureDifferences(parsedCombinedData)
+          setDataToUse(filteredCombinedData)
+          console.log(`✅ TIME RANGE SWITCH: Combined data loaded successfully - dataToUse should now have ${filteredCombinedData.length} points`)
+          console.log(`✅ TIME RANGE SWITCH: Data preserved from ${timeRange} - NO CLEARING`)
           return
         }
       } catch (error) {
@@ -448,9 +533,11 @@ export default function ThermalPlot({
           console.log(`✅✅✅ CAMERA DATA LOADED ✅✅✅`)
           console.log(`📊 DataToUse will be set to ${parsedData.length} points`)
           
-          // Load the existing data into state
-          setDataToUse(parsedData)
-          console.log(`✅ Data loaded successfully - dataToUse should now have ${parsedData.length} points`)
+          // Load the existing data into state with temperature filtering
+          const filteredData = filterTemperatureDifferences(parsedData)
+          setDataToUse(filteredData)
+          console.log(`✅ TIME RANGE SWITCH: Camera data loaded successfully - dataToUse should now have ${filteredData.length} points`)
+          console.log(`✅ TIME RANGE SWITCH: Data preserved from ${timeRange} - NO CLEARING`)
           return
         }
       } catch (error) {
@@ -458,9 +545,9 @@ export default function ThermalPlot({
       }
     }
     
-    // For ALL time ranges, always generate fresh data to ensure immediate loading with correct intervals
-    if (true) {
-      console.log(`🔍 ${timeRange}: Clearing localStorage and generating fresh data with correct intervals`)
+    // Only generate fresh data if no existing data was found
+    if (!existingData || existingData === '[]') {
+      console.log(`🔍 ${timeRange}: No existing data found - generating fresh data with correct intervals`)
       // Clear any existing data to force fresh generation with correct intervals
       localStorage.removeItem(`thermalHistory${timeRange}_${selectedCamera}`)
       localStorage.removeItem(`thermalHistory${timeRange}_all_cameras`)
@@ -474,28 +561,28 @@ export default function ThermalPlot({
         interval = 30 * 1000 // 30 second intervals
         startTime = new Date(now.getTime() - (30 * 60 * 1000))
       } else if (timeRange === '1h') {
-        entries = 60 // 1 hour = 60 data points
+        entries = 60 // 1 hour = 60 data points (1 per minute)
         interval = 60 * 1000 // 1 minute intervals
         startTime = new Date(now.getTime() - (60 * 60 * 1000))
       } else if (timeRange === '3h') {
-        entries = 180 // 3 hours = 180 data points
-        interval = 60 * 1000 // 1 minute intervals
+        entries = 1 // 3 hours = 1 data point (1 per 3 hours)
+        interval = 3 * 60 * 60 * 1000 // 3 hour intervals
         startTime = new Date(now.getTime() - (3 * 60 * 60 * 1000))
       } else if (timeRange === '6h') {
-        entries = 360 // 6 hours = 360 data points
-        interval = 60 * 1000 // 1 minute intervals
+        entries = 12 // 6 hours = 12 data points (1 per 30 minutes)
+        interval = 30 * 60 * 1000 // 30 minute intervals
         startTime = new Date(now.getTime() - (6 * 60 * 60 * 1000))
       } else if (timeRange === '12h') {
-        entries = 720 // 12 hours = 720 data points (1 minute intervals)
-        interval = 60 * 1000 // 1 minute intervals
+        entries = 2 // 12 hours = 2 data points (1 per 6 hours)
+        interval = 6 * 60 * 60 * 1000 // 6 hour intervals
         startTime = new Date(now.getTime() - (12 * 60 * 60 * 1000))
       } else if (timeRange === '24h') {
-        entries = 1440 // 24 hours = 1440 data points (1 minute intervals)
-        interval = 60 * 1000 // 1 minute intervals
+        entries = 4 // 24 hours = 4 data points (1 per 6 hours)
+        interval = 6 * 60 * 60 * 1000 // 6 hour intervals
         startTime = new Date(now.getTime() - (24 * 60 * 60 * 1000))
       } else if (timeRange === '48h') {
-        entries = 2880 // 48 hours = 2880 data points (1 minute intervals)
-        interval = 60 * 1000 // 1 minute intervals
+        entries = 8 // 48 hours = 8 data points (4 per day)
+        interval = 6 * 60 * 60 * 1000 // 6 hour intervals
         startTime = new Date(now.getTime() - (48 * 60 * 60 * 1000))
       } else if (timeRange === '7d') {
         entries = 98 // 7 days = 98 data points (14 points per day)
@@ -507,8 +594,8 @@ export default function ThermalPlot({
         startTime = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000))
       } else {
         // Fallback to 24 hours
-        entries = 1440
-        interval = 60 * 1000
+        entries = 4
+        interval = 6 * 60 * 60 * 1000
         startTime = new Date(now.getTime() - (24 * 60 * 60 * 1000))
       }
       
@@ -526,19 +613,19 @@ export default function ThermalPlot({
           const isLeftCamera = selectedCamera === 'planck_1'
           const cameraOffset = isLeftCamera ? 2 : 0
           // Create more varied base temperatures - some zones naturally run hotter
-          const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 15 // -15 to +15 variation
+          const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 2 // -2 to +2 variation
           const zoneBaseTemp = 75 + baseVariation + cameraOffset
           
-          const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 1.8
-          const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 1.2
-          const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 1.0
+          const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 0.2
+          const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 0.3
+          const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 0.1
           const noiseSeed = i * 1000 + zoneIndex * 100 + (selectedCamera === 'planck_1' ? 7000 : 8000) + 9000
-          const randomNoise = (seededRandom(noiseSeed) - 0.5) * 1.4
-          const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.8
+          const randomNoise = (seededRandom(noiseSeed) - 0.5) * 0.2
+          const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.2
           
           // Add time-based patterns that can cause different zones to spike
-          const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.5) * Math.PI) * 25 // Larger spikes
-          const randomSpike = Math.random() < 0.1 ? (Math.random() * 30) : 0 // 10% chance of random spike
+          const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.1) * Math.PI) * 3 // Smaller spikes
+          const randomSpike = Math.random() < 0.05 ? (Math.random() * 4) : 0 // 5% chance of small random spike
           const finalTemp = zoneBaseTemp + timeBasedSpike + randomSpike + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
           readings[zoneName] = Math.round(finalTemp * 10) / 10
         })
@@ -584,8 +671,24 @@ export default function ThermalPlot({
         console.warn(`Failed to store ${timeRange} combined data:`, error.message)
       }
       
-      setDataToUse(testData)
+      const filteredTestData = filterTemperatureDifferences(testData)
+      setDataToUse(filteredTestData)
       return
+    } else {
+      console.log(`✅ EXISTING DATA FOUND in useEffect for ${timeRange} - data preserved`)
+      console.log(`📊 Found ${JSON.parse(existingData).length} existing data points for ${timeRange}`)
+      
+      // CRITICAL: Actually load the existing data instead of just exiting
+      try {
+        const parsedExistingData = JSON.parse(existingData)
+        const filteredExistingData = filterTemperatureDifferences(parsedExistingData)
+        setDataToUse(filteredExistingData)
+        console.log(`✅ TIME RANGE SWITCH: Loaded existing data - ${filteredExistingData.length} points preserved`)
+        console.log(`✅ TIME RANGE SWITCH: Data preserved from ${timeRange} - NO CLEARING`)
+      } catch (error) {
+        console.error(`Failed to parse existing data:`, error.message)
+      }
+      return // Exit early since we have existing data
     }
     
     // Data generation will proceed if we reach this point
@@ -611,28 +714,28 @@ export default function ThermalPlot({
         entries = 60 // 30 minutes = 60 data points (1 per 30 seconds)
         chartStartTime = new Date(now.getTime() - (30 * 60 * 1000))
       } else if (timeRange === '1h') {
-        interval = 60 * 1000 // 60 seconds in milliseconds
-        entries = 60 // 1 hour = 60 data points
+        interval = 60 * 1000 // 1 minute in milliseconds
+        entries = 60 // 1 hour = 60 data points (1 per minute)
         chartStartTime = new Date(now.getTime() - (60 * 60 * 1000))
       } else if (timeRange === '3h') {
-        interval = 60 * 1000 // 60 seconds in milliseconds
-        entries = 180 // 3 hours = 180 data points
+        interval = 3 * 60 * 60 * 1000 // 3 hours in milliseconds
+        entries = 1 // 3 hours = 1 data point (1 per 3 hours)
         chartStartTime = new Date(now.getTime() - (3 * 60 * 60 * 1000))
       } else if (timeRange === '6h') {
-        interval = 60 * 1000 // 60 seconds in milliseconds
-        entries = 360 // 6 hours = 360 data points
+        interval = 6 * 60 * 60 * 1000 // 6 hours in milliseconds
+        entries = 1 // 6 hours = 1 data point (1 per 6 hours)
         chartStartTime = new Date(now.getTime() - (6 * 60 * 60 * 1000))
       } else if (timeRange === '12h') {
-        interval = 60 * 1000 // 1 minute in milliseconds
-        entries = 720 // 12 hours = 720 data points (1 minute intervals)
+        interval = 6 * 60 * 60 * 1000 // 6 hours in milliseconds
+        entries = 2 // 12 hours = 2 data points (1 per 6 hours)
         chartStartTime = new Date(now.getTime() - (12 * 60 * 60 * 1000))
       } else if (timeRange === '24h') {
-        interval = 60 * 1000 // 1 minute in milliseconds
-        entries = 1440 // 24 hours = 1440 data points (1 minute intervals)
+        interval = 6 * 60 * 60 * 1000 // 6 hours in milliseconds
+        entries = 4 // 24 hours = 4 data points (1 per 6 hours)
         chartStartTime = new Date(now.getTime() - (24 * 60 * 60 * 1000))
       } else if (timeRange === '48h') {
-        interval = 60 * 1000 // 1 minute in milliseconds
-        entries = 2880 // 48 hours = 2880 data points (1 minute intervals)
+        interval = 6 * 60 * 60 * 1000 // 6 hours in milliseconds
+        entries = 8 // 48 hours = 8 data points (4 per day)
         chartStartTime = new Date(now.getTime() - (48 * 60 * 60 * 1000))
       } else if (timeRange === '2d') {
         entries = 2880 // 2 days = 2880 data points
@@ -658,7 +761,7 @@ export default function ThermalPlot({
         chartStartTime = new Date(now.getTime() - (365 * 24 * 60 * 60 * 1000))
       } else {
         // Fallback to 24 hours
-        entries = 1440
+        entries = 4
         chartStartTime = new Date(now.getTime() - (24 * 60 * 60 * 1000))
       }
       
@@ -693,24 +796,39 @@ export default function ThermalPlot({
           const cameraOffset = isLeftCamera ? 2 : 0
           
           // Create more varied base temperatures - some zones naturally run hotter
-          const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 15 // -15 to +15 variation
+          // For 30m range, ensure zones are separated by 3-4 degrees to prevent overlap
+          const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 1 // 1-2 degree separation for all ranges
           const zoneBaseTemp = 75 + baseVariation + cameraOffset
           
-          const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 1.8
-          const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 1.2
-          const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 1.0
+          const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 0.2
+          const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 0.3
+          const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 0.1
           // Use seeded random for consistent noise
           const noiseSeed = i * 1000 + zoneIndex * 100 + (selectedCamera === 'planck_1' ? 5000 : 6000)
-          const randomNoise = (seededRandom(noiseSeed) - 0.5) * 1.4
-          const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.8
+          const randomNoise = (seededRandom(noiseSeed) - 0.5) * 0.2
+          const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.2
           
-          // Add time-based patterns that can cause different zones to spike
-          const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.5) * Math.PI) * 25 // Larger spikes
-          const randomSpike = Math.random() < 0.1 ? (Math.random() * 30) : 0 // 10% chance of random spike
-          const finalTemp = zoneBaseTemp + timeBasedSpike + randomSpike + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
-          const minTemp = 60 // Lower minimum
-          const maxTemp = 200 // Higher maximum to allow for threshold breaches
-          const clampedTemp = Math.max(minTemp, Math.min(maxTemp, Math.round(finalTemp * 10) / 10))
+          // For 30m range, ensure smooth data with no high spikes and only 1-2 degree variations
+          let finalTemp
+          if (timeRange === '30m') {
+            // Remove spikes and ensure smooth transitions for 30m data
+            const smoothVariation = (seededRandom(i * 100 + zoneIndex * 10) - 0.5) * 2 // Only ±1 degree variation
+            finalTemp = zoneBaseTemp + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern + smoothVariation
+            // Clamp to ensure only 1-2 degree variations from base
+            const minTemp = zoneBaseTemp - 2
+            const maxTemp = zoneBaseTemp + 2
+            finalTemp = Math.max(minTemp, Math.min(maxTemp, Math.round(finalTemp * 10) / 10))
+          } else {
+            // Keep existing logic for other time ranges
+            const timeBasedSpike = timeRange === '1h' ? 0 : Math.sin((i / 20 + zoneIndex * 0.1) * Math.PI) * 3 // No spikes for 1h
+            const randomSpike = timeRange === '1h' ? 0 : (Math.random() < 0.05 ? (Math.random() * 4) : 0) // No random spikes for 1h
+            finalTemp = zoneBaseTemp + timeBasedSpike + randomSpike + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
+            const minTemp = 60 // Lower minimum
+            const maxTemp = 200 // Higher maximum to allow for threshold breaches
+            finalTemp = Math.max(minTemp, Math.min(maxTemp, Math.round(finalTemp * 10) / 10))
+          }
+          
+          const clampedTemp = finalTemp
           
           readings[z.name] = clampedTemp
         })
@@ -789,7 +907,189 @@ export default function ThermalPlot({
       console.log(`✅✅✅ EXISTING DATA FOUND - NO CLEARING WILL OCCUR ✅✅✅`)
       console.log(`🧪 DATA PRESERVATION TEST: Data should be preserved during time range switches`)
     }
+    
+    // CRITICAL: Mark this data key as processed to prevent recursion
+    const currentDataKey = `thermalHistory${timeRange}_${selectedCamera}`
+    localStorage.setItem('lastProcessedDataKey', currentDataKey)
+    console.log(`🛡️ GUARD: Marked ${currentDataKey} as processed`)
+    
+    // Clear processing flag
+    isProcessingDataRef.current = false
   }, [timeRange, selectedCamera])
+
+  // Generate data for 30m if none exists
+  useEffect(() => {
+    if (timeRange === '30m') {
+      // Check if data already exists in localStorage
+      const testDataKey = `thermalHistory${timeRange}_${selectedCamera}`
+      const existingData = localStorage.getItem(testDataKey)
+      
+      if (!existingData) {
+        console.log(`🔧 30M DATA GENERATION: No data found, generating 30m data`)
+        
+        const now = new Date()
+        const testData = []
+        const entries = 60 // 30 minutes = 60 data points (1 per 30 seconds)
+        const interval = 30 * 1000 // 30 second intervals
+        
+        for (let i = 0; i < entries; i++) {
+          const time = new Date(now.getTime() - (entries - i) * interval)
+          const readings = {}
+          
+          Array.from({ length: 8 }, (_, zoneIndex) => `Zone_${zoneIndex + 1}`).forEach((zoneName, zoneIndex) => {
+            const isLeftCamera = selectedCamera === 'planck_1'
+            const cameraOffset = isLeftCamera ? 2 : 0
+            const zoneBaseTemp = 80 + (zoneIndex * 1) + cameraOffset
+            
+            const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 0.2
+            const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 0.3
+            const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 0.1
+            const randomNoise = (Math.random() - 0.5) * 0.2
+            const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.2
+            
+            const finalTemp = zoneBaseTemp + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
+            readings[zoneName] = Math.round(finalTemp * 10) / 10
+          })
+          
+          testData.push({ time: time.toISOString(), readings })
+        }
+        
+        const filteredData = filterTemperatureDifferences(testData)
+        setDataToUse(filteredData)
+        localStorage.setItem(testDataKey, JSON.stringify(filteredData))
+        console.log(`✅ 30M DATA GENERATION: Generated and saved ${filteredData.length} data points`)
+      } else {
+        console.log(`✅ 30M DATA GENERATION: Existing data found, loading from localStorage`)
+        try {
+          const parsed = JSON.parse(existingData)
+          setDataToUse(parsed)
+          console.log(`✅ 30M DATA GENERATION: Loaded ${parsed.length} existing data points`)
+        } catch (error) {
+          console.error(`❌ 30M DATA GENERATION: Failed to parse existing data:`, error.message)
+        }
+      }
+    }
+  }, [timeRange, selectedCamera])
+
+  // Track events today and reset at midnight
+  useEffect(() => {
+    const currentDate = new Date().toDateString()
+    
+    // Check if it's a new day (midnight has passed)
+    if (lastDateRef.current !== currentDate) {
+      console.log(`🕛 MIDNIGHT DETECTED: Resetting events today from ${eventsTodayRef.current} to 0`)
+      eventsTodayRef.current = 0
+      setEventsTodayState(0)
+      lastDateRef.current = currentDate
+    }
+    
+    // Calculate total events today from ALL time ranges
+    const calculateTotalEventsToday = () => {
+      const today = new Date()
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+      const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+      
+      let totalEventsToday = 0
+      const cameras = ['planck_1', 'planck_2']
+      const timeRanges = ['30m', '1h', '3h', '6h', '12h', '24h', '48h', '2d', '4d', '7d', '2w', '1m', '1y']
+      
+      // Check all combinations of cameras and time ranges
+      cameras.forEach(camera => {
+        timeRanges.forEach(range => {
+          const dataKey = `thermalHistory${range}_${camera}`
+          const existingData = localStorage.getItem(dataKey)
+          
+          if (existingData) {
+            try {
+              const parsedData = JSON.parse(existingData)
+              parsedData.forEach(point => {
+                const pointTime = new Date(point.time)
+                if (pointTime >= todayStart && pointTime < todayEnd) {
+                  // Count each data entry (data point) for today
+                  totalEventsToday++
+                }
+              })
+            } catch (error) {
+              console.warn(`Failed to parse data for ${dataKey}:`, error.message)
+            }
+          }
+        })
+      })
+      
+      // Always update the events today count to ensure accuracy
+      if (totalEventsToday !== eventsTodayRef.current) {
+        eventsTodayRef.current = totalEventsToday
+        setEventsTodayState(totalEventsToday)
+        console.log(`📊 EVENTS TODAY: Updated to ${totalEventsToday} events (from all time ranges)`)
+      }
+    }
+    
+    // Use a timeout to check after data is initialized
+    const timeoutId = setTimeout(calculateTotalEventsToday, 100)
+    
+    // Also call it immediately to ensure it's calculated
+    calculateTotalEventsToday()
+    
+    return () => clearTimeout(timeoutId)
+  }, [timeRange, selectedCamera])
+
+
+  // DISABLED: Data preservation mechanism to prevent initialization errors
+  // useEffect(() => {
+  //   if (dataToUse && dataToUse.length > 0) {
+  //     const dataKey = `${timeRange}_${selectedCamera}`
+  //     dataPreservationRef.current.set(dataKey, {
+  //       data: [...dataToUse],
+  //       timestamp: Date.now(),
+  //       count: dataToUse.length
+  //     })
+  //     console.log(`💾 DATA PRESERVATION: Saved ${dataToUse.length} data points for ${dataKey}`)
+  //   }
+  // }, [dataToUse, timeRange, selectedCamera])
+
+  // DISABLED: Data restoration mechanism to prevent initialization errors
+  // useEffect(() => {
+  //   const dataKey = `${timeRange}_${selectedCamera}`
+  //   const preservedData = dataPreservationRef.current.get(dataKey)
+  //   
+  //   // Use a timeout to check dataToUse after it's initialized
+  //   const checkAndRestore = () => {
+  //     if (preservedData && dataToUse && dataToUse.length === 0) {
+  //       console.log(`🔄 DATA RESTORATION: Restoring ${preservedData.count} data points for ${dataKey}`)
+  //       setDataToUse(preservedData.data)
+  //     }
+  //   }
+  //   
+  //   // Check immediately and also after a short delay
+  //   checkAndRestore()
+  //   const timeoutId = setTimeout(checkAndRestore, 100)
+  //   
+  //   return () => clearTimeout(timeoutId)
+  // }, [timeRange, selectedCamera])
+
+  // Force chart update when time range or camera changes to ensure most recent entry is visible
+  useEffect(() => {
+    if (chartRef.current && dataToUse && dataToUse.length > 0) {
+      // Update chart to show most recent data
+      const xScale = chartRef.current.scales.x;
+      if (xScale) {
+        // For 48h, position y-axis at first data point
+        if (timeRange === '48h') {
+          xScale.options.min = dataToUse[0].time;
+          xScale.min = dataToUse[0].time;
+        }
+        
+        // Ensure the chart shows the most recent data
+        const lastDataPoint = dataToUse[dataToUse.length - 1];
+        if (lastDataPoint) {
+          xScale.options.max = lastDataPoint.time;
+          xScale.max = lastDataPoint.time;
+        }
+        
+        chartRef.current.update('none'); // Update without animation
+      }
+    }
+  }, [timeRange, selectedCamera]);
 
   // Helper function to generate test data for a specific camera
   const generateTestDataForCamera = (camera, timeRange) => {
@@ -811,35 +1111,35 @@ export default function ThermalPlot({
       dataStartTime = thirtyMinutesAgo
       interval = 30 * 1000 // 30 seconds in milliseconds
     } else if (timeRange === '1h') {
-      // For 1 hour: Generate data points every 10 seconds
-      entries = (60 * 60) / 10 // 1 hour * 60 minutes * 60 seconds / 10 seconds = 360 entries
+      // For 1 hour: Generate data points every 1 minute
+      entries = 60 // 1 hour = 60 data points (1 per minute)
       dataStartTime = new Date(now.getTime() - (60 * 60 * 1000))
-      interval = 10 * 1000 // 10 seconds in milliseconds
+      interval = 60 * 1000 // 1 minute in milliseconds
     } else if (timeRange === '3h') {
-      // For 3 hours: Generate data points every 30 seconds
-      entries = (3 * 60 * 60) / 30 // 3 hours * 60 minutes * 60 seconds / 30 seconds = 360 entries
+      // For 3 hours: Generate data points every 3 hours
+      entries = 1 // 3 hours = 1 data point (1 per 3 hours)
       dataStartTime = new Date(now.getTime() - (3 * 60 * 60 * 1000))
-      interval = 30 * 1000 // 30 seconds in milliseconds
+      interval = 3 * 60 * 60 * 1000 // 3 hours in milliseconds
     } else if (timeRange === '6h') {
-      // For 6 hours: Generate data points every 1 minute
-      entries = (6 * 60) / 1 // 6 hours * 60 minutes / 1 minute = 360 entries
+      // For 6 hours: Generate data points every 6 hours
+      entries = 1 // 6 hours = 1 data point (1 per 6 hours)
       dataStartTime = new Date(now.getTime() - (6 * 60 * 60 * 1000))
-      interval = 1 * 60 * 1000 // 1 minute in milliseconds
+      interval = 6 * 60 * 60 * 1000 // 6 hours in milliseconds
     } else if (timeRange === '12h') {
-      // For 12 hours: Generate data points every 10 minutes
-      entries = 72 // 12 hours * 60 minutes / 10 minutes = 72 entries
+      // For 12 hours: Generate data points every 6 hours
+      entries = 2 // 12 hours = 2 data points (1 per 6 hours)
       dataStartTime = new Date(now.getTime() - (12 * 60 * 60 * 1000))
-      interval = 10 * 60 * 1000 // 10 minutes in milliseconds
+      interval = 6 * 60 * 60 * 1000 // 6 hours in milliseconds
     } else if (timeRange === '24h') {
-      // For 24 hours: Generate data points every 15 minutes
-      entries = 96 // 24 hours * 60 minutes / 15 minutes = 96 entries
+      // For 24 hours: Generate data points every 6 hours
+      entries = 4 // 24 hours = 4 data points (1 per 6 hours)
       dataStartTime = new Date(now.getTime() - (24 * 60 * 60 * 1000))
-      interval = 15 * 60 * 1000 // 15 minutes in milliseconds
+      interval = 6 * 60 * 60 * 1000 // 6 hours in milliseconds
     } else if (timeRange === '48h') {
-      // For 48 hours: Generate data points every 30 minutes
-      entries = 96 // 48 hours * 60 minutes / 30 minutes = 96 entries
+      // For 48 hours: Generate data points every 6 hours
+      entries = 8 // 48 hours = 8 data points (4 per day)
       dataStartTime = new Date(now.getTime() - (48 * 60 * 60 * 1000))
-      interval = 30 * 60 * 1000 // 30 minutes in milliseconds
+      interval = 6 * 60 * 60 * 1000 // 6 hours in milliseconds
     } else if (['2d', '4d', '7d', '2w', '1m', '1y'].includes(timeRange)) {
       if (timeRange === '1m') {
         // For 1m, generate exactly 30 days of data
@@ -894,20 +1194,29 @@ export default function ThermalPlot({
         const isLeftCamera = camera === 'planck_1'
         const cameraOffset = isLeftCamera ? 2 : 0
         
-        const zoneBaseTemp = 80 + (zoneIndex * 8) + cameraOffset
+        // For 30m range, ensure zones are separated by 3-4 degrees to prevent overlap
+        const zoneBaseTemp = 80 + (zoneIndex * 1) + cameraOffset
         
-        const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 1.8
-        const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 1.2
-        const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 1.0
+        const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 0.2
+        const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 0.3
+        const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 0.1
         // Use seeded random for consistent noise
         const noiseSeed = i * 1000 + zoneIndex * 100 + (camera === 'planck_1' ? 7000 : 8000) + (timeRange === '30m' ? 9000 : 10000)
-        const randomNoise = (seededRandom(noiseSeed) - 0.5) * 1.4
-        const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.8
+        const randomNoise = (seededRandom(noiseSeed) - 0.5) * 0.2
+        const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.2
         
-        // Add time-based patterns that can cause different zones to spike
-        const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.5) * Math.PI) * 25 // Larger spikes
-        const randomSpike = Math.random() < 0.1 ? (Math.random() * 30) : 0 // 10% chance of random spike
-        let finalTemp = zoneBaseTemp + timeBasedSpike + randomSpike + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
+        // For 30m range, ensure smooth data with no high spikes and only 1-2 degree variations
+        let finalTemp
+        if (timeRange === '30m') {
+          // Remove spikes and ensure smooth transitions for 30m data
+          const smoothVariation = (seededRandom(i * 100 + zoneIndex * 10) - 0.5) * 2 // Only ±1 degree variation
+          finalTemp = zoneBaseTemp + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern + smoothVariation
+        } else {
+          // Keep existing logic for other time ranges
+          const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.1) * Math.PI) * 3 // Smaller spikes
+          const randomSpike = Math.random() < 0.05 ? (Math.random() * 4) : 0 // 5% chance of small random spike
+          finalTemp = zoneBaseTemp + timeBasedSpike + randomSpike + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
+        }
         
         // If this is the designated breach zone, ensure it goes above threshold
         if (zoneIndex === breachZoneIndex) {
@@ -916,9 +1225,17 @@ export default function ThermalPlot({
           finalTemp = threshold + breachAmount
         }
         
-        const minTemp = 60 // Lower minimum
-        const maxTemp = 200 // Higher maximum to allow for threshold breaches
-        const clampedTemp = Math.max(minTemp, Math.min(maxTemp, Math.round(finalTemp * 10) / 10))
+        // For 30m range, clamp to ensure only 1-2 degree variations from base
+        let clampedTemp
+        if (timeRange === '30m') {
+          const minTemp = zoneBaseTemp - 2
+          const maxTemp = zoneBaseTemp + 2
+          clampedTemp = Math.max(minTemp, Math.min(maxTemp, Math.round(finalTemp * 10) / 10))
+        } else {
+          const minTemp = 60 // Lower minimum
+          const maxTemp = 200 // Higher maximum to allow for threshold breaches
+          clampedTemp = Math.max(minTemp, Math.min(maxTemp, Math.round(finalTemp * 10) / 10))
+        }
         
         readings[z.name] = clampedTemp
       })
@@ -1031,17 +1348,17 @@ export default function ThermalPlot({
             const cameraOffset = isLeftCamera ? 2 : 0
             
             // Create more varied base temperatures - some zones naturally run hotter
-          const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 15 // -15 to +15 variation
+          const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 2 // -2 to +2 variation
           const zoneBaseTemp = 75 + baseVariation + cameraOffset
             
             // Enhanced wave patterns for more realistic data
-            const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 1.8
-            const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 1.2
-            const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 1.0
+            const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 0.2
+            const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 0.3
+            const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 0.1
             // Use seeded random for consistent noise
             const noiseSeed = i * 1000 + zoneIndex * 100 + (camera === 'planck_1' ? 17000 : 18000) + (currentTimeRange === '30m' ? 19000 : currentTimeRange === '1h' ? 20000 : 21000)
-            const randomNoise = (seededRandom(noiseSeed) - 0.5) * 1.4
-            const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.8
+            const randomNoise = (seededRandom(noiseSeed) - 0.5) * 0.2
+            const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.2
             
             // Add weekly and monthly patterns for longer time ranges
             let weeklyPattern = 0
@@ -1053,8 +1370,8 @@ export default function ThermalPlot({
             }
             
             // Add time-based patterns that can cause different zones to spike
-          const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.5) * Math.PI) * 25 // Larger spikes
-          const randomSpike = Math.random() < 0.1 ? (Math.random() * 30) : 0 // 10% chance of random spike
+          const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.1) * Math.PI) * 3 // Smaller spikes
+          const randomSpike = Math.random() < 0.05 ? (Math.random() * 4) : 0 // 5% chance of small random spike
           const finalTemp = zoneBaseTemp + timeBasedSpike + randomSpike + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern + weeklyPattern + monthlyPattern
             const minTemp = zoneBaseTemp - 2.5
             const maxTemp = zoneBaseTemp + 2.5
@@ -1162,29 +1479,29 @@ export default function ThermalPlot({
         startTime = thirtyMinutesAgo
         interval = 30 * 1000 // 30 seconds
       } else if (timeRange === '1h') {
-        entries = 60
+        entries = 60 // 1 hour = 60 data points (1 per minute)
         startTime = new Date(now.getTime() - (60 * 60 * 1000))
         interval = 60 * 1000 // 1 minute
       } else if (timeRange === '3h') {
-        entries = 180
+        entries = 1 // 3 hours = 1 data point (1 per 3 hours)
         startTime = new Date(now.getTime() - (3 * 60 * 60 * 1000))
-        interval = 60 * 1000 // 1 minute
+        interval = 3 * 60 * 60 * 1000 // 3 hours
       } else if (timeRange === '6h') {
-        entries = 360
+        entries = 1 // 6 hours = 1 data point (1 per 6 hours)
         startTime = new Date(now.getTime() - (6 * 60 * 60 * 1000))
-        interval = 60 * 1000 // 1 minute
+        interval = 6 * 60 * 60 * 1000 // 6 hours
       } else if (timeRange === '12h') {
-        entries = 72 // 12 hours = 72 data points (10 minute intervals)
+        entries = 2 // 12 hours = 2 data points (1 per 6 hours)
         startTime = new Date(now.getTime() - (12 * 60 * 60 * 1000))
-        interval = 10 * 60 * 1000 // 10 minutes
+        interval = 6 * 60 * 60 * 1000 // 6 hours
       } else if (timeRange === '24h') {
-        entries = 96 // 24 hours = 96 data points (15 minute intervals)
+        entries = 4 // 24 hours = 4 data points (1 per 6 hours)
         startTime = new Date(now.getTime() - (24 * 60 * 60 * 1000))
-        interval = 15 * 60 * 1000 // 15 minutes
+        interval = 6 * 60 * 60 * 1000 // 6 hours
       } else if (timeRange === '48h') {
-        entries = 96 // 48 hours = 96 data points (30 minute intervals)
+        entries = 8 // 48 hours = 8 data points (4 per day)
         startTime = new Date(now.getTime() - (48 * 60 * 60 * 1000))
-        interval = 30 * 60 * 1000 // 30 minutes
+        interval = 6 * 60 * 60 * 1000 // 6 hours
       } else if (timeRange === '2d') {
         entries = 5000
         startTime = new Date(now.getTime() - (2 * 24 * 60 * 60 * 1000))
@@ -1226,24 +1543,39 @@ export default function ThermalPlot({
           const cameraOffset = isLeftCamera ? 2 : 0
           
           // Create more varied base temperatures - some zones naturally run hotter
-          const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 15 // -15 to +15 variation
+          // For 30m range, ensure zones are separated by 3-4 degrees to prevent overlap
+          const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 1 // 1-2 degree separation for all ranges
           const zoneBaseTemp = 75 + baseVariation + cameraOffset
           
-          const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 1.8
-          const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 1.2
-          const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 1.0
+          const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 0.2
+          const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 0.3
+          const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 0.1
           // Use seeded random for consistent noise
           const noiseSeed = i * 1000 + zoneIndex * 100 + (selectedCamera === 'planck_1' ? 22000 : 23000) + (timeRange === '30m' ? 24000 : timeRange === '1h' ? 25000 : 26000)
-          const randomNoise = (seededRandom(noiseSeed) - 0.5) * 1.4
-          const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.8
+          const randomNoise = (seededRandom(noiseSeed) - 0.5) * 0.2
+          const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.2
           
-          // Add time-based patterns that can cause different zones to spike
-          const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.5) * Math.PI) * 25 // Larger spikes
-          const randomSpike = Math.random() < 0.1 ? (Math.random() * 30) : 0 // 10% chance of random spike
-          const finalTemp = zoneBaseTemp + timeBasedSpike + randomSpike + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
-          const minTemp = 60 // Lower minimum
-          const maxTemp = 200 // Higher maximum to allow for threshold breaches
-          const clampedTemp = Math.max(minTemp, Math.min(maxTemp, Math.round(finalTemp * 10) / 10))
+          // For 30m range, ensure smooth data with no high spikes and only 1-2 degree variations
+          let finalTemp
+          if (timeRange === '30m') {
+            // Remove spikes and ensure smooth transitions for 30m data
+            const smoothVariation = (seededRandom(i * 100 + zoneIndex * 10) - 0.5) * 2 // Only ±1 degree variation
+            finalTemp = zoneBaseTemp + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern + smoothVariation
+            // Clamp to ensure only 1-2 degree variations from base
+            const minTemp = zoneBaseTemp - 2
+            const maxTemp = zoneBaseTemp + 2
+            finalTemp = Math.max(minTemp, Math.min(maxTemp, Math.round(finalTemp * 10) / 10))
+          } else {
+            // Keep existing logic for other time ranges
+            const timeBasedSpike = timeRange === '1h' ? 0 : Math.sin((i / 20 + zoneIndex * 0.1) * Math.PI) * 3 // No spikes for 1h
+            const randomSpike = timeRange === '1h' ? 0 : (Math.random() < 0.05 ? (Math.random() * 4) : 0) // No random spikes for 1h
+            finalTemp = zoneBaseTemp + timeBasedSpike + randomSpike + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
+            const minTemp = 60 // Lower minimum
+            const maxTemp = 200 // Higher maximum to allow for threshold breaches
+            finalTemp = Math.max(minTemp, Math.min(maxTemp, Math.round(finalTemp * 10) / 10))
+          }
+          
+          const clampedTemp = finalTemp
           
           readings[z.name] = clampedTemp
         })
@@ -1315,22 +1647,24 @@ export default function ThermalPlot({
             
             if (isLeftCamera) {
               // Left camera (planck_1) - Higher base temperatures, different wave patterns
-              zoneBaseTemp = 82 + (zoneIndex * 8) // Slightly higher base temps
-              primaryWave = Math.sin((i / 30) * Math.PI + zoneIndex) * 2.0 // Different frequency
-              secondaryWave = Math.cos((i / 20) * Math.PI + zoneIndex * 1.5) * 1.5 // Different pattern
-              tertiaryWave = Math.sin((i / 45) * Math.PI + zoneIndex * 2.5) * 1.2 // Different frequency
+              // For 30m range, ensure zones are separated by 3-4 degrees to prevent overlap
+              zoneBaseTemp = 82 + (zoneIndex * 1) // 1 degree separation for all ranges
+              primaryWave = Math.sin((i / 30) * Math.PI + zoneIndex) * 0.2 // Different frequency
+              secondaryWave = Math.cos((i / 20) * Math.PI + zoneIndex * 1.5) * 0.6 // Different pattern
+              tertiaryWave = Math.sin((i / 45) * Math.PI + zoneIndex * 2.5) * 0.1 // Different frequency
             } else {
               // Right camera (planck_2) - Lower base temperatures, different wave patterns
-              zoneBaseTemp = 78 + (zoneIndex * 8) // Slightly lower base temps
-              primaryWave = Math.sin((i / 40) * Math.PI + zoneIndex * 1.2) * 1.6 // Different frequency
-              secondaryWave = Math.cos((i / 30) * Math.PI + zoneIndex * 2.8) * 1.0 // Different pattern
-              tertiaryWave = Math.sin((i / 55) * Math.PI + zoneIndex * 1.8) * 0.8 // Different frequency
+              // For 30m range, ensure zones are separated by 3-4 degrees to prevent overlap
+              zoneBaseTemp = 78 + (zoneIndex * 1) // 1 degree separation for all ranges
+              primaryWave = Math.sin((i / 40) * Math.PI + zoneIndex * 0.3) * 0.2 // Different frequency
+              secondaryWave = Math.cos((i / 30) * Math.PI + zoneIndex * 2.8) * 0.6 // Different pattern
+              tertiaryWave = Math.sin((i / 55) * Math.PI + zoneIndex * 1.8) * 0.2 // Different frequency
             }
             
             // Use seeded random for consistent noise
             const noiseSeed = i * 1000 + zoneIndex * 100 + (camera === 'planck_1' ? 11000 : 12000) + (range === '24h' ? 13000 : range === '48h' ? 14000 : range === '7d' ? 15000 : 16000)
-            const randomNoise = (seededRandom(noiseSeed) - 0.5) * 1.4
-            const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.8
+            const randomNoise = (seededRandom(noiseSeed) - 0.5) * 0.2
+            const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.2
             
             // Add weekly and monthly patterns for longer ranges
             let weeklyPattern = 0
@@ -1341,13 +1675,27 @@ export default function ThermalPlot({
               monthlyPattern = Math.sin((time.getDate() / 31) * Math.PI * 2) * 0.4
             }
             
-            // Add time-based patterns that can cause different zones to spike
-          const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.5) * Math.PI) * 25 // Larger spikes
-          const randomSpike = Math.random() < 0.1 ? (Math.random() * 30) : 0 // 10% chance of random spike
-          const finalTemp = zoneBaseTemp + timeBasedSpike + randomSpike + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern + weeklyPattern + monthlyPattern
-            const minTemp = zoneBaseTemp - 2.5
-            const maxTemp = zoneBaseTemp + 2.5
-            const clampedTemp = Math.max(minTemp, Math.min(maxTemp, Math.round(finalTemp * 10) / 10))
+            // For 30m range, ensure smooth data with no high spikes and only 1-2 degree variations
+            let finalTemp
+            if (range === '30m') {
+              // Remove spikes and ensure smooth transitions for 30m data
+              const smoothVariation = (seededRandom(i * 100 + zoneIndex * 10) - 0.5) * 2 // Only ±1 degree variation
+              finalTemp = zoneBaseTemp + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern + smoothVariation
+              // Clamp to ensure only 1-2 degree variations from base
+              const minTemp = zoneBaseTemp - 2
+              const maxTemp = zoneBaseTemp + 2
+              finalTemp = Math.max(minTemp, Math.min(maxTemp, Math.round(finalTemp * 10) / 10))
+            } else {
+              // Keep existing logic for other time ranges
+              const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.1) * Math.PI) * 3 // Smaller spikes
+              const randomSpike = timeRange === '1h' ? 0 : (Math.random() < 0.05 ? (Math.random() * 4) : 0) // No random spikes for 1h
+              finalTemp = zoneBaseTemp + timeBasedSpike + randomSpike + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern + weeklyPattern + monthlyPattern
+              const minTemp = zoneBaseTemp - 2.5
+              const maxTemp = zoneBaseTemp + 2.5
+              finalTemp = Math.max(minTemp, Math.min(maxTemp, Math.round(finalTemp * 10) / 10))
+            }
+            
+            const clampedTemp = finalTemp
             
             readings[zoneName] = clampedTemp
           })
@@ -1375,6 +1723,7 @@ export default function ThermalPlot({
     
     console.log('🔄 Test data regeneration complete!')
   }
+
 
   // Only generate data for essential ranges to avoid localStorage overflow
   useEffect(() => {
@@ -1478,15 +1827,15 @@ export default function ThermalPlot({
               const cameraOffset = isLeftCamera ? 2 : 0
               
               // Create more varied base temperatures - some zones naturally run hotter
-          const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 15 // -15 to +15 variation
+          const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 2 // -2 to +2 variation
           const zoneBaseTemp = 75 + baseVariation + cameraOffset
               
               // Enhanced wave patterns for more realistic data
-              const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 1.8
-              const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 1.2
-              const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 1.0
-              const randomNoise = (Math.random() - 0.5) * 1.4
-              const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.8
+              const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 0.2
+              const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 0.3
+              const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 0.1
+              const randomNoise = (Math.random() - 0.5) * 0.2
+              const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.2
               
               // Add weekly and monthly patterns for longer time ranges
               let weeklyPattern = 0
@@ -1498,8 +1847,8 @@ export default function ThermalPlot({
               }
               
               // Add time-based patterns that can cause different zones to spike
-          const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.5) * Math.PI) * 25 // Larger spikes
-          const randomSpike = Math.random() < 0.1 ? (Math.random() * 30) : 0 // 10% chance of random spike
+          const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.1) * Math.PI) * 3 // Smaller spikes
+          const randomSpike = Math.random() < 0.05 ? (Math.random() * 4) : 0 // 5% chance of small random spike
           const finalTemp = zoneBaseTemp + timeBasedSpike + randomSpike + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern + weeklyPattern + monthlyPattern
               const minTemp = zoneBaseTemp - 2.5
               const maxTemp = zoneBaseTemp + 2.5
@@ -1603,11 +1952,11 @@ export default function ThermalPlot({
   const testDataConfig = {
     '30m': { entries: 60, interval: 30 * 1000, peakChance: 0.05 }, // 30 minutes = 60 points (1 per 30 seconds)
     '1h': { entries: 60, interval: 60 * 1000, peakChance: 0.06 }, // 1 hour = 60 points (1 per minute)
-    '3h': { entries: 180, interval: 60 * 1000, peakChance: 0.07 }, // 3 hours = 180 points (1 per minute)
-    '6h': { entries: 360, interval: 60 * 1000, peakChance: 0.08 }, // 6 hours = 360 points (1 per minute)
-    '12h': { entries: 72, interval: 10 * 60 * 1000, peakChance: 0.09 }, // 12 hours = 72 points (1 per 10 minutes)
-    '24h': { entries: 96, interval: 15 * 60 * 1000, peakChance: 0.10 }, // 24 hours = 96 points (1 per 15 minutes)
-    '48h': { entries: 96, interval: 30 * 60 * 1000, peakChance: 0.12 }, // 48 hours = 96 points (1 per 30 minutes)
+    '3h': { entries: 1, interval: 3 * 60 * 60 * 1000, peakChance: 0.07 }, // 3 hours = 1 point (1 per 3 hours)
+    '6h': { entries: 12, interval: 30 * 60 * 1000, peakChance: 0.08 }, // 6 hours = 12 points (1 per 30 minutes)
+    '12h': { entries: 2, interval: 6 * 60 * 60 * 1000, peakChance: 0.09 }, // 12 hours = 2 points (1 per 6 hours)
+    '24h': { entries: 4, interval: 6 * 60 * 60 * 1000, peakChance: 0.10 }, // 24 hours = 4 points (1 per 6 hours)
+    '48h': { entries: 8, interval: 6 * 60 * 60 * 1000, peakChance: 0.12 }, // 48 hours = 8 points (4 per day)
     '2d': { entries: 2880, interval: 60 * 1000, peakChance: 0.15 }, // 2 days = 2880 points (1 per minute)
     '4d': { entries: 5760, interval: 60 * 1000, peakChance: 0.18 }, // 4 days = 5760 points (1 per minute)
     '7d': { entries: 98, interval: (7 * 24 * 60 * 60 * 1000) / (98 - 1), peakChance: 0.20 }, // 7 days = 98 points (old filtering)
@@ -1667,25 +2016,28 @@ export default function ThermalPlot({
       entries = 30 // 30 minutes = 30 data points
       startTime = new Date(now.getTime() - (30 * 60 * 1000))
     } else if (timeRange === '1h') {
-      entries = 60 // 1 hour = 60 data points
+      entries = 60 // 1 hour = 60 data points (1 per minute)
+      interval = 60 * 1000 // 1 minute in milliseconds
       startTime = new Date(now.getTime() - (60 * 60 * 1000))
     } else if (timeRange === '3h') {
-      entries = 180 // 3 hours = 180 data points
+      entries = 1 // 3 hours = 1 data point (1 per 3 hours)
+      interval = 3 * 60 * 60 * 1000 // 3 hours in milliseconds
       startTime = new Date(now.getTime() - (3 * 60 * 60 * 1000))
     } else if (timeRange === '6h') {
-      entries = 360 // 6 hours = 360 data points
+      entries = 1 // 6 hours = 1 data point (1 per 6 hours)
+      interval = 6 * 60 * 60 * 1000 // 6 hours in milliseconds
       startTime = new Date(now.getTime() - (6 * 60 * 60 * 1000))
     } else if (timeRange === '12h') {
-      entries = 72 // 12 hours = 72 data points (10 minute intervals)
-      interval = 10 * 60 * 1000 // 10 minutes in milliseconds
+      entries = 2 // 12 hours = 2 data points (1 per 6 hours)
+      interval = 6 * 60 * 60 * 1000 // 6 hours in milliseconds
       startTime = new Date(now.getTime() - (12 * 60 * 60 * 1000))
     } else if (timeRange === '24h') {
-      entries = 96 // 24 hours = 96 data points (15 minute intervals)
-      interval = 15 * 60 * 1000 // 15 minutes in milliseconds
+      entries = 4 // 24 hours = 4 data points (1 per 6 hours)
+      interval = 6 * 60 * 60 * 1000 // 6 hours in milliseconds
       startTime = new Date(now.getTime() - (24 * 60 * 60 * 1000))
     } else if (timeRange === '48h') {
-      entries = 96 // 48 hours = 96 data points (30 minute intervals)
-      interval = 30 * 60 * 1000 // 30 minutes in milliseconds
+      entries = 8 // 48 hours = 8 data points (4 per day)
+      interval = 6 * 60 * 60 * 1000 // 6 hours in milliseconds
       startTime = new Date(now.getTime() - (48 * 60 * 60 * 1000))
     } else if (timeRange === '2d') {
       entries = 2880 // 2 days = 2880 data points
@@ -1752,19 +2104,19 @@ export default function ThermalPlot({
         const cameraOffset = isLeftCamera ? 2 : 0 // 2°F difference between cameras
         
         // Each zone gets its own distinct temperature level, separated by 8°F for better spacing
-        const zoneBaseTemp = 80 + (zoneIndex * 8) + cameraOffset // Zone 0: ~80°F, Zone 1: ~88°F, etc.
+        const zoneBaseTemp = 80 + (zoneIndex * 1.5) + cameraOffset // Zone 0: ~80°F, Zone 1: ~88°F, etc.
         
         // Create spread-out zig-zag patterns within each zone's band
-        const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 1.8 // Main wave pattern
-        const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 1.2 // Secondary variation
-        const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 1.0 // Tertiary variation
-        const randomNoise = (Math.random() - 0.5) * 1.4 // Random fluctuation
-        const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.8 // Daily variation
+        const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 0.2 // Main wave pattern
+        const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 0.3 // Secondary variation
+        const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 0.1 // Tertiary variation
+        const randomNoise = (Math.random() - 0.5) * 0.2 // Random fluctuation
+        const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.2 // Daily variation
         
         // Combine all variations for realistic spread-out zig-zag pattern
         // Add time-based patterns that can cause different zones to spike
-        const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.5) * Math.PI) * 25 // Larger spikes
-        const randomSpike = Math.random() < 0.1 ? (Math.random() * 30) : 0 // 10% chance of random spike
+        const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.1) * Math.PI) * 3 // Smaller spikes
+        const randomSpike = Math.random() < 0.05 ? (Math.random() * 4) : 0 // 5% chance of small random spike
         const finalTemp = zoneBaseTemp + timeBasedSpike + randomSpike + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
         
         // Keep within zone's range (±2.5°F from base)
@@ -1941,18 +2293,18 @@ export default function ThermalPlot({
   //           const cameraOffset = isLeftCamera ? 2 : 0
   //           
   //           // Create more varied base temperatures - some zones naturally run hotter
-  //           const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 15 // -15 to +15 variation
+  //           const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 2 // -2 to +2 variation
   //           const zoneBaseTemp = 75 + baseVariation + cameraOffset
   //           const timeFactor = currentTime / 10000 // Use current time for variation
   //           const primaryWave = Math.sin((timeFactor / 35) * Math.PI + zoneIndex) * 1.8
-  //           const secondaryWave = Math.cos((timeFactor / 25) * Math.PI + zoneIndex * 2) * 1.2
+  //           const secondaryWave = Math.cos((timeFactor / 25) * Math.PI + zoneIndex * 2) * 0.3
   //           const tertiaryWave = Math.sin((timeFactor / 50) * Math.PI + zoneIndex * 3) * 1.0
-  //           const randomNoise = (Math.random() - 0.5) * 1.4
-  //           const dailyPattern = Math.sin((new Date(currentTime).getHours() / 24) * Math.PI * 2) * 0.8
+  //           const randomNoise = (Math.random() - 0.5) * 0.2
+  //           const dailyPattern = Math.sin((new Date(currentTime).getHours() / 24) * Math.PI * 2) * 0.2
   //           
   //           // Add time-based patterns that can cause different zones to spike
-  //           const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.5) * Math.PI) * 25 // Larger spikes
-  //           const randomSpike = Math.random() < 0.1 ? (Math.random() * 30) : 0 // 10% chance of random spike
+  //           const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.1) * Math.PI) * 3 // Smaller spikes
+  //           const randomSpike = Math.random() < 0.05 ? (Math.random() * 4) : 0 // 5% chance of small random spike
   //           const finalTemp = zoneBaseTemp + timeBasedSpike + randomSpike + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
   //           const minTemp = zoneBaseTemp - 2.5
   //           const maxTemp = zoneBaseTemp + 2.5
@@ -2431,6 +2783,25 @@ export default function ThermalPlot({
     console.log(`🎯🎯🎯 INITIAL STATE SETUP 🎯🎯🎯`)
     console.log(`🎯 timeRange: ${timeRange}, selectedCamera: ${selectedCamera}`)
     
+    // SIMPLE APPROACH: Always check for existing data first
+    const testDataKey = `thermalHistory${timeRange}_${selectedCamera}`
+    const existingData = localStorage.getItem(testDataKey)
+    console.log(`🔍 SIMPLE CHECK: Looking for data with key: ${testDataKey}`)
+    console.log(`🔍 SIMPLE CHECK: Found data: ${existingData ? 'YES' : 'NO'}`)
+    
+    if (existingData) {
+      try {
+        const parsed = JSON.parse(existingData)
+        console.log(`✅ SIMPLE CHECK: Loading ${parsed.length} existing data points`)
+        return parsed
+      } catch (error) {
+        console.error(`❌ SIMPLE CHECK: Failed to parse data:`, error.message)
+      }
+    }
+    
+    console.log(`❌ SIMPLE CHECK: No data found, starting with empty array`)
+    return []
+    
     // For 30m, always generate fresh data immediately
     if (timeRange === '30m') {
       console.log(`🔍 30m: Generating fresh data immediately in initial state`)
@@ -2454,19 +2825,19 @@ export default function ThermalPlot({
           const isLeftCamera = selectedCamera === 'planck_1'
           const cameraOffset = isLeftCamera ? 2 : 0
           // Create more varied base temperatures - some zones naturally run hotter
-          const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 15 // -15 to +15 variation
+          const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 2 // -2 to +2 variation
           const zoneBaseTemp = 75 + baseVariation + cameraOffset
           
-          const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 1.8
-          const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 1.2
-          const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 1.0
+          const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 0.2
+          const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 0.3
+          const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 0.1
           const noiseSeed = i * 1000 + zoneIndex * 100 + (selectedCamera === 'planck_1' ? 7000 : 8000) + 9000
-          const randomNoise = (seededRandom(noiseSeed) - 0.5) * 1.4
-          const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.8
+          const randomNoise = (seededRandom(noiseSeed) - 0.5) * 0.2
+          const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.2
           
           // Add time-based patterns that can cause different zones to spike
-          const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.5) * Math.PI) * 25 // Larger spikes
-          const randomSpike = Math.random() < 0.1 ? (Math.random() * 30) : 0 // 10% chance of random spike
+          const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.1) * Math.PI) * 3 // Smaller spikes
+          const randomSpike = Math.random() < 0.05 ? (Math.random() * 4) : 0 // 5% chance of small random spike
           const finalTemp = zoneBaseTemp + timeBasedSpike + randomSpike + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
           readings[zoneName] = Math.round(finalTemp * 10) / 10
         })
@@ -2485,11 +2856,11 @@ export default function ThermalPlot({
     
     // For other time ranges, try to load existing data first to preserve historical data
     const currentTestDataKey = `thermalHistory${timeRange}_${selectedCamera}`
-    const existingData = localStorage.getItem(currentTestDataKey)
-    if (existingData) {
+    const existingDataForOtherRanges = localStorage.getItem(currentTestDataKey)
+    if (existingDataForOtherRanges) {
       try {
         // Parse timestamps as strings to prevent Date object recreation on every render
-        const parsed = JSON.parse(existingData)
+        const parsed = JSON.parse(existingDataForOtherRanges)
         console.log(`🔄 Loading existing data: ${parsed.length} data points for ${timeRange} on ${selectedCamera}`)
         console.log(`✅✅✅ INITIAL DATA LOADED ✅✅✅`)
         return parsed
@@ -2502,7 +2873,7 @@ export default function ThermalPlot({
     console.log(`📊 No existing data found, generating data immediately for ${timeRange}`)
     console.log(`🔍 Generating initial data to prevent empty chart`)
     
-    // Generate data immediately for 30m to ensure chart loads
+    // Generate data immediately for 30m and 1h to ensure chart loads
     if (timeRange === '30m') {
       const now = new Date()
       const testData = []
@@ -2524,19 +2895,19 @@ export default function ThermalPlot({
           const isLeftCamera = selectedCamera === 'planck_1'
           const cameraOffset = isLeftCamera ? 2 : 0
           // Create more varied base temperatures - some zones naturally run hotter
-          const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 15 // -15 to +15 variation
+          const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 2 // -2 to +2 variation
           const zoneBaseTemp = 75 + baseVariation + cameraOffset
           
-          const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 1.8
-          const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 1.2
-          const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 1.0
+          const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 0.2
+          const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 0.3
+          const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 0.1
           const noiseSeed = i * 1000 + zoneIndex * 100 + (selectedCamera === 'planck_1' ? 7000 : 8000) + 9000
-          const randomNoise = (seededRandom(noiseSeed) - 0.5) * 1.4
-          const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.8
+          const randomNoise = (seededRandom(noiseSeed) - 0.5) * 0.2
+          const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.2
           
           // Add time-based patterns that can cause different zones to spike
-          const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.5) * Math.PI) * 25 // Larger spikes
-          const randomSpike = Math.random() < 0.1 ? (Math.random() * 30) : 0 // 10% chance of random spike
+          const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.1) * Math.PI) * 3 // Smaller spikes
+          const randomSpike = Math.random() < 0.05 ? (Math.random() * 4) : 0 // 5% chance of small random spike
           const finalTemp = zoneBaseTemp + timeBasedSpike + randomSpike + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
           readings[zoneName] = Math.round(finalTemp * 10) / 10
         })
@@ -2551,6 +2922,55 @@ export default function ThermalPlot({
       return testData
     }
     
+    // Generate data immediately for 1h to ensure chart loads
+    if (timeRange === '1h') {
+      const now = new Date()
+      const testData = []
+      const entries = 60 // 1 hour = 60 data points (1 per minute)
+      const interval = 60 * 1000 // 1 minute intervals
+      const startTime = new Date(now.getTime() - (60 * 60 * 1000))
+      
+      // Seeded random for consistent data
+      const seededRandom = (seed) => {
+        const x = Math.sin(seed) * 10000
+        return x - Math.floor(x)
+      }
+      
+      for (let i = 0; i < entries; i++) {
+        const time = new Date(startTime.getTime() + (i * interval))
+        const readings = {}
+        
+        Array.from({ length: 8 }, (_, zoneIndex) => `Zone_${zoneIndex + 1}`).forEach((zoneName, zoneIndex) => {
+          const isLeftCamera = selectedCamera === 'planck_1'
+          const cameraOffset = isLeftCamera ? 2 : 0
+          // Create more varied base temperatures - some zones naturally run hotter
+          const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 2 // -2 to +2 variation
+          const zoneBaseTemp = 75 + baseVariation + cameraOffset
+          
+          const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 0.3
+          const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 0.4
+          const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 0.2
+          const noiseSeed = i * 1000 + zoneIndex * 100 + (selectedCamera === 'planck_1' ? 7000 : 8000) + 9000
+          const randomNoise = (seededRandom(noiseSeed) - 0.5) * 0.2
+          const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.2
+          
+          // No spikes for 1h to keep data smooth
+          const timeBasedSpike = 0
+          const randomSpike = 0
+          const finalTemp = zoneBaseTemp + timeBasedSpike + randomSpike + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
+          readings[zoneName] = Math.round(finalTemp * 10) / 10
+        })
+        
+        testData.push({
+          time: time.toISOString(),
+          readings: readings
+        })
+      }
+      
+      console.log(`✅ Generated ${testData.length} data points for 1h immediately`)
+      return testData
+    }
+    
     console.log(`❌❌❌ INITIAL STATE EMPTY ❌❌❌`)
     return []
     
@@ -2560,26 +2980,26 @@ export default function ThermalPlot({
     let interval, entries, chartStartTime
     
     if (timeRange === '48h') {
-      entries = 96 // 48 hours = 96 data points (significantly reduced)
+      entries = 8 // 48 hours = 8 data points (4 per day)
       chartStartTime = new Date(now.getTime() - (48 * 60 * 60 * 1000))
-      interval = 30 * 60 * 1000 // 30 minute intervals
+      interval = 6 * 60 * 60 * 1000 // 6 hour intervals
     } else if (timeRange === '24h') {
-      entries = 96 // 24 hours = 96 points (significantly reduced)
+      entries = 4 // 24 hours = 4 points (1 per 6 hours)
       chartStartTime = new Date(now.getTime() - (24 * 60 * 60 * 1000))
-      interval = 15 * 60 * 1000 // 15 minutes
+      interval = 6 * 60 * 60 * 1000 // 6 hours
     } else if (timeRange === '12h') {
-      // For 12 hours: 72 points (significantly reduced)
-      entries = 72 // 12 hours = 72 points
+      // For 12 hours: 2 points (1 per 6 hours)
+      entries = 2 // 12 hours = 2 points
       chartStartTime = new Date(now.getTime() - (12 * 60 * 60 * 1000)) // Exactly 12 hours ago
-      interval = 10 * 60 * 1000 // 10 minutes
+      interval = 6 * 60 * 60 * 1000 // 6 hours
     } else if (timeRange === '6h') {
-      entries = 360 // 6 hours = 360 data points (1 per minute)
+      entries = 12 // 6 hours = 12 data points (1 per 30 minutes)
       chartStartTime = new Date(now.getTime() - (6 * 60 * 60 * 1000))
-      interval = 60 * 1000 // 1 minute intervals
+      interval = 30 * 60 * 1000 // 30 minute intervals
     } else if (timeRange === '1h') {
-      entries = 60
+      entries = 1 // 1 hour = 1 data point (1 per hour)
       chartStartTime = new Date(now.getTime() - (60 * 60 * 1000))
-      interval = 60 * 1000 // 1 minute
+      interval = 60 * 60 * 1000 // 1 hour
     } else if (timeRange === '30m') {
       entries = 60
       chartStartTime = new Date(now.getTime() - (30 * 60 * 1000))
@@ -2617,17 +3037,17 @@ export default function ThermalPlot({
         const isLeftCamera = selectedCamera === 'planck_1'
         const cameraOffset = isLeftCamera ? 2 : 0
         
-        const zoneBaseTemp = 80 + (zoneIndex * 8) + cameraOffset
+        const zoneBaseTemp = 80 + (zoneIndex * 1.5) + cameraOffset
         
-        const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 1.8
-        const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 1.2
-        const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 1.0
-        const randomNoise = (Math.random() - 0.5) * 1.4
-        const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.8
+        const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 0.2
+        const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 0.3
+        const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 0.1
+        const randomNoise = (Math.random() - 0.5) * 0.2
+        const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.2
         
         // Add time-based patterns that can cause different zones to spike
-        const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.5) * Math.PI) * 25 // Larger spikes
-        const randomSpike = Math.random() < 0.1 ? (Math.random() * 30) : 0 // 10% chance of random spike
+        const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.1) * Math.PI) * 3 // Smaller spikes
+        const randomSpike = Math.random() < 0.05 ? (Math.random() * 4) : 0 // 5% chance of small random spike
         const finalTemp = zoneBaseTemp + timeBasedSpike + randomSpike + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
         const minTemp = 60 // Lower minimum
         const maxTemp = 200 // Higher maximum to allow for threshold breaches
@@ -2694,7 +3114,7 @@ export default function ThermalPlot({
         const zoneBaseTemp = 75 + baseVariation + cameraOffset
         
         // Add time-based patterns that can cause different zones to spike
-        const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.5) * Math.PI) * 25 // Larger spikes
+        const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.1) * Math.PI) * 3 // Smaller spikes
         const randomSpike = Math.random() < 0.15 ? (Math.random() * 30) : 0 // 15% chance of random spike for dynamic events
         const eventVariation = Math.sin((i / 10) * Math.PI + zoneIndex) * 2.0
         const randomNoise = (Math.random() - 0.5) * 1.0
@@ -2787,28 +3207,28 @@ export default function ThermalPlot({
       let interval, entries, chartStartTime
       
       if (timeRange === '48h') {
-        // For 48 hours: Generate data points every 1 minute
-        entries = 2880 // 48 hours = 2880 data points (1 minute intervals)
+        // For 48 hours: Generate data points every 6 hours
+        entries = 8 // 48 hours = 8 data points (4 per day)
         chartStartTime = new Date(now.getTime() - (48 * 60 * 60 * 1000)) // Exactly 48 hours ago
-        interval = 60 * 1000 // 1 minute intervals
+        interval = 6 * 60 * 60 * 1000 // 6 hour intervals
       } else if (timeRange === '24h') {
-        // For 24 hours: 1440 points (1 minute intervals)
-        entries = 1440 // 24 hours = 1440 points
+        // For 24 hours: 4 points (1 per 6 hours)
+        entries = 4 // 24 hours = 4 points
         chartStartTime = new Date(now.getTime() - (24 * 60 * 60 * 1000)) // Exactly 24 hours ago
-        interval = 60 * 1000 // 1 minute intervals
+        interval = 6 * 60 * 60 * 1000 // 6 hour intervals
       } else if (timeRange === '12h') {
-        // For 12 hours: 720 points (1 minute intervals)
-        entries = 720 // 12 hours = 720 points
+        // For 12 hours: 2 points (1 per 6 hours)
+        entries = 2 // 12 hours = 2 points
         chartStartTime = new Date(now.getTime() - (12 * 60 * 60 * 1000)) // Exactly 12 hours ago
-        interval = 60 * 1000 // 1 minute intervals
+        interval = 6 * 60 * 60 * 1000 // 6 hour intervals
       } else if (timeRange === '6h') {
-        entries = 360 // 6 hours = 360 data points (1 per minute)
+        entries = 1 // 6 hours = 1 data point (1 per 6 hours)
         chartStartTime = new Date(now.getTime() - (6 * 60 * 60 * 1000))
-        interval = 60 * 1000 // 1 minute intervals
+        interval = 6 * 60 * 60 * 1000 // 6 hour intervals
       } else if (timeRange === '1h') {
-        entries = 60
+        entries = 1 // 1 hour = 1 data point (1 per hour)
         chartStartTime = new Date(now.getTime() - (60 * 60 * 1000))
-        interval = 60 * 1000 // 1 minute
+        interval = 60 * 60 * 1000 // 1 hour
       } else if (timeRange === '30m') {
         entries = 60
         chartStartTime = new Date(now.getTime() - (30 * 60 * 1000))
@@ -2841,17 +3261,17 @@ export default function ThermalPlot({
           const cameraOffset = isLeftCamera ? 2 : 0
           
           // Create more varied base temperatures - some zones naturally run hotter
-          const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 15 // -15 to +15 variation
+          const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 2 // -2 to +2 variation
           const zoneBaseTemp = 75 + baseVariation + cameraOffset
           
           // Add time-based patterns that can cause different zones to spike
-          const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.5) * Math.PI) * 25 // Larger spikes
-          const randomSpike = Math.random() < 0.1 ? (Math.random() * 30) : 0 // 10% chance of random spike
-          const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 1.8
-          const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 1.2
-          const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 1.0
-          const randomNoise = (Math.random() - 0.5) * 1.4
-          const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.8
+          const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.1) * Math.PI) * 3 // Smaller spikes
+          const randomSpike = Math.random() < 0.05 ? (Math.random() * 4) : 0 // 5% chance of small random spike
+          const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 0.2
+          const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 0.3
+          const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 0.1
+          const randomNoise = (Math.random() - 0.5) * 0.2
+          const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.2
           
           const finalTemp = zoneBaseTemp + timeBasedSpike + randomSpike + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
           const minTemp = 60 // Lower minimum
@@ -2880,11 +3300,11 @@ export default function ThermalPlot({
           const cameraOffset = isLeftCamera ? 2 : 0
           
           // Create more varied base temperatures - some zones naturally run hotter
-          const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 15 // -15 to +15 variation
+          const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 2 // -2 to +2 variation
           const zoneBaseTemp = 75 + baseVariation + cameraOffset
           
           // Add time-based patterns that can cause different zones to spike
-          const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.5) * Math.PI) * 25 // Larger spikes
+          const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.1) * Math.PI) * 3 // Smaller spikes
           const randomSpike = Math.random() < 0.15 ? (Math.random() * 30) : 0 // 15% chance of random spike for dynamic events
           const eventVariation = Math.sin((i / 10) * Math.PI + zoneIndex) * 2.0
           const randomNoise = (Math.random() - 0.5) * 1.0
@@ -2926,6 +3346,52 @@ export default function ThermalPlot({
     }
     return result
   }, [dataToUse])
+
+  // Recalculate events today whenever data changes
+  useEffect(() => {
+    const calculateTotalEventsToday = () => {
+      const today = new Date()
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+      const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+      
+      let totalEventsToday = 0
+      const cameras = ['planck_1', 'planck_2']
+      const timeRanges = ['30m', '1h', '3h', '6h', '12h', '24h', '48h', '2d', '4d', '7d', '2w', '1m', '1y']
+      
+      // Check all combinations of cameras and time ranges
+      cameras.forEach(camera => {
+        timeRanges.forEach(range => {
+          const dataKey = `thermalHistory${range}_${camera}`
+          const existingData = localStorage.getItem(dataKey)
+          
+          if (existingData) {
+            try {
+              const parsedData = JSON.parse(existingData)
+              parsedData.forEach(point => {
+                const pointTime = new Date(point.time)
+                if (pointTime >= todayStart && pointTime < todayEnd) {
+                  // Count each data entry (data point) for today
+                  totalEventsToday++
+                }
+              })
+            } catch (error) {
+              console.warn(`Failed to parse data for ${dataKey}:`, error.message)
+            }
+          }
+        })
+      })
+      
+      // Always update the events today count to ensure accuracy
+      if (totalEventsToday !== eventsTodayRef.current) {
+        eventsTodayRef.current = totalEventsToday
+        setEventsTodayState(totalEventsToday)
+        console.log(`📊 EVENTS TODAY: Recalculated to ${totalEventsToday} events (from all time ranges)`)
+      }
+    }
+    
+    // Recalculate when data changes
+    calculateTotalEventsToday()
+  }, [dataToUse, timeRange, selectedCamera])
 
   // Calculate dynamic temperature events data from the same test data as the chart
   const calculateTemperatureEvents = () => {
@@ -2970,33 +3436,39 @@ export default function ThermalPlot({
     console.log(`🕐 Today start: ${todayStart.toLocaleString()}`)
     console.log(`🕐 Today end: ${todayEnd.toLocaleString()}`)
     
+    // Count data points (entries) from current data source
     dataSource.forEach(dataPoint => {
       if (dataPoint.time) {
-        totalEvents++
         const dataTime = new Date(dataPoint.time)
         const isToday = dataTime >= todayStart && dataTime < todayEnd
-        console.log(`📅 Data time: ${dataTime.toLocaleString()} (${isToday ? 'TODAY' : 'NOT TODAY'})`)
+        
+        // Count data points for today
         if (isToday) {
           eventsToday++
+          totalEvents++
+        } else {
+          // Count total data points from all time periods for reference
+          totalEvents++
         }
       }
     })
 
-    console.log(`📊 Total events: ${totalEvents}, Events today: ${eventsToday}`)
+    console.log(`📊 Total events: ${totalEvents}, Events today (current data): ${eventsToday}`)
 
-    // Only show the actual count of events from today's date - no fallback
-    console.log(`✅ Events today (actual count): ${eventsToday}`)
+    // Use the consistent events today count from state (which includes ALL time ranges)
+    const consistentEventsToday = eventsTodayState
+    console.log(`✅ Events today (consistent count from all time ranges): ${consistentEventsToday}`)
 
     return { 
       maxTemperature: Math.round(maxTemperature * 10) / 10, // Round to 1 decimal
-      eventsToday: eventsToday 
+      eventsToday: consistentEventsToday 
     }
   }
 
   // Use useMemo to ensure stable calculation and prevent loading states
   const temperatureEvents = useMemo(() => {
     return calculateTemperatureEvents()
-  }, [dataSource, isChangingTimeRange]) // Depend on the actual data and time range changing state
+  }, [dataSource, isChangingTimeRange, eventsTodayState]) // Depend on the actual data, time range changing state, and events today count
 
   // Debug effect to track dataToUse changes
   useEffect(() => {
@@ -3069,6 +3541,15 @@ export default function ThermalPlot({
     // Run dynamic updates for ALL time ranges
     console.log(`📊 Setting up dynamic updates for ${timeRange} time range`)
     
+    // CRITICAL: Add guard to prevent infinite recursion in dynamic updates
+    const dynamicDataKey = `dynamicData_${timeRange}_${selectedCamera}`
+    const lastDynamicKey = localStorage.getItem('lastDynamicDataKey')
+    
+    if (lastDynamicKey === dynamicDataKey) {
+      console.log(`🛡️ DYNAMIC GUARD: Already set up dynamic updates for ${dynamicDataKey}, skipping`)
+      return
+    }
+    
     // Clear any existing interval first
     if (dynamicDataIntervalRef.current) {
       clearInterval(dynamicDataIntervalRef.current)
@@ -3080,7 +3561,50 @@ export default function ThermalPlot({
     dynamicDataIntervalRef.current = setInterval(() => {
       // Generate a new data point
       const now = new Date()
-      console.log(`⏰ Interval triggered at: ${now.toLocaleTimeString()}`)
+      console.log(`⏰ LIVE DATA: Interval triggered at: ${now.toLocaleTimeString()}`)
+      console.log(`⏰ LIVE DATA: Adding new data point for ${timeRange} on ${selectedCamera}`)
+      
+      // Recalculate total events today from all time ranges
+      const calculateTotalEventsToday = () => {
+        const today = new Date()
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+        const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+        
+        let totalEventsToday = 0
+        const cameras = ['planck_1', 'planck_2']
+        const timeRanges = ['30m', '1h', '3h', '6h', '12h', '24h', '48h', '2d', '4d', '7d', '2w', '1m', '1y']
+        
+        // Check all combinations of cameras and time ranges
+        cameras.forEach(camera => {
+          timeRanges.forEach(range => {
+            const dataKey = `thermalHistory${range}_${camera}`
+            const existingData = localStorage.getItem(dataKey)
+            
+            if (existingData) {
+              try {
+                const parsedData = JSON.parse(existingData)
+                parsedData.forEach(point => {
+                  const pointTime = new Date(point.time)
+                  if (pointTime >= todayStart && pointTime < todayEnd) {
+                    // Count each data entry (data point) for today
+                    totalEventsToday++
+                  }
+                })
+              } catch (error) {
+                console.warn(`Failed to parse data for ${dataKey}:`, error.message)
+              }
+            }
+          })
+        })
+        
+        eventsTodayRef.current = totalEventsToday
+        setEventsTodayState(totalEventsToday)
+        console.log(`📊 EVENTS TODAY: Recalculated total to ${totalEventsToday} events (from all time ranges)`)
+      }
+      
+      // Recalculate events before adding new data
+      calculateTotalEventsToday()
+      
       const newReadings = {}
       
       // Generate temperature readings for all zones
@@ -3092,23 +3616,23 @@ export default function ThermalPlot({
         
         // Use same base temperature calculation as existing data
         const cameraOffset = isLeftCamera ? 2 : 0
-        zoneBaseTemp = 80 + (zoneIndex * 8) + cameraOffset
+        zoneBaseTemp = 80 + (zoneIndex * 1) + cameraOffset
         
         if (isLeftCamera) {
           // Left camera (planck_1) - Different wave patterns but same base temp
-          primaryWave = Math.sin((now.getTime() / 30000) * Math.PI + zoneIndex) * 2.0
-          secondaryWave = Math.cos((now.getTime() / 20000) * Math.PI + zoneIndex * 1.5) * 1.5
-          tertiaryWave = Math.sin((now.getTime() / 15000) * Math.PI + zoneIndex * 0.8) * 1.0
+          primaryWave = Math.sin((now.getTime() / 30000) * Math.PI + zoneIndex) * 0.2
+          secondaryWave = Math.cos((now.getTime() / 20000) * Math.PI + zoneIndex * 1.5) * 0.3
+          tertiaryWave = Math.sin((now.getTime() / 15000) * Math.PI + zoneIndex * 0.2) * 0.1
         } else {
           // Right camera (planck_2) - Different wave patterns but same base temp
-          primaryWave = Math.cos((now.getTime() / 25000) * Math.PI + zoneIndex) * 1.8
-          secondaryWave = Math.sin((now.getTime() / 18000) * Math.PI + zoneIndex * 1.2) * 1.2
-          tertiaryWave = Math.cos((now.getTime() / 12000) * Math.PI + zoneIndex * 0.6) * 0.8
+          primaryWave = Math.cos((now.getTime() / 25000) * Math.PI + zoneIndex) * 0.2
+          secondaryWave = Math.sin((now.getTime() / 18000) * Math.PI + zoneIndex * 0.3) * 0.3
+          tertiaryWave = Math.cos((now.getTime() / 12000) * Math.PI + zoneIndex * 0.6) * 0.1
         }
         
         // Add the same components as existing data
-        const randomNoise = (Math.random() - 0.5) * 1.4 // Random fluctuation
-        const dailyPattern = Math.sin((now.getHours() / 24) * Math.PI * 2) * 0.8 // Daily variation
+        const randomNoise = (Math.random() - 0.5) * 0.2 // Random fluctuation
+        const dailyPattern = Math.sin((now.getHours() / 24) * Math.PI * 2) * 0.2 // Daily variation
         
         const temperature = zoneBaseTemp + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
         newReadings[zoneName] = Math.round(temperature * 10) / 10
@@ -3135,13 +3659,42 @@ export default function ThermalPlot({
       
       console.log(`🕐 Generated new data point at: ${now.toLocaleString()} (${now.toISOString()})`)
       
-      // Add ONLY the new data point to existing data - don't update localStorage or affect existing data
+      // Add the new data point to existing data AND save to localStorage
       setDataToUse(prevData => {
         const currentData = [...prevData, newDataPoint]
-        console.log(`🔄 Added ONE new data point: ${currentData.length} total points at ${now.toLocaleTimeString()}`)
-        return currentData
+        const filteredData = filterTemperatureDifferences(currentData)
+        console.log(`🔄 Added ONE new data point: ${filteredData.length} total points at ${now.toLocaleTimeString()}`)
+        
+        // Check if the new data point has events (temperature > 140°F)
+        const today = new Date()
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+        const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+        const pointTime = new Date(newDataPoint.time)
+        
+        if (pointTime >= todayStart && pointTime < todayEnd) {
+          // Count this new data point as an event for today
+          eventsTodayRef.current += 1
+          setEventsTodayState(eventsTodayRef.current)
+          console.log(`📊 EVENTS TODAY: 1 new data point detected! Total count now: ${eventsTodayRef.current}`)
+        }
+        
+        // CRITICAL: Save the updated data to localStorage so it persists across time range switches
+        const testDataKey = `thermalHistory${timeRange}_${selectedCamera}`
+        try {
+          localStorage.setItem(testDataKey, JSON.stringify(filteredData))
+          console.log(`💾 SAVED: Updated data to localStorage with key: ${testDataKey}`)
+          console.log(`💾 SAVED: ${filteredData.length} total points now stored`)
+        } catch (error) {
+          console.error(`Failed to save updated data to localStorage:`, error.message)
+        }
+        
+        return filteredData
       })
     }, 10000) // 10 seconds
+
+    // CRITICAL: Mark this dynamic data key as processed to prevent recursion
+    localStorage.setItem('lastDynamicDataKey', dynamicDataKey)
+    console.log(`🛡️ DYNAMIC GUARD: Marked ${dynamicDataKey} as processed`)
 
     return () => {
       if (dynamicDataIntervalRef.current) {
@@ -3395,16 +3948,32 @@ export default function ThermalPlot({
   // Helper function to check if a specific month has any data entries
   const monthHasData = (monthDate) => {
     const currentDate = new Date()
-    const oneYearAgo = new Date()
-    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
+    const earliestMonth = findEarliestMonthWithData()
     
-    // Allow navigation to any month within the last year
-    if (monthDate < oneYearAgo || monthDate > currentDate) {
+    // Don't allow navigation beyond reasonable limits
+    if (monthDate > currentDate) {
       return false
     }
     
-    // Always allow navigation to months within the last year
-    return true
+    // Don't allow navigation before the earliest month with data
+    if (earliestMonth && monthDate < earliestMonth) {
+      return false
+    }
+    
+    // Check if there's actual data for this month
+    if (dataToUse && dataToUse.length > 0) {
+      const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1)
+      const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0, 23, 59, 59, 999)
+      
+      const hasDataInMonth = dataToUse.some(entry => {
+        const entryDate = new Date(entry.time)
+        return entryDate >= monthStart && entryDate <= monthEnd
+      })
+      
+      return hasDataInMonth
+    }
+    
+    return false
   }
 
   // Helper function to find the previous month with data
@@ -3440,6 +4009,22 @@ export default function ThermalPlot({
   const hasPreviousMonthWithData = () => {
     return findPreviousMonthWithData(currentMonth) !== null
   }
+
+  // Helper function to find the earliest month with data
+  const findEarliestMonthWithData = () => {
+    if (!dataToUse || dataToUse.length === 0) {
+      return null
+    }
+    
+    // Find the earliest data entry
+    const earliestEntry = dataToUse.reduce((earliest, entry) => {
+      const entryDate = new Date(entry.time)
+      return entryDate < earliest ? entryDate : earliest
+    }, new Date(dataToUse[0].time))
+    
+    // Return the month of the earliest entry
+    return new Date(earliestEntry.getFullYear(), earliestEntry.getMonth(), 1)
+  }
   
   // Add stability check for dramatic data changes
   if (dataSource.length > 0) {
@@ -3450,8 +4035,68 @@ export default function ThermalPlot({
   
   // Memoize sorted data to prevent timestamp changes on every render
   const sorted = useMemo(() => {
-    return dataSource.slice().sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
-  }, [dataSource])
+    // Filter for 6h to show 1 point per hour (6 total points)
+    if (timeRange === '6h') {
+      const now = new Date()
+      const cutoffTime = new Date(now.getTime() - 6 * 60 * 60 * 1000) // 6 hours ago
+      
+      const filteredData = dataSource
+        .filter(entry => new Date(entry.time) >= cutoffTime)
+        .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
+      
+      // Sample every hour (1 point per hour) to get 6 total points
+      const sampledData = []
+      const step = Math.max(1, Math.floor(filteredData.length / 6))
+      
+      for (let i = 0; i < filteredData.length; i += step) {
+        sampledData.push(filteredData[i])
+      }
+      
+      // Always include the most recent entry if it's not already included
+      if (filteredData.length > 0) {
+        const lastEntry = filteredData[filteredData.length - 1]
+        const isLastEntryIncluded = sampledData.some(entry => entry.time === lastEntry.time)
+        if (!isLastEntryIncluded) {
+          sampledData.push(lastEntry)
+        }
+      }
+      
+      return sampledData
+    }
+    
+    // Filter for 12h to show 1 point per hour (12 total points)
+    if (timeRange === '12h') {
+      const now = new Date()
+      const cutoffTime = new Date(now.getTime() - 12 * 60 * 60 * 1000) // 12 hours ago
+      
+      const filteredData = dataSource
+        .filter(entry => new Date(entry.time) >= cutoffTime)
+        .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
+      
+      // Sample every hour (1 point per hour) to get 12 total points
+      const sampledData = []
+      const step = Math.max(1, Math.floor(filteredData.length / 12))
+      
+      for (let i = 0; i < filteredData.length; i += step) {
+        sampledData.push(filteredData[i])
+      }
+      
+      // Always include the most recent entry if it's not already included
+      if (filteredData.length > 0) {
+        const lastEntry = filteredData[filteredData.length - 1]
+        const isLastEntryIncluded = sampledData.some(entry => entry.time === lastEntry.time)
+        if (!isLastEntryIncluded) {
+          sampledData.push(lastEntry)
+        }
+      }
+      
+      return sampledData
+    }
+    
+    // For all other time ranges, return unfiltered data
+    return dataSource
+      .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
+  }, [dataSource, timeRange])
 
 
   // Create a fixed set of zones for thermal chart display (independent of actual data)
@@ -3563,10 +4208,10 @@ export default function ThermalPlot({
     const actualMax = Math.max(...allChartTemps)
     
     // Always use exactly 5° above the highest data point and 5° below the lowest
-    dataMin = actualMin - 5 // Always 5° below the lowest data point (reduced for higher minimum)
+    dataMin = actualMin - 10 // Increased buffer below lowest data point to lower Y-axis min label
     dataMax = actualMax + 5  // Always exactly 5° above the highest data point
     
-    console.log(`🔧 Y-axis scaling for ${timeRange} on ${selectedCamera}: ${dataMin}°F to ${dataMax}°F (5° buffer above highest point)`)
+    console.log(`🔧 Y-axis scaling for ${timeRange} on ${selectedCamera}: ${dataMin}°F to ${dataMax}°F (5° buffer below lowest, 5° buffer above highest)`)
   }
 
   const dataMinTime = sorted.length
@@ -3919,8 +4564,8 @@ export default function ThermalPlot({
       padding: {
         top: -10, // Negative padding to pull chart content even higher
         bottom: 10, // Reduced bottom padding for more chart space
-        left: -5, // Negative left padding to extend chart edge outward (to the left)
-        right: 0, // Remove right padding to eliminate white space
+        left: 0, // No left padding to touch left edge
+        right: 0, // No right padding to touch right edge
       },
     },
     animation: { duration: 0 },
@@ -4150,20 +4795,13 @@ export default function ThermalPlot({
     scales: {
       x: {
         type: 'linear',
-        bounds: 'data',
-        offset: false,
+        bounds: 'data', // Use data bounds
+        grace: '0%', // No grace period to touch edges
+        offset: false, // No offset to touch edges
         reverse: false,
-        min: extendedMin,
+        min: extendedMin, // Use extendedMin for all time ranges
         max: extendedMax,
         beginAtZero: false,
-        ticks: {
-          maxTicksLimit: 12,
-          callback: function(value) {
-            // Convert timestamp to readable format
-            const date = new Date(value)
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          }
-        },
         ticks: timeRange === '30m'
           ? {
               source: 'data',
@@ -4225,14 +4863,14 @@ export default function ThermalPlot({
               min: (() => {
                 const now = new Date(currentTime)
                 now.setSeconds(0, 0)
-                return new Date(now.getTime() - 12 * 60 * 60 * 1000).getTime()
+                return extendedMin
               })(),
               max: extendedMax,
               values: (() => {
                 // Generate ticks that start exactly at the chart minimum
                 const now = new Date(currentTime)
                 now.setSeconds(0, 0)
-                const start = new Date(now.getTime() - 12 * 60 * 60 * 1000)
+                const start = new Date(extendedMin)
                 const ticks = []
                 for (let i = 0; i <= 6; i++) {
                   const tick = new Date(start.getTime() + i * 2 * 60 * 60 * 1000)
@@ -4247,7 +4885,7 @@ export default function ThermalPlot({
                 
                 // ALWAYS hide the leftmost tick - universal approach
                 const currentTime = new Date()
-                const chartStart = new Date(currentTime.getTime() - 12 * 60 * 60 * 1000) // 12 hours ago
+                const chartStart = new Date(extendedMin) // Use the actual chart start time based on time range
                 if (value <= chartStart.getTime() + 60000) { // Hide any tick within 1 minute of start
                   return '' // Return empty string to hide first label
                 }
@@ -4468,7 +5106,7 @@ export default function ThermalPlot({
                 
                 // ALWAYS hide the leftmost tick - universal approach
                 const currentTime = new Date()
-                const chartStart = new Date(currentTime.getTime() - 12 * 60 * 60 * 1000) // 12 hours ago
+                const chartStart = new Date(extendedMin) // Use the actual chart start time based on time range
                 if (value <= chartStart.getTime() + 60000) { // Hide any tick within 1 minute of start
                   return '' // Return empty string to hide first label
                 }
@@ -4490,12 +5128,15 @@ export default function ThermalPlot({
           : timeRange === '48h'
           ? {
               source: 'data',
-              autoSkip: true,
+              autoSkip: false, // Don't auto-skip ticks for 48h
               maxTicksLimit: 10,
               maxRotation: 45,
               minRotation: 0,
               font: { size: 11, family: 'Segoe UI' },
               color: isDarkMode ? '#ccc' : '#222',
+              min: extendedMin, // Ensure first tick touches y-axis
+              max: extendedMax,
+              align: 'start', // Align ticks to start
               values: custom48hTicks, // Show all ticks but hide first label
               callback(value) {
                 const date = new Date(value)
@@ -4504,7 +5145,7 @@ export default function ThermalPlot({
                 
                 // ALWAYS hide the leftmost tick - universal approach
                 const currentTime = new Date()
-                const chartStart = new Date(currentTime.getTime() - 48 * 60 * 60 * 1000) // 48 hours ago
+                const chartStart = new Date(extendedMin) // Use the actual chart start time based on time range
                 if (value <= chartStart.getTime() + 60000) { // Hide any tick within 1 minute of start
                   return '' // Return empty string to hide first label
                 }
@@ -4603,14 +5244,17 @@ export default function ThermalPlot({
         ...(hasUserZoomed && preservedYAxis ? 
           { min: preservedYAxis.min, max: preservedYAxis.max } : 
           hasUserZoomed ? {} : 
-          { min: dataMin, max: dataMax }
+          timeRange === '1h' ? 
+            { min: dataMin, max: dataMax + 5 } : // Use calculated dataMin instead of fixed 70°F
+            { min: dataMin, max: dataMax }
         ), // Use preserved limits if available, otherwise use data limits or none
-        position: 'left',
+        position: 'left', // Keep y-axis on the left
         offset: false,
         beginAtZero: false,
         ticks: {
-          stepSize: 5, // Smaller step size for more granular spacing
-          maxTicksLimit: 12, // Allow more ticks for better spacing
+          stepSize: timeRange === '1h' ? 1 : 5, // Much smaller step size for 1h (1 degree intervals)
+          maxTicksLimit: timeRange === '1h' ? 20 : 12, // More ticks for 1h to show 1-degree intervals
+          max: timeRange === '1h' ? dataMax + 5 : undefined, // For 1h, set max tick 5° above highest data point
           color: isDarkMode ? '#ccc' : '#222',
           font: { size: 13, family: 'Segoe UI' },
           callback: function (value) {
@@ -4632,7 +5276,7 @@ export default function ThermalPlot({
           text: 'Temperature',
           color: isDarkMode ? '#ccc' : '#222',
           font: { family: 'Segoe UI', size: 14 },
-          padding: { top: 0, bottom: 0, left: -20, right: 5 },
+          padding: { top: 0, bottom: 0, left: 10, right: 5 },
         },
       },
     },
@@ -4880,7 +5524,7 @@ export default function ThermalPlot({
                     const temperature = dataPoint.readings[zone]
                     const zoneIndex = Object.keys(dataPoint.readings || {}).indexOf(zone)
                     // Apply same offset as temperature display: + (idx * 3)
-                    const roundedTemp = temperature ? Math.round(temperature) + (zoneIndex * 3) : 32
+                    const roundedTemp = temperature ? Math.round(temperature) + (zoneIndex * 1) : 32
                     // Use threshold 180 for Zone_8, 140 for all other zones
                     const threshold = zone === 'Zone_8' ? 180 : 140
                     return roundedTemp > threshold
@@ -5067,17 +5711,8 @@ export default function ThermalPlot({
           Temperature Data
         </h2>
         
-        <hr 
-          style={{
-            border: 'none',
-            height: '1px',
-            backgroundColor: isDarkMode ? '#444' : '#ddd',
-            margin: '0 0 5px 0',
-            width: '102%',
-            marginLeft: '-1%'
-          }}
-        />
-        <div className="chart-container" style={{ position: 'relative' }}>
+        <hr className="thermal-chart-divider" />
+        <div className="chart-container">
           {/* Chart Broken Indicator */}
           {!isValidData && (
             <div 
@@ -5339,12 +5974,41 @@ export default function ThermalPlot({
               const existingData = localStorage.getItem(testDataKey)
               const dataWasReset = !existingData || existingData === '[]'
               
-              // Clear cached data for the new time range to force fresh generation
-              localStorage.removeItem(`thermalHistory${newTimeRange}_${selectedCamera}`)
-              localStorage.removeItem(`thermalHistory${newTimeRange}_all_cameras`)
-              
-              // Force immediate data generation for the new time range
-              console.log(`🔄 FORCING IMMEDIATE DATA GENERATION for ${newTimeRange}`)
+              // Only clear and regenerate data if no existing data is found
+              if (!existingData || existingData === '[]') {
+                console.log(`🔄 NO EXISTING DATA FOUND for ${newTimeRange} - generating fresh data`)
+                
+                // Clear cached data for the new time range to force fresh generation
+                localStorage.removeItem(`thermalHistory${newTimeRange}_${selectedCamera}`)
+                localStorage.removeItem(`thermalHistory${newTimeRange}_all_cameras`)
+                
+                // Force immediate data generation for the new time range
+                console.log(`🔄 FORCING IMMEDIATE DATA GENERATION for ${newTimeRange}`)
+              } else {
+                console.log(`✅ EXISTING DATA FOUND for ${newTimeRange} - preserving data`)
+                console.log(`📊 Found ${JSON.parse(existingData).length} existing data points for ${newTimeRange}`)
+                
+                // Load existing data immediately
+                try {
+                  const parsedData = JSON.parse(existingData)
+                  setDataToUse(parsedData)
+                  console.log(`✅ LOADED EXISTING DATA: Set dataToUse to ${parsedData.length} points for ${newTimeRange}`)
+                  
+                  // Set timeRange and exit early since we have existing data
+                  setTimeout(() => {
+                    setTimeRange(newTimeRange)
+                    setHasUserZoomed(false)
+                    setPreservedYAxis(null)
+                    localStorage.setItem('timeRange', newTimeRange)
+                    setIsChangingTimeRange(false)
+                    console.log('timeRange set to:', newTimeRange)
+                  }, 50)
+                  return // Exit early - no need to generate new data
+                } catch (error) {
+                  console.warn(`Failed to parse existing data for ${newTimeRange}, will generate fresh data:`, error.message)
+                  // Fall through to data generation below
+                }
+              }
               
               // Generate data immediately for the new time range
               const now = new Date()
@@ -5373,12 +6037,12 @@ export default function ThermalPlot({
                 interval = 60 * 1000
                 startTime = new Date(now.getTime() - (12 * 60 * 60 * 1000))
               } else if (newTimeRange === '24h') {
-                entries = 1440
-                interval = 60 * 1000
+                entries = 4
+                interval = 6 * 60 * 60 * 1000
                 startTime = new Date(now.getTime() - (24 * 60 * 60 * 1000))
               } else if (newTimeRange === '48h') {
-                entries = 2880
-                interval = 60 * 1000
+                entries = 8
+                interval = 6 * 60 * 60 * 1000
                 startTime = new Date(now.getTime() - (48 * 60 * 60 * 1000))
               } else if (newTimeRange === '7d') {
                 entries = 98
@@ -5389,8 +6053,8 @@ export default function ThermalPlot({
                 interval = 24 * 60 * 60 * 1000
                 startTime = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000))
               } else {
-                entries = 1440
-                interval = 60 * 1000
+                entries = 4
+                interval = 6 * 60 * 60 * 1000
                 startTime = new Date(now.getTime() - (24 * 60 * 60 * 1000))
               }
               
@@ -5410,14 +6074,14 @@ export default function ThermalPlot({
                   const baseVariation = Math.sin((zoneIndex / 8) * Math.PI) * 15
                   const zoneBaseTemp = 75 + baseVariation + cameraOffset
                   
-                  const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 1.8
-                  const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 1.2
-                  const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 1.0
+                  const primaryWave = Math.sin((i / 35) * Math.PI + zoneIndex) * 0.2
+                  const secondaryWave = Math.cos((i / 25) * Math.PI + zoneIndex * 2) * 0.3
+                  const tertiaryWave = Math.sin((i / 50) * Math.PI + zoneIndex * 3) * 0.1
                   const noiseSeed = i * 1000 + zoneIndex * 100 + (selectedCamera === 'planck_1' ? 7000 : 8000) + 9000
-                  const randomNoise = (seededRandom(noiseSeed) - 0.5) * 1.4
-                  const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.8
+                  const randomNoise = (seededRandom(noiseSeed) - 0.5) * 0.2
+                  const dailyPattern = Math.sin((time.getHours() / 24) * Math.PI * 2) * 0.2
                   
-                  const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.5) * Math.PI) * 25
+                  const timeBasedSpike = Math.sin((i / 20 + zoneIndex * 0.1) * Math.PI) * 25
                   const randomSpike = Math.random() < 0.1 ? (Math.random() * 30) : 0
                   const finalTemp = zoneBaseTemp + timeBasedSpike + randomSpike + primaryWave + secondaryWave + tertiaryWave + randomNoise + dailyPattern
                   readings[zoneName] = Math.round(finalTemp * 10) / 10
@@ -5522,6 +6186,7 @@ export default function ThermalPlot({
           </span>
         </div> 
       </div>
+
 
       {/* Temperature Event Recordings Container */}
       <div className="chart-button-container temperature-events-container">
@@ -5948,7 +6613,7 @@ export default function ThermalPlot({
                       const temperature = dataPoint.readings[zone]
                       const zoneIndex = Object.keys(dataPoint.readings || {}).indexOf(zone)
                       // Apply same offset as temperature display: + (idx * 3)
-                      const roundedTemp = temperature ? Math.round(temperature) + (zoneIndex * 3) : 32
+                      const roundedTemp = temperature ? Math.round(temperature) + (zoneIndex * 1) : 32
                       // Use threshold 180 for Zone_8, 140 for all other zones
                       const threshold = zone === 'Zone_8' ? 180 : 140
                       return roundedTemp > threshold

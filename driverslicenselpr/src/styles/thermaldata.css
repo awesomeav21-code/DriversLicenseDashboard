@@ -1,3 +1,71 @@
+/* === THERMAL CONTAINER === */
+.thermal-container {
+  width: 100%;
+  overflow: visible; /* Allow chart to extend beyond boundaries */
+  position: relative;
+}
+
+/* === CHART CONTAINER === */
+.chart-container {
+  position: relative;
+  width: 130%;
+  margin-left: -15%;
+}
+
+/* Force chart to fill full width and touch edges */
+.chart-container canvas {
+  width: 100% !important;
+  height: auto !important;
+}
+
+/* Chart.js specific overrides to touch edges */
+.chart-container .chartjs-render-monitor {
+  width: 100% !important;
+}
+
+/* Remove any default margins/padding from chart */
+.chart-container > div {
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Force Chart.js to use full width without padding */
+.chart-container canvas[style*="width"] {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Override Chart.js internal padding */
+.chart-container .chartjs-size-monitor {
+  width: 100% !important;
+}
+
+/* Make sure chart area touches edges */
+.chart-container .chartjs-chart {
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Reduce left margin to make chart start closer to left edge */
+.chart-container {
+  margin-left: -15% !important;
+  width: 130% !important;
+}
+
+/* Force chart to start from the very left */
+.chart-container canvas {
+  margin-left: -30px !important;
+  padding-left: 0 !important;
+}
+
+/* Override any Chart.js left positioning */
+.chart-container > div {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+}
+
 /* === SSAM STYLE MODAL === */
 .events-modal-overlay {
   position: fixed;
@@ -187,6 +255,10 @@
   border-radius: 4px;
   font-size: 12px;
   cursor: pointer;
+}
+
+.dark-mode .today-btn {
+  color: black;
 }
 
 .date-list {
@@ -456,7 +528,7 @@
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.25), 0 8px 24px rgba(0,0,0,0.15);
-  width: 85vw !important;                        /* Consistent viewport width across all screen sizes */
+  width: 95vw !important;                        /* Increased viewport width for wider chart container */
   height: auto !important;                     /* GROW WITH CHART CONTENT */
   min-height: clamp(500px, 50vh, 600px);       /* Reduced height for more compact layout */
   max-height: clamp(600px, 60vh, 700px);       /* Reduced height for more compact layout */
@@ -466,23 +538,27 @@
   margin: 60px auto 40px auto;                 /* Center horizontally */
 }
 
+/* Test box to show padding */
+
 .thermal-container.dark-mode {
   background: #0f172a;
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.8);
   color: #eee;
-  border: 1px solid #243456 !important
+  border: 1px solid #374151 !important
 }
 
 /* === CHART CONTAINER === */
 .chart-container {
-  width: 100% !important;
+  width: calc(100% - 10px) !important;
   height: clamp(450px, 45vh, 550px) !important;  /* Reduced chart height for more compact layout */
   position: relative;
   overflow: visible;
   display: block;
   padding: 0 !important;
-  margin: 20px 0 0 0 !important;  /* Add top margin to move chart higher */
+  margin: 20px 0 0 10px !important;  /* Further reduced left margin to maximize chart width */
 }
+
+
 
 /* Ensure Chart.js canvas respects container dimensions */
 .chart-container canvas {
@@ -511,13 +587,13 @@
   margin-top: 4px;
   position: absolute; 
   top: -10px; 
-  left: 52%;
+  left: 50%;
   transform: translateX(-50%);
   background: #fff;                /* White background */
   padding: 8px 20px;               /* Padding inside container */
   border-radius: 6px;              /* Rounded corners */
   box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* subtle shadow */
-  z-index: 10000;                  /* Much higher z-index to stay above everything */
+  z-index: 1;                      /* Lowest z-index to prevent overlapping other elements */
 
   max-width: 600px;                /* Fixed max width to prevent overgrowth on small screens */
   min-width: 250px;                /* Lower minimum width */
@@ -535,7 +611,7 @@
 /* Dark mode container style */
 .dark-mode .camera-switcher-bar {
   background: #0f172a;              /* Same dark blue as other dark mode areas */
-  border: 1px solid #243456 !important;            /* Consistent border color */
+  border: 1px solid #374151 !important;            /* Darker border for contrast */
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.8); /* Darker shadow */
   color: #eee;                     /* Light text color */
 }
@@ -590,18 +666,18 @@
   white-space: nowrap;               /* Prevent wrapping */
 }
 .dark-mode .chart-button{
-  border: 1px solid #243456!important; 
+  border: 1px solid #fff!important; 
 }
 .dark-mode .pdf-dropdown{
-  border: 1px solid #243456!important; 
+  border: 1px solid #fff!important; 
 }
 .dark-mode .chart-dropdown{
-  border: 1px solid #243456 !important; 
+  border: 1px solid #fff !important; 
 }
 /* Dark mode container style for chart buttons */
 .dark-mode .chart-button-wrapper {
   background: #0f172a;               /* Dark blue background */
-  border: 1px solid #243456 !important;             /* Consistent border color */
+  border: 1px solid #fff !important;             /* Dark border */
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.8); /* Dark shadow */
   color: #eee;                      /* Light text */
 }
@@ -622,7 +698,7 @@
   cursor: default;                 /* Remove pointer cursor from container */
   color: #000;
   transition: none;
-  width: 85vw; /* Responsive width - 85% of viewport width */
+  width: 95vw; /* Responsive width - 95% of viewport width */
   box-sizing: border-box;          /* Include padding and border in width */
   z-index: 100;
   overflow: visible;               /* Allow content to be visible */
@@ -631,7 +707,7 @@
 /* Dark mode for chart button container */
 .dark-mode .chart-button-container {
   background-color: #0f172a; /* Same dark blue as other dark mode areas */
-  border: 1px solid #243456!important;
+  border: 1px solid #374151!important;
   color: #fff; /* Always white text */
 }
 
@@ -698,10 +774,14 @@
   white-space: nowrap;            /* Prevent text wrapping */
   overflow: hidden;               /* Ensure content doesn't overflow */
   text-overflow: ellipsis;        /* Add ellipsis if text is too long */
+  z-index: 1000;                  /* Ensure dropdown appears above other elements */
 }
 .pdf-dropdown{
-  position: relative; 
+  position: relative;
+  z-index: 10000;                  /* Ensure dropdown appears above other elements */
 }
+
+
 /* Ensure hover color applies to button and all its children */
 .chart-button:hover,
 .chart-button:hover * {
@@ -712,7 +792,7 @@
 /* Dark mode buttons */
 .dark-mode .chart-button,
 .dark-mode .zoom-left-button {
-  border: 1px solid #243456;
+  border: 1px solid #fff;
   color: #ffffff;
 }
 
@@ -838,9 +918,12 @@
   align-items: center !important;
   margin-top: 16px !important;
   padding: clamp(6px, 1.2vw, 20px) clamp(8px, 1.8vw, 20px) !important;
-  width: 85vw !important;
+  width: 95vw !important;
   justify-content: center !important;
+  position: relative;
+  z-index: 1;
 }
+
 
 /* Horizontal header container for Temperature Recordings */
 .temperature-recordings-header {
@@ -887,6 +970,7 @@
 
 .temperature-events-container.dark-mode {
   color: #eee;
+  border: 1px solid #374151 !important;
 }
 
 /* Temperature Event Recordings Styles */
@@ -934,11 +1018,13 @@
 
 /* Horizontal divider for temperature events */
 .temperature-events-divider {
-  width: calc(100% + 2 * clamp(8px, 1.8vw, 20px));
+  width: 100%;
   height: 1px;
   background-color: #ddd;
-  margin: 8px calc(-1 * clamp(8px, 1.8vw, 20px));
+  margin: 8px 0;
   border: none;
+  box-sizing: border-box;
+  display: block;
 }
 
 .dark-mode .temperature-events-divider {
@@ -1671,6 +1757,22 @@
 
 .dark-mode .threshold-temp {
   color: #9ca3af;
+}
+
+/* === THERMAL CHART HORIZONTAL DIVIDER === */
+.thermal-chart-divider {
+  border: none;
+  height: 1px;
+  background-color: #ddd;
+  width: 100%;
+  margin: 0 0 5px 0;
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+.dark-mode .thermal-chart-divider {
+  background-color: #444;
 }
 
 /* Time Range Switch Test Indicator Animations */
